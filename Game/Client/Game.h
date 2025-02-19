@@ -3,7 +3,7 @@
 class Game
 {
 public:
-	void Initialize();
+	void Initialize(const FWindowInfo& Info);
 	void Update();
 };
 
