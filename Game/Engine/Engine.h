@@ -1,5 +1,9 @@
 #pragma once
 
+class FDevice;
+class FCommandQueue;
+class FSwapChain;
+
 class Engine
 {
 public:
@@ -10,17 +14,20 @@ public:
 public:
 	void RenderBegin();
 	void RenderEnd();
-
 	void ResizeWindow(int32 Width, int32 Height);
+
+public:
+	shared_ptr<FDevice> GetDevice() { return Device; }
+	shared_ptr<FCommandQueue> GetCommandQueue() { return CommandQueue; }
+	shared_ptr<FSwapChain> GetSwapChain() { return SwapChain; }
 
 private:
 	FWindowInfo Info{};
 	D3D12_VIEWPORT Viewport{};
 	D3D12_RECT ScissorRect{};
 
-	shared_ptr<class FDevice> Device;
-	shared_ptr<class FCommandQueue> CommandQueue;
-	shared_ptr<class FSwapChain> SwapChain;
-	shared_ptr<class FDescriptorHeap> DescriptorHeap;
+	shared_ptr<FDevice> Device;
+	shared_ptr<FCommandQueue> CommandQueue;
+	shared_ptr<FSwapChain> SwapChain;
 };
 

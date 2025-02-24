@@ -1,7 +1,5 @@
 #include "pch.h"
 #include "CommandQueue.h"
-
-#include "DescriptorHeap.h"
 #include "SwapChain.h"
 
 FCommandQueue::~FCommandQueue()
@@ -9,11 +7,9 @@ FCommandQueue::~FCommandQueue()
 	::CloseHandle(FenceEvent);
 }
 
-void FCommandQueue::Initialize(ComPtr<ID3D12Device> Device, shared_ptr<FSwapChain> InSwapChain,
-                               shared_ptr<FDescriptorHeap> InDescriptorHeap)
+void FCommandQueue::Initialize(ComPtr<ID3D12Device> Device, shared_ptr<FSwapChain> InSwapChain)
 {
 	SwapChain = InSwapChain;
-	DescriptorHeap = InDescriptorHeap;
 
 	// GPU가 직접 실행하는 커맨드 목록
 	constexpr D3D12_COMMAND_LIST_TYPE Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
@@ -72,7 +68,7 @@ void FCommandQueue::RenderBegin(const D3D12_VIEWPORT* Viewport, const D3D12_RECT
 	CommandList->RSSetScissorRects(1, Rect);
 
 	// GPU가 사용할(결과물을 그려야할) 백 버퍼를 지정
-	D3D12_CPU_DESCRIPTOR_HANDLE BackBufferView = DescriptorHeap->GetBackBufferView();
+	D3D12_CPU_DESCRIPTOR_HANDLE BackBufferView = SwapChain->GetCurrentBackBufferView();
 	CommandList->ClearRenderTargetView(BackBufferView, Colors::LightSteelBlue, 0, nullptr);
 	CommandList->OMSetRenderTargets(1, &BackBufferView, false, nullptr);
 }

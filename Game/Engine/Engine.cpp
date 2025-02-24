@@ -2,7 +2,6 @@
 #include "Engine.h"
 
 #include "CommandQueue.h"
-#include "DescriptorHeap.h"
 #include "Device.h"
 #include "SwapChain.h"
 
@@ -24,12 +23,10 @@ void Engine::Initialize(const FWindowInfo& InInfo)
 	Device = make_shared<FDevice>();
 	CommandQueue = make_shared<FCommandQueue>();
 	SwapChain = make_shared<FSwapChain>();
-	DescriptorHeap = make_shared<FDescriptorHeap>();
 
 	Device->Initialize();
-	CommandQueue->Initialize(Device->GetDevice(), SwapChain, DescriptorHeap);
-	SwapChain->Initialize(Info, Device->GetDXGI(), CommandQueue->GetQueue());
-	DescriptorHeap->Initialize(Device->GetDevice(), SwapChain);
+	CommandQueue->Initialize(Device->GetD3DDevice(), SwapChain);
+	SwapChain->Initialize(Info, Device->GetD3DDevice(), Device->GetDXGI(), CommandQueue->GetD3DCommandQueue());
 }
 
 void Engine::Render()

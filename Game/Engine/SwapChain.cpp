@@ -1,7 +1,25 @@
 #include "pch.h"
 #include "SwapChain.h"
 
-void FSwapChain::Initialize(const FWindowInfo& Info, ComPtr<IDXGIFactory> DXGI, ComPtr<ID3D12CommandQueue> CommandQueue)
+void FSwapChain::Initialize(const FWindowInfo& Info, ComPtr<ID3D12Device> Device, ComPtr<IDXGIFactory> DXGI, ComPtr<ID3D12CommandQueue> CommandQueue)
+{
+	CreateSwapChain(Info, DXGI, CommandQueue);
+	CreateRenderTargetView(Device);
+}
+
+void FSwapChain::Present() const
+{
+	// 현재 프레임을 그리는 것
+	SwapChain->Present(0, 0);
+}
+
+void FSwapChain::SwapIndex()
+{
+	// 지금은 숫자가 0, 1밖에 없으므로 BackBufferIndex ^= 1; 도 가능할 듯
+	BackBufferIndex = (BackBufferIndex + 1) % SWAP_CHAIN_BUFFER_COUNT;
+}
+
+void FSwapChain::CreateSwapChain(const FWindowInfo& Info, ComPtr<IDXGIFactory> DXGI, ComPtr<ID3D12CommandQueue> CommandQueue)
 {
 	SwapChain.Reset();	// 혹시 Init 함수가 2번 호출될 것을 대비해 Clear
 
@@ -35,14 +53,35 @@ void FSwapChain::Initialize(const FWindowInfo& Info, ComPtr<IDXGIFactory> DXGI, 
 	}
 }
 
-void FSwapChain::Present() const
+void FSwapChain::CreateRenderTargetView(ComPtr<ID3D12Device> Device)
 {
-	// 현재 프레임을 그리는 것
-	SwapChain->Present(0, 0);
-}
+	/*
+	 *	Descriptor Heap으로 RTV 생성
+	 *	DX11까지는 아래 목록을 각각 관리, DX12부터 통합으로 DescriptorHeap에서 관리
+	 *	RTV(Render Target View), DSV(Depth Stencil View), CBV(Constant Buffer View), SRV(Shader Resource View), UAV(Unordered Access View)
+	 */
 
-void FSwapChain::SwapIndex()
-{
-	// 지금은 숫자가 0, 1밖에 없으므로 BackBufferIndex ^= 1; 도 가능할 듯
-	BackBufferIndex = (BackBufferIndex + 1) % SWAP_CHAIN_BUFFER_COUNT;
+	uint32 RTVHeapSize = Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+
+	D3D12_DESCRIPTOR_HEAP_DESC RTVDesc
+	{
+		.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
+		.NumDescriptors = SWAP_CHAIN_BUFFER_COUNT,
+		.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
+		.NodeMask = 0
+	};
+	/*
+	 *	같은 종류 데이터끼리 묶어서 배열(힙)로 관리
+	 *	RTV: [ ] [ ]
+	 *	DSV: [ ] [ ]
+	 *	...
+	 */
+	Device->CreateDescriptorHeap(&RTVDesc, IID_PPV_ARGS(&RenderTargetViewHeap));
+
+	D3D12_CPU_DESCRIPTOR_HANDLE RTVHeapBegin = RenderTargetViewHeap->GetCPUDescriptorHandleForHeapStart();
+	for (int32 i = 0; i < SWAP_CHAIN_BUFFER_COUNT; ++i)
+	{
+		RenderTargetViewHandles[i] = CD3DX12_CPU_DESCRIPTOR_HANDLE(RTVHeapBegin, i * RTVHeapSize);
+		Device->CreateRenderTargetView(RenderTargets[i].Get(), nullptr, RenderTargetViewHandles[i]);
+	}
 }

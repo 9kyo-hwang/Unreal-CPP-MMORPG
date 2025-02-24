@@ -1,20 +1,20 @@
 #pragma once
 
 class FSwapChain;
-class FDescriptorHeap;
 
 class FCommandQueue
 {
 public:
 	~FCommandQueue();
 
-	void Initialize(ComPtr<ID3D12Device> Device, shared_ptr<FSwapChain> InSwapChain, shared_ptr<FDescriptorHeap> InDescriptorHeap);
+	void Initialize(ComPtr<ID3D12Device> Device, shared_ptr<FSwapChain> InSwapChain);
 	void WaitSync();
 
 	void RenderBegin(const D3D12_VIEWPORT* Viewport, const D3D12_RECT* Rect);
 	void RenderEnd();
 
-	ComPtr<ID3D12CommandQueue> GetQueue() { return CommandQueue; }
+	ComPtr<ID3D12CommandQueue> GetD3DCommandQueue() { return CommandQueue; }
+	ComPtr<ID3D12GraphicsCommandList> GetD3DCommandList() { return CommandList; }
 
 private:
 	ComPtr<ID3D12CommandQueue> CommandQueue;
@@ -27,6 +27,5 @@ private:
 	HANDLE FenceEvent = INVALID_HANDLE_VALUE;
 
 	shared_ptr<FSwapChain> SwapChain;
-	shared_ptr<FDescriptorHeap> DescriptorHeap;
 };
 
