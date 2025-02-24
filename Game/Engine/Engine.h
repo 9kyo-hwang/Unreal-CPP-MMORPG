@@ -1,8 +1,9 @@
 #pragma once
 
-class FDevice;
-class FCommandQueue;
-class FSwapChain;
+#include "Device.h"
+#include "CommandQueue.h"
+#include "SwapChain.h"
+#include "RootSignature.h"
 
 class Engine
 {
@@ -20,6 +21,7 @@ public:
 	shared_ptr<FDevice> GetDevice() { return Device; }
 	shared_ptr<FCommandQueue> GetCommandQueue() { return CommandQueue; }
 	shared_ptr<FSwapChain> GetSwapChain() { return SwapChain; }
+	shared_ptr<FRootSignature> GetRootSignature() { return RootSignature; }
 
 private:
 	FWindowInfo Info{};
@@ -29,5 +31,6 @@ private:
 	shared_ptr<FDevice> Device;
 	shared_ptr<FCommandQueue> CommandQueue;
 	shared_ptr<FSwapChain> SwapChain;
+	shared_ptr<FRootSignature> RootSignature;
 };
 

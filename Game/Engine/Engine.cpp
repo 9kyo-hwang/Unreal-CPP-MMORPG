@@ -23,10 +23,12 @@ void Engine::Initialize(const FWindowInfo& InInfo)
 	Device = make_shared<FDevice>();
 	CommandQueue = make_shared<FCommandQueue>();
 	SwapChain = make_shared<FSwapChain>();
+	RootSignature = make_shared<FRootSignature>();
 
 	Device->Initialize();
-	CommandQueue->Initialize(Device->GetD3DDevice(), SwapChain);
-	SwapChain->Initialize(Info, Device->GetD3DDevice(), Device->GetDXGI(), CommandQueue->GetD3DCommandQueue());
+	CommandQueue->Initialize(SwapChain);
+	SwapChain->Initialize(Info, Device->GetDXGI(), CommandQueue->GetD3DCommandQueue());
+	RootSignature->Initialize();
 }
 
 void Engine::Render()

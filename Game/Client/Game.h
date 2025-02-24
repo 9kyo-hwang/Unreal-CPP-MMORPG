@@ -6,4 +6,3 @@ public:
 	void Initialize(const FWindowInfo& Info);
 	void Update();
 };
-

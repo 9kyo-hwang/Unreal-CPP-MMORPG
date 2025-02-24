@@ -1,5 +1,7 @@
 #include "pch.h"
 #include "CommandQueue.h"
+
+#include "Engine.h"
 #include "SwapChain.h"
 
 FCommandQueue::~FCommandQueue()
@@ -7,7 +9,7 @@ FCommandQueue::~FCommandQueue()
 	::CloseHandle(FenceEvent);
 }
 
-void FCommandQueue::Initialize(ComPtr<ID3D12Device> Device, shared_ptr<FSwapChain> InSwapChain)
+void FCommandQueue::Initialize(shared_ptr<FSwapChain> InSwapChain)
 {
 	SwapChain = InSwapChain;
 
@@ -20,15 +22,15 @@ void FCommandQueue::Initialize(ComPtr<ID3D12Device> Device, shared_ptr<FSwapChai
 		.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE,
 	};
 
-	Device->CreateCommandQueue(&Desc, IID_PPV_ARGS(&CommandQueue));
-	Device->CreateCommandAllocator(Type, IID_PPV_ARGS(&CommandAllocator));
+	DEVICE->CreateCommandQueue(&Desc, IID_PPV_ARGS(&CommandQueue));
+	DEVICE->CreateCommandAllocator(Type, IID_PPV_ARGS(&CommandAllocator));
 	/*
 	 *	GPU가 하나인 시스템에서는 0
 	 *	DIRECT or BUNDLE
 	 *	Allocator
 	 *	초기 상태(그리기 명령은 nullptr 지정)
 	 */
-	Device->CreateCommandList(0, Type, CommandAllocator.Get(), nullptr, IID_PPV_ARGS(&CommandList));
+	DEVICE->CreateCommandList(0, Type, CommandAllocator.Get(), nullptr, IID_PPV_ARGS(&CommandList));
 
 	/*
 	 *	상태 2가지: Close / Open
@@ -36,7 +38,7 @@ void FCommandQueue::Initialize(ComPtr<ID3D12Device> Device, shared_ptr<FSwapChai
 	 */
 	CommandList->Close();
 
-	Device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&Fence));
+	DEVICE->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&Fence));
 	FenceEvent = ::CreateEvent(nullptr, false, false, nullptr);
 }
 

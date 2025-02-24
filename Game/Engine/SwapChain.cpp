@@ -1,10 +1,12 @@
 #include "pch.h"
 #include "SwapChain.h"
 
-void FSwapChain::Initialize(const FWindowInfo& Info, ComPtr<ID3D12Device> Device, ComPtr<IDXGIFactory> DXGI, ComPtr<ID3D12CommandQueue> CommandQueue)
+#include "Engine.h"
+
+void FSwapChain::Initialize(const FWindowInfo& Info, ComPtr<IDXGIFactory> DXGI, ComPtr<ID3D12CommandQueue> CommandQueue)
 {
 	CreateSwapChain(Info, DXGI, CommandQueue);
-	CreateRenderTargetView(Device);
+	CreateRenderTargetView();
 }
 
 void FSwapChain::Present() const
@@ -53,7 +55,7 @@ void FSwapChain::CreateSwapChain(const FWindowInfo& Info, ComPtr<IDXGIFactory> D
 	}
 }
 
-void FSwapChain::CreateRenderTargetView(ComPtr<ID3D12Device> Device)
+void FSwapChain::CreateRenderTargetView()
 {
 	/*
 	 *	Descriptor Heap으로 RTV 생성
@@ -61,7 +63,7 @@ void FSwapChain::CreateRenderTargetView(ComPtr<ID3D12Device> Device)
 	 *	RTV(Render Target View), DSV(Depth Stencil View), CBV(Constant Buffer View), SRV(Shader Resource View), UAV(Unordered Access View)
 	 */
 
-	uint32 RTVHeapSize = Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	uint32 RTVHeapSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
 	D3D12_DESCRIPTOR_HEAP_DESC RTVDesc
 	{
@@ -76,12 +78,12 @@ void FSwapChain::CreateRenderTargetView(ComPtr<ID3D12Device> Device)
 	 *	DSV: [ ] [ ]
 	 *	...
 	 */
-	Device->CreateDescriptorHeap(&RTVDesc, IID_PPV_ARGS(&RenderTargetViewHeap));
+	DEVICE->CreateDescriptorHeap(&RTVDesc, IID_PPV_ARGS(&RenderTargetViewHeap));
 
 	D3D12_CPU_DESCRIPTOR_HANDLE RTVHeapBegin = RenderTargetViewHeap->GetCPUDescriptorHandleForHeapStart();
 	for (int32 i = 0; i < SWAP_CHAIN_BUFFER_COUNT; ++i)
 	{
 		RenderTargetViewHandles[i] = CD3DX12_CPU_DESCRIPTOR_HANDLE(RTVHeapBegin, i * RTVHeapSize);
-		Device->CreateRenderTargetView(RenderTargets[i].Get(), nullptr, RenderTargetViewHandles[i]);
+		DEVICE->CreateRenderTargetView(RenderTargets[i].Get(), nullptr, RenderTargetViewHandles[i]);
 	}
 }

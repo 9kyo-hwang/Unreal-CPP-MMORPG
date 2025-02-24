@@ -4,7 +4,7 @@
 class FSwapChain
 {
 public:
-	void Initialize(const FWindowInfo& Info, ComPtr<ID3D12Device> Device, ComPtr<IDXGIFactory> DXGI, ComPtr<ID3D12CommandQueue> CommandQueue);
+	void Initialize(const FWindowInfo& Info, ComPtr<IDXGIFactory> DXGI, ComPtr<ID3D12CommandQueue> CommandQueue);
 	void Present() const;
 	void SwapIndex();
 
@@ -15,7 +15,7 @@ public:
 
 private:
 	void CreateSwapChain(const FWindowInfo& Info, ComPtr<IDXGIFactory> DXGI, ComPtr<ID3D12CommandQueue> CommandQueue);
-	void CreateRenderTargetView(ComPtr<ID3D12Device> Device);
+	void CreateRenderTargetView();
 
 private:
 	ComPtr<IDXGISwapChain> SwapChain;

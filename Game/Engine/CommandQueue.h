@@ -7,7 +7,7 @@ class FCommandQueue
 public:
 	~FCommandQueue();
 
-	void Initialize(ComPtr<ID3D12Device> Device, shared_ptr<FSwapChain> InSwapChain);
+	void Initialize(shared_ptr<FSwapChain> InSwapChain);
 	void WaitSync();
 
 	void RenderBegin(const D3D12_VIEWPORT* Viewport, const D3D12_RECT* Rect);

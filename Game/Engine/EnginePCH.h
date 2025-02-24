@@ -54,4 +54,13 @@ struct FWindowInfo
 	bool bWindowed;		// 창모드 유무
 };
 
+struct FVertex
+{
+	FVector3 Position;	// 3차원 공간(x, y, z)
+	FVector4 Color;		// RGBA
+};
+
+#define DEVICE GEngine->GetDevice()->GetD3DDevice()
+#define COMMAND_LIST GEngine->GetCommandQueue()->GetD3DCommandList()
+#define ROOT_SIGNATURE GEngine->GetRootSignature()->GetD3DRootSignature()
 extern unique_ptr<class Engine> GEngine;  // 전역에서 사용 가능한 Engine 클래스
