@@ -9,15 +9,15 @@ void FMesh::Initialize(const vector<FVertex>& Vertices)
 	uint32 BufferSize = VertexCount * sizeof(FVertex);
 
 	/**
-	 * ¿ø·¡´Â Buffer¸¦ Default, Upload 2°³¸¦ ¸¸µé¾î¼­ »ç¿ë
-	 * GPU¿¡¼­ ¹öÆÛ¸¦ È°¿ëÇØ ¹°Ã¼¸¦ ±×¸®´Â ¿ëµµ´Â Default ´ã´ç
-	 * Upload´Â CPU¿¡¼­ ÀÛ¾÷ÇÑ °É GPU¿¡ ³Ñ°ÜÁÖ´Â ¿ëµµ·Î¸¸ »ç¿ë
-	 * ¿©±â¼­´Â Æí¸®ÇÏ°Ô ÀÛ¾÷ÇÏ±â À§ÇØ Upload ÇÏ³ª·Î °ü¸®
+	 * ì›ë˜ëŠ” Bufferë¥¼ Default, Upload 2ê°œë¥¼ ë§Œë“¤ì–´ì„œ ì‚¬ìš©
+	 * GPUì—ì„œ ë²„í¼ë¥¼ í™œìš©í•´ ë¬¼ì²´ë¥¼ ê·¸ë¦¬ëŠ” ìš©ë„ëŠ” Default ë‹´ë‹¹
+	 * UploadëŠ” CPUì—ì„œ ì‘ì—…í•œ ê±¸ GPUì— ë„˜ê²¨ì£¼ëŠ” ìš©ë„ë¡œë§Œ ì‚¬ìš©
+	 * ì—¬ê¸°ì„œëŠ” í¸ë¦¬í•˜ê²Œ ì‘ì—…í•˜ê¸° ìœ„í•´ Upload í•˜ë‚˜ë¡œ ê´€ë¦¬
 	 */
 	D3D12_HEAP_PROPERTIES HeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 	D3D12_RESOURCE_DESC Desc = CD3DX12_RESOURCE_DESC::Buffer(BufferSize);
 
-	DEVICE->CreateCommittedResource(	// º¹»çÇØÁÙ Á¤Á¡ Á¤º¸¸¦ ÀúÀåÇÏ±â À§ÇÑ GPUÂÊ °ø°£ ÇÒ´ç
+	DEVICE->CreateCommittedResource(	// ë³µì‚¬í•´ì¤„ ì •ì  ì •ë³´ë¥¼ ì €ì¥í•˜ê¸° ìœ„í•œ GPUìª½ ê³µê°„ í• ë‹¹
 		&HeapProperties, 
 		D3D12_HEAP_FLAG_NONE, 
 		&Desc, 
@@ -26,7 +26,7 @@ void FMesh::Initialize(const vector<FVertex>& Vertices)
 		IID_PPV_ARGS(&VertexBuffer)
 	);
 
-	// Á¤Á¡ Á¤º¸¸¦ GPU, Áï VertexBuffer¿¡ º¹»ç
+	// ì •ì  ì •ë³´ë¥¼ GPU, ì¦‰ VertexBufferì— ë³µì‚¬
 	void* VertexData = nullptr;
 	CD3DX12_RANGE ReadRange(0, 0);
 	VertexBuffer->Map(0, &ReadRange, &VertexData);
@@ -34,14 +34,19 @@ void FMesh::Initialize(const vector<FVertex>& Vertices)
 	VertexBuffer->Unmap(0, nullptr);
 
 	VertexBufferView.BufferLocation = VertexBuffer->GetGPUVirtualAddress();
-	VertexBufferView.StrideInBytes = sizeof(FVertex);  // Á¤Á¡ 1°³ Å©±â
-	VertexBufferView.SizeInBytes = BufferSize;  // ¹öÆÛ Å©±â
+	VertexBufferView.StrideInBytes = sizeof(FVertex);  // ì •ì  1ê°œ í¬ê¸°
+	VertexBufferView.SizeInBytes = BufferSize;  // ë²„í¼ í¬ê¸°
 }
 
-// CommandQueueÀÇ RenderBegin, RenderEnd »çÀÌ¿¡ ÀÌ·¯ÇÑ RenderµéÀÌ È£ÃâµÉ ¿¹Á¤(CommandList¿¡ µé¾î°¬À¸¹Ç·Î)
+// CommandQueueì˜ RenderBegin, RenderEnd ì‚¬ì´ì— ì´ëŸ¬í•œ Renderë“¤ì´ í˜¸ì¶œë  ì˜ˆì •(CommandListì— ë“¤ì–´ê°”ìœ¼ë¯€ë¡œ)
 void FMesh::Render()
 {
 	COMMAND_LIST->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	COMMAND_LIST->IASetVertexBuffers(0, 1, &VertexBufferView);
+
+	// TODO: ì‘ì„±í•œ ì„œëª…ì„ ì‹¤ì œë¡œ ì‚¬ìš©í•˜ë ¤ë©´ ì´ ë¶€ë¶„ì—ì„œ ì½”ë“œ ì‘ì„±
+	GEngine->GetConstantBuffer()->Add(0, &Transform, sizeof(Transform));
+	GEngine->GetConstantBuffer()->Add(1, &Transform, sizeof(Transform));
+
 	COMMAND_LIST->DrawInstanced(VertexCount, 1, 0, 0);
 }

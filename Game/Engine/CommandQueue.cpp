@@ -13,7 +13,7 @@ void FCommandQueue::Initialize(shared_ptr<FSwapChain> InSwapChain)
 {
 	SwapChain = InSwapChain;
 
-	// GPU°¡ Á÷Á¢ ½ÇÇàÇÏ´Â Ä¿¸Çµå ¸ñ·Ï
+	// GPUê°€ ì§ì ‘ ì‹¤í–‰í•˜ëŠ” ì»¤ë§¨ë“œ ëª©ë¡
 	constexpr D3D12_COMMAND_LIST_TYPE Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
 
 	D3D12_COMMAND_QUEUE_DESC Desc
@@ -25,16 +25,16 @@ void FCommandQueue::Initialize(shared_ptr<FSwapChain> InSwapChain)
 	DEVICE->CreateCommandQueue(&Desc, IID_PPV_ARGS(&CommandQueue));
 	DEVICE->CreateCommandAllocator(Type, IID_PPV_ARGS(&CommandAllocator));
 	/*
-	 *	GPU°¡ ÇÏ³ªÀÎ ½Ã½ºÅÛ¿¡¼­´Â 0
+	 *	GPUê°€ í•˜ë‚˜ì¸ ì‹œìŠ¤í…œì—ì„œëŠ” 0
 	 *	DIRECT or BUNDLE
 	 *	Allocator
-	 *	ÃÊ±â »óÅÂ(±×¸®±â ¸í·ÉÀº nullptr ÁöÁ¤)
+	 *	ì´ˆê¸° ìƒíƒœ(ê·¸ë¦¬ê¸° ëª…ë ¹ì€ nullptr ì§€ì •)
 	 */
 	DEVICE->CreateCommandList(0, Type, CommandAllocator.Get(), nullptr, IID_PPV_ARGS(&CommandList));
 
 	/*
-	 *	»óÅÂ 2°¡Áö: Close / Open
-	 *	Open »óÅÂ¿¡¼­´Â Command Push, Close »óÅÂ¿¡¼­´Â Command Pop
+	 *	ìƒíƒœ 2ê°€ì§€: Close / Open
+	 *	Open ìƒíƒœì—ì„œëŠ” Command Push, Close ìƒíƒœì—ì„œëŠ” Command Pop
 	 */
 	CommandList->Close();
 
@@ -49,8 +49,8 @@ void FCommandQueue::WaitSync()
 
 	if (Fence->GetCompletedValue() < FenceValue)
 	{
-		Fence->SetEventOnCompletion(FenceValue, FenceEvent);  // ÇØ´ç ValueÀÇ ÀÏ°¨À» GPU°¡ ³¡³Â´Ù¸é Event Trigger
-		::WaitForSingleObject(FenceEvent, INFINITE);  // Event°¡ ¹ßµ¿µÇ¸é ´ë±â ÁßÀÎ CPU°¡ ÀÛ¾÷ ¼öÇà
+		Fence->SetEventOnCompletion(FenceValue, FenceEvent);  // í•´ë‹¹ Valueì˜ ì¼ê°ì„ GPUê°€ ëëƒˆë‹¤ë©´ Event Trigger
+		::WaitForSingleObject(FenceEvent, INFINITE);  // Eventê°€ ë°œë™ë˜ë©´ ëŒ€ê¸° ì¤‘ì¸ CPUê°€ ì‘ì—… ìˆ˜í–‰
 	}
 }
 
@@ -61,15 +61,20 @@ void FCommandQueue::RenderBegin(const D3D12_VIEWPORT* Viewport, const D3D12_RECT
 
 	D3D12_RESOURCE_BARRIER Barrier = CD3DX12_RESOURCE_BARRIER::Transition(
 		SwapChain->GetCurrentBackBufferResource().Get(), 
-		D3D12_RESOURCE_STATE_PRESENT,	// È­¸é Ãâ·Â(Before). FrontBuffer -> BackBuffer Swap
-		D3D12_RESOURCE_STATE_RENDER_TARGET	// ¿ÜÁÖ °á°ú¹°(After)
+		D3D12_RESOURCE_STATE_PRESENT,	// í™”ë©´ ì¶œë ¥(Before). FrontBuffer -> BackBuffer Swap
+		D3D12_RESOURCE_STATE_RENDER_TARGET	// ì™¸ì£¼ ê²°ê³¼ë¬¼(After)
 	);
+
+	CommandList->SetGraphicsRootSignature(ROOT_SIGNATURE.Get());	// ë£¨íŠ¸ ì„œëª… ì¶”ê°€
+	GEngine->GetConstantBuffer()->Clear();	// RenderBeginì—ì„œ ìƒìˆ˜ ë²„í¼ë„ ì´ˆê¸°í™”
+
 	CommandList->ResourceBarrier(1, &Barrier);
 
+	// CommandListê°€ Resetë  ë•Œë¥¼ ëŒ€ë¹„í•´ ì„¤ì •
 	CommandList->RSSetViewports(1, Viewport);
 	CommandList->RSSetScissorRects(1, Rect);
 
-	// GPU°¡ »ç¿ëÇÒ(°á°ú¹°À» ±×·Á¾ßÇÒ) ¹é ¹öÆÛ¸¦ ÁöÁ¤
+	// GPUê°€ ì‚¬ìš©í• (ê²°ê³¼ë¬¼ì„ ê·¸ë ¤ì•¼í• ) ë°± ë²„í¼ë¥¼ ì§€ì •
 	D3D12_CPU_DESCRIPTOR_HANDLE BackBufferView = SwapChain->GetCurrentBackBufferView();
 	CommandList->ClearRenderTargetView(BackBufferView, Colors::LightSteelBlue, 0, nullptr);
 	CommandList->OMSetRenderTargets(1, &BackBufferView, false, nullptr);
@@ -79,13 +84,13 @@ void FCommandQueue::RenderEnd()
 {
 	D3D12_RESOURCE_BARRIER Barrier = CD3DX12_RESOURCE_BARRIER::Transition(
 		SwapChain->GetCurrentBackBufferResource().Get(),
-		D3D12_RESOURCE_STATE_RENDER_TARGET,	// ¿ÜÁÖ °á°ú¹°(Before)
-		D3D12_RESOURCE_STATE_PRESENT	// È­¸é Ãâ·Â(After). BackBuffer -> FrontBuffer Swap
+		D3D12_RESOURCE_STATE_RENDER_TARGET,	// ì™¸ì£¼ ê²°ê³¼ë¬¼(Before)
+		D3D12_RESOURCE_STATE_PRESENT	// í™”ë©´ ì¶œë ¥(After). BackBuffer -> FrontBuffer Swap
 	);
 	CommandList->ResourceBarrier(1, &Barrier);
 	CommandList->Close();
 
-	// Ä¿¸Çµå ¸ñ·Ï ½ÇÁ¦·Î ½ÇÇà
+	// ì»¤ë§¨ë“œ ëª©ë¡ ì‹¤ì œë¡œ ì‹¤í–‰
 	ID3D12CommandList* CommandLists[] = { CommandList.Get() };
 	CommandQueue->ExecuteCommandLists(_countof(CommandLists), CommandLists);
 

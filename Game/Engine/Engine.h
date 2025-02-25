@@ -4,11 +4,12 @@
 #include "CommandQueue.h"
 #include "SwapChain.h"
 #include "RootSignature.h"
+#include "ConstantBuffer.h"
 
 class Engine
 {
 public:
-	// ClientÀÇ Initialize¸¦ È£ÃâÇÒ ¶§ ÇÔ²² È£ÃâµÊ
+	// Clientì˜ Initializeë¥¼ í˜¸ì¶œí•  ë•Œ í•¨ê»˜ í˜¸ì¶œë¨
 	void Initialize(const FWindowInfo& InInfo);
 	void Render();
 
@@ -22,6 +23,7 @@ public:
 	shared_ptr<FCommandQueue> GetCommandQueue() { return CommandQueue; }
 	shared_ptr<FSwapChain> GetSwapChain() { return SwapChain; }
 	shared_ptr<FRootSignature> GetRootSignature() { return RootSignature; }
+	shared_ptr<FConstantBuffer> GetConstantBuffer() { return ConstantBuffer; }
 
 private:
 	FWindowInfo Info{};
@@ -32,5 +34,6 @@ private:
 	shared_ptr<FCommandQueue> CommandQueue;
 	shared_ptr<FSwapChain> SwapChain;
 	shared_ptr<FRootSignature> RootSignature;
+	shared_ptr<FConstantBuffer> ConstantBuffer;
 };
 

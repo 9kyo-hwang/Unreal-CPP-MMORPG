@@ -1,8 +1,8 @@
 #pragma once
-// Å¬¶óÀÌ¾ğÆ®¿¡¼­µµ ÀÚÁÖ »ç¿ëµÇ´Â Çì´õ¸¦ ¸ğ¾Æ³õ´Â ¿ëµµ
-// include, lib, typedef µî
+// í´ë¼ì´ì–¸íŠ¸ì—ì„œë„ ìì£¼ ì‚¬ìš©ë˜ëŠ” í—¤ë”ë¥¼ ëª¨ì•„ë†“ëŠ” ìš©ë„
+// include, lib, typedef ë“±
 
-#define _HAS_STD_BYTE 0  // std::byte¿Í windowsÀÇ byte Á¤ÀÇ°¡ °ãÄ¡´Â ¹®Á¦¸¦ ÇØ°áÇÏ±â À§ÇÔ
+#define _HAS_STD_BYTE 0  // std::byteì™€ windowsì˜ byte ì •ì˜ê°€ ê²¹ì¹˜ëŠ” ë¬¸ì œë¥¼ í•´ê²°í•˜ê¸° ìœ„í•¨
 
 #include <Windows.h>
 #include <tchar.h>
@@ -48,19 +48,24 @@ constexpr uint32 SWAP_CHAIN_BUFFER_COUNT = 2;
 
 struct FWindowInfo
 {
-	HWND Window;		// Ãâ·Â À©µµ¿ì
-	int32 Width;		// ³Êºñ
-	int32 Height;		// ³ôÀÌ
-	bool bWindowed;		// Ã¢¸ğµå À¯¹«
+	HWND Window;		// ì¶œë ¥ ìœˆë„ìš°
+	int32 Width;		// ë„ˆë¹„
+	int32 Height;		// ë†’ì´
+	bool bWindowed;		// ì°½ëª¨ë“œ ìœ ë¬´
 };
 
 struct FVertex
 {
-	FVector3 Position;	// 3Â÷¿ø °ø°£(x, y, z)
+	FVector3 Position;	// 3ì°¨ì› ê³µê°„(x, y, z)
 	FVector4 Color;		// RGBA
+};
+
+struct FTransform
+{
+	FVector4 Offset;  // Shaderì—ì„œ float4 offset 1ê°œë¥¼ ë“¤ê³  ìˆê¸° ë•Œë¬¸ì— íƒ€ì…ì„ ë§ì¶°ì¤Œ
 };
 
 #define DEVICE GEngine->GetDevice()->GetD3DDevice()
 #define COMMAND_LIST GEngine->GetCommandQueue()->GetD3DCommandList()
 #define ROOT_SIGNATURE GEngine->GetRootSignature()->GetD3DRootSignature()
-extern unique_ptr<class Engine> GEngine;  // Àü¿ª¿¡¼­ »ç¿ë °¡´ÉÇÑ Engine Å¬·¡½º
+extern unique_ptr<class Engine> GEngine;  // ì „ì—­ì—ì„œ ì‚¬ìš© ê°€ëŠ¥í•œ Engine í´ë˜ìŠ¤

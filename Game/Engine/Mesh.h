@@ -6,9 +6,14 @@ public:
 	void Initialize(const vector<struct FVertex>& Vertices);
 	void Render();
 
+	// TEMP
+	void SetTransform(const FTransform& InTransform) { Transform = InTransform; }
+
 private:
 	ComPtr<ID3D12Resource> VertexBuffer;
-	D3D12_VERTEX_BUFFER_VIEW VertexBufferView{};  // Resource »ç¿ëÀº View¸¦ ÅëÇØ ÀÌ·ç¾îÁü
+	D3D12_VERTEX_BUFFER_VIEW VertexBufferView{};  // Resource ì‚¬ìš©ì€ Viewë¥¼ í†µí•´ ì´ë£¨ì–´ì§
 	uint32 VertexCount = 0;
+
+	FTransform Transform{};
 };
 

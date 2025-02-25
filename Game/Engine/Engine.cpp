@@ -24,18 +24,20 @@ void Engine::Initialize(const FWindowInfo& InInfo)
 	CommandQueue = make_shared<FCommandQueue>();
 	SwapChain = make_shared<FSwapChain>();
 	RootSignature = make_shared<FRootSignature>();
+	ConstantBuffer = make_shared<FConstantBuffer>();
 
 	Device->Initialize();
 	CommandQueue->Initialize(SwapChain);
 	SwapChain->Initialize(Info, Device->GetDXGI(), CommandQueue->GetD3DCommandQueue());
 	RootSignature->Initialize();
+	ConstantBuffer->Initialize(sizeof(FTransform), 256);	// 보통 개수는 100단위를 넘기지 않음
 }
 
 void Engine::Render()
 {
 	RenderBegin();
 
-	// TODO: ��ü�� �׷��� ��
+	// TODO: 물체를 그려야 함
 
 	RenderEnd();
 }
