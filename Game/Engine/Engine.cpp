@@ -25,12 +25,14 @@ void Engine::Initialize(const FWindowInfo& InInfo)
 	SwapChain = make_shared<FSwapChain>();
 	RootSignature = make_shared<FRootSignature>();
 	ConstantBuffer = make_shared<FConstantBuffer>();
+	TableDescriptorHeap = make_shared<FTableDescriptorHeap>();
 
 	Device->Initialize();
 	CommandQueue->Initialize(SwapChain);
 	SwapChain->Initialize(Info, Device->GetDXGI(), CommandQueue->GetD3DCommandQueue());
 	RootSignature->Initialize();
 	ConstantBuffer->Initialize(sizeof(FTransform), 256);	// 보통 개수는 100단위를 넘기지 않음
+	TableDescriptorHeap->Initialize(256);
 }
 
 void Engine::Render()

@@ -5,11 +5,16 @@
 
 void FRootSignature::Initialize()
 {
-	CD3DX12_ROOT_PARAMETER Parameters[2];
-	Parameters[0].InitAsConstantBufferView(0);	// 0번 -> root CBV가 있음, b0로 활용
-	Parameters[1].InitAsConstantBufferView(1);	// 1번 -> root CBV가 있음, b1로 활용
+	CD3DX12_DESCRIPTOR_RANGE Ranges[ ] =
+	{
+		// baseShaderRegister(0) 번호부터 numDescriptors(5) 개수만큼 사용할 것
+		CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, CBV_REGISTER_COUNT, 0),
+	};
 
-	D3D12_ROOT_SIGNATURE_DESC Desc = CD3DX12_ROOT_SIGNATURE_DESC(2, Parameters);
+	CD3DX12_ROOT_PARAMETER Parameters[1];	// Descriptor Table 개수
+	Parameters[0].InitAsDescriptorTable(_countof(Ranges), Ranges);
+
+	D3D12_ROOT_SIGNATURE_DESC Desc = CD3DX12_ROOT_SIGNATURE_DESC(_countof(Parameters), Parameters);
 	Desc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;	// 입력 조립기 단계
 
 	ComPtr<ID3DBlob> Blob;

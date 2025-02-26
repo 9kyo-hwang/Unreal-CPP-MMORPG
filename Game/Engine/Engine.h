@@ -5,6 +5,7 @@
 #include "SwapChain.h"
 #include "RootSignature.h"
 #include "ConstantBuffer.h"
+#include "TableDescriptorHeap.h"
 
 class Engine
 {
@@ -24,6 +25,7 @@ public:
 	shared_ptr<FSwapChain> GetSwapChain() { return SwapChain; }
 	shared_ptr<FRootSignature> GetRootSignature() { return RootSignature; }
 	shared_ptr<FConstantBuffer> GetConstantBuffer() { return ConstantBuffer; }
+	shared_ptr<FTableDescriptorHeap> GetTableDescriptorHeap() { return TableDescriptorHeap; }
 
 private:
 	FWindowInfo Info{};
@@ -35,5 +37,6 @@ private:
 	shared_ptr<FSwapChain> SwapChain;
 	shared_ptr<FRootSignature> RootSignature;
 	shared_ptr<FConstantBuffer> ConstantBuffer;
+	shared_ptr<FTableDescriptorHeap> TableDescriptorHeap;
 };
 

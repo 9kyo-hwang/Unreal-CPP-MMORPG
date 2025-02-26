@@ -29,18 +29,25 @@ void FConstantBuffer::Initialize(uint32 Size, uint32 Count)
 
 	ElementSize = (Size + 255) & ~255;
 	ElementCount = Count;
+
 	CreateBuffer();
+	CreateView();
 }
 
-void FConstantBuffer::Add(int32 RootParameterIndex, void* InData, uint32 InDataSize)
+D3D12_CPU_DESCRIPTOR_HANDLE FConstantBuffer::Add(int32 RootParameterIndex, void* InData, uint32 InDataSize)
 {
 	assert(CurrentIndex < ElementSize);
 
 	::memcpy(&MappedElement[CurrentIndex * ElementSize], InData, InDataSize);
 
-	D3D12_GPU_VIRTUAL_ADDRESS Address = GetGPUVirtualAddress(CurrentIndex);
-	COMMAND_LIST->SetGraphicsRootConstantBufferView(RootParameterIndex, Address);
+	// TableDescriptorHeap 추가로 RootDescriptor가 삭제됨 -> 아래 코드 크래시!
+	// D3D12_GPU_VIRTUAL_ADDRESS Address = GetGPUVirtualAddress(CurrentIndex);
+	// COMMAND_LIST->SetGraphicsRootConstantBufferView(RootParameterIndex, Address);
+
+	// 이제 추가한 데이터의 주소를 TableDescriptorHeap에게 넘겨줘야 함
+	D3D12_CPU_DESCRIPTOR_HANDLE Handle = GetCPUHandle(CurrentIndex);
 	CurrentIndex++;
+	return Handle;
 }
 
 D3D12_GPU_VIRTUAL_ADDRESS FConstantBuffer::GetGPUVirtualAddress(uint32 Index)
@@ -48,6 +55,11 @@ D3D12_GPU_VIRTUAL_ADDRESS FConstantBuffer::GetGPUVirtualAddress(uint32 Index)
 	D3D12_GPU_VIRTUAL_ADDRESS BeginAddress = Data->GetGPUVirtualAddress();
 	BeginAddress += Index * ElementSize;
 	return BeginAddress;
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE FConstantBuffer::GetCPUHandle(uint32 Index)
+{
+	return CD3DX12_CPU_DESCRIPTOR_HANDLE(ListBegin, Index * ListOffset);
 }
 
 void FConstantBuffer::CreateBuffer()
@@ -67,4 +79,33 @@ void FConstantBuffer::CreateBuffer()
 
 	Data->Map(0, nullptr, reinterpret_cast<void**>(&MappedElement));
 	// 여기서는 Unmap을 할 필요가 없음
+}
+
+void FConstantBuffer::CreateView()
+{
+	D3D12_DESCRIPTOR_HEAP_DESC ConstantBufferViewListDesc
+	{
+		.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
+		.NumDescriptors = ElementCount,
+		.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,	// 효율적으로 동작하기 위해 ShaderVisible X
+	};
+
+	DEVICE->CreateDescriptorHeap(&ConstantBufferViewListDesc, IID_PPV_ARGS(&ConstantBufferViewList));
+
+	ListBegin = ConstantBufferViewList->GetCPUDescriptorHandleForHeapStart();
+	ListOffset = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+	// CBV DescriptorHeap에 들어갈 각 원소(CBV) 생성
+	for (uint32 Index = 0; Index < ElementCount; ++Index)
+	{
+		D3D12_CPU_DESCRIPTOR_HANDLE CurrentViewLocation = GetCPUHandle(Index);
+		D3D12_CONSTANT_BUFFER_VIEW_DESC ConstantBufferViewDesc
+		{
+			// DescriptorHeap 내부 각각의 CBV들이 Constant Buffer의 어떤 원소를 가리켜야 하는가
+			.BufferLocation = Data->GetGPUVirtualAddress() + static_cast<uint64>(ElementSize) * Index,
+			.SizeInBytes = ElementSize,
+		};
+
+		DEVICE->CreateConstantBufferView(&ConstantBufferViewDesc, CurrentViewLocation);
+	}
 }

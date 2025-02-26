@@ -44,7 +44,20 @@ using FVector3 = XMFLOAT3;
 using FVector4 = XMFLOAT4;
 using FMatrix = XMMATRIX;
 
+enum class EConstantBufferViewRegisters
+{
+	b0,
+	b1,
+	b2,
+	b3,
+	b4,
+
+	END
+};
+
 constexpr uint32 SWAP_CHAIN_BUFFER_COUNT = 2;
+constexpr uint32 CBV_REGISTER_COUNT = static_cast<uint32>(EConstantBufferViewRegisters::END);
+constexpr uint32 REGISTER_COUNT = static_cast<uint32>(EConstantBufferViewRegisters::END);  // 추후 달라질 수 있음
 
 struct FWindowInfo
 {

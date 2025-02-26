@@ -67,6 +67,14 @@ void FCommandQueue::RenderBegin(const D3D12_VIEWPORT* Viewport, const D3D12_RECT
 
 	CommandList->SetGraphicsRootSignature(ROOT_SIGNATURE.Get());	// 루트 서명 추가
 	GEngine->GetConstantBuffer()->Clear();	// RenderBegin에서 상수 버퍼도 초기화
+	GEngine->GetTableDescriptorHeap()->Clear();  // TableDescriptorHeap도 초기화
+
+	/**
+	 *	SetDescriptorHeaps는 프레임마다 단 한 번만 호출! 또한 힙은 최대 2개만 넣을 수 있음
+	 *	이를 호출해야 TableDescriptorHeap에서 COMMAND_LIST->SetGraphicsRootDescriptor()가 동작, 없으면 Crash
+	 */
+	ID3D12DescriptorHeap* DescriptorHeap = GEngine->GetTableDescriptorHeap()->GetD3DDescriptorHeap().Get();
+	CommandList->SetDescriptorHeaps(1, &DescriptorHeap);
 
 	CommandList->ResourceBarrier(1, &Barrier);
 

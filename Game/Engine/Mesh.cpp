@@ -45,8 +45,23 @@ void FMesh::Render()
 	COMMAND_LIST->IASetVertexBuffers(0, 1, &VertexBufferView);
 
 	// TODO: 작성한 서명을 실제로 사용하려면 이 부분에서 코드 작성
-	GEngine->GetConstantBuffer()->Add(0, &Transform, sizeof(Transform));
-	GEngine->GetConstantBuffer()->Add(1, &Transform, sizeof(Transform));
+	/**
+	 *	ConstantBuffer에 데이터 세팅
+	 *	TableDescriptorHeap에 Constant Buffer에 대응되는 CBV 전달
+	 *	세팅 완료 시 TableDescriptorHeap을 Commit(Register의 Root Descriptor Table에 매핑)
+	 */
+
+	GEngine->GetTableDescriptorHeap()->SetConstantBufferView(
+		GEngine->GetConstantBuffer()->Add(0, &Transform, sizeof(Transform)),
+		EConstantBufferViewRegisters::b0
+	);
+
+	GEngine->GetTableDescriptorHeap()->SetConstantBufferView(
+	GEngine->GetConstantBuffer()->Add(0, &Transform, sizeof(Transform)),
+	EConstantBufferViewRegisters::b1
+	);
+
+	GEngine->GetTableDescriptorHeap()->CommitTable();
 
 	COMMAND_LIST->DrawInstanced(VertexCount, 1, 0, 0);
 }
