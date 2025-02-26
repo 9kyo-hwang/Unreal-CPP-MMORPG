@@ -11,14 +11,18 @@ void Game::Initialize(const FWindowInfo& Info)
 {
 	GEngine->Initialize(Info);
 
+	// 사각형은 삼각형 2개를 이용해 그리는 것이므로 정점 정보가 6개 있어야 함
 	vector<FVertex> Vertices
 	{
-		FVertex(FVector3(0.f, 0.5f, 0.f), FVector4(1.f, 0.f, 0.f, 1.f)),
-		FVertex(FVector3(0.5f, -0.5f, 0.5f), FVector4(0.f, 1.f, 0.f, 1.f)),
-		FVertex(FVector3(-0.5f, -0.5f, 0.5f), FVector4(0.f, 0.f, 1.f, 1.f)),
+		FVertex(FVector3(-0.5f, 0.5f, 0.5f), FVector4(1.f, 0.f, 0.f, 1.f)),
+		FVertex(FVector3(0.5f, 0.5f, 0.5f), FVector4(0.f, 1.f, 0.f, 1.f)),
+		FVertex(FVector3(0.5f, -0.5f, 0.5f), FVector4(0.f, 0.f, 1.f, 1.f)),
+		FVertex ( FVector3 ( -0.5f, -0.5f, 0.5f ), FVector4 ( 0.f, 1.f, 0.f, 1.f ) ),
 	};
 
-	Mesh->Initialize(Vertices);
+	vector<uint32> Indices{0, 1, 2, 0, 2, 3};
+
+	Mesh->Initialize(Vertices, Indices);
 	Shader->Initialize(L"..\\Resources\\Shader\\Default.hlsli");
 
 	GEngine->GetCommandQueue()->WaitSync();
@@ -31,22 +35,10 @@ void Game::Update()
 
 	Shader->Update();
 	{
-		// Shader의 cbuffer TEST_B0에 들어감
-		FTransform Transform{ FVector4 ( 0.75f, 0.f, 0.f, 0.f ) };
+		FTransform Transform{ FVector4 ( 0.f, 0.f, 0.f, 0.f ) };
 		Mesh->SetTransform(Transform);
 		Mesh->Render();
-
-		// x좌표 + 0.75, R 컬러 + 0.75(Shader Main에서 pos, color += offset을 수행하므로)
 	}
-	{
-		// Shader의 cbuffer TEST_B1에 들어감
-		FTransform Transform{ FVector4 ( 0.f, 0.75f, 0.f, 0.f ) };
-		Mesh->SetTransform(Transform);
-		Mesh->Render();
-
-		// y좌표 + 0.75, G 컬러 + 0.75
-	}
-	Mesh->Render();
 
 	GEngine->RenderEnd();
 }

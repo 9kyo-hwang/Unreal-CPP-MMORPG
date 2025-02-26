@@ -3,7 +3,38 @@
 
 #include "Engine.h"
 
-void FMesh::Initialize(const vector<FVertex>& Vertices)
+void FMesh::Initialize(const vector<FVertex>& Vertices, const vector<uint32>& Indices)
+{
+	CreateVertexBuffer(Vertices);
+	CreateIndexBuffer(Indices);
+}
+
+// CommandQueue의 RenderBegin, RenderEnd 사이에 이러한 Render들이 호출될 예정(CommandList에 들어갔으므로)
+void FMesh::Render()
+{
+	COMMAND_LIST->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	COMMAND_LIST->IASetVertexBuffers(0, 1, &VertexBufferView);
+	COMMAND_LIST->IASetIndexBuffer(&IndexBufferView);
+
+	// TODO: 작성한 서명을 실제로 사용하려면 이 부분에서 코드 작성
+	/**
+	 *	ConstantBuffer에 데이터 세팅
+	 *	TableDescriptorHeap에 Constant Buffer에 대응되는 CBV 전달
+	 *	세팅 완료 시 TableDescriptorHeap을 Commit(Register의 Root Descriptor Table에 매핑)
+	 */
+
+	GEngine->GetTableDescriptorHeap()->SetConstantBufferView(
+		GEngine->GetConstantBuffer()->Add(0, &Transform, sizeof(Transform)),
+		EConstantBufferViewRegisters::b0
+	);
+
+	GEngine->GetTableDescriptorHeap()->CommitTable();
+
+	//COMMAND_LIST->DrawInstanced(VertexCount, 1, 0, 0);  // 정점 정보로만 그리는 함수
+	COMMAND_LIST->DrawIndexedInstanced(IndexCount, 1, 0, 0, 0);
+}
+
+void FMesh::CreateVertexBuffer(const vector<FVertex>& Vertices)
 {
 	VertexCount = static_cast<uint32>(Vertices.size());
 	uint32 BufferSize = VertexCount * sizeof(FVertex);
@@ -18,11 +49,11 @@ void FMesh::Initialize(const vector<FVertex>& Vertices)
 	D3D12_RESOURCE_DESC Desc = CD3DX12_RESOURCE_DESC::Buffer(BufferSize);
 
 	DEVICE->CreateCommittedResource(	// 복사해줄 정점 정보를 저장하기 위한 GPU쪽 공간 할당
-		&HeapProperties, 
-		D3D12_HEAP_FLAG_NONE, 
-		&Desc, 
-		D3D12_RESOURCE_STATE_GENERIC_READ, 
-		nullptr, 
+		&HeapProperties,
+		D3D12_HEAP_FLAG_NONE,
+		&Desc,
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
 		IID_PPV_ARGS(&VertexBuffer)
 	);
 
@@ -38,30 +69,30 @@ void FMesh::Initialize(const vector<FVertex>& Vertices)
 	VertexBufferView.SizeInBytes = BufferSize;  // 버퍼 크기
 }
 
-// CommandQueue의 RenderBegin, RenderEnd 사이에 이러한 Render들이 호출될 예정(CommandList에 들어갔으므로)
-void FMesh::Render()
+void FMesh::CreateIndexBuffer(const vector<uint32>& Indices)
 {
-	COMMAND_LIST->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	COMMAND_LIST->IASetVertexBuffers(0, 1, &VertexBufferView);
+	IndexCount = static_cast<uint32>(Indices.size());
+	uint32 BufferSize = IndexCount * sizeof(uint32);
 
-	// TODO: 작성한 서명을 실제로 사용하려면 이 부분에서 코드 작성
-	/**
-	 *	ConstantBuffer에 데이터 세팅
-	 *	TableDescriptorHeap에 Constant Buffer에 대응되는 CBV 전달
-	 *	세팅 완료 시 TableDescriptorHeap을 Commit(Register의 Root Descriptor Table에 매핑)
-	 */
+	D3D12_HEAP_PROPERTIES HeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+	D3D12_RESOURCE_DESC Desc = CD3DX12_RESOURCE_DESC::Buffer(BufferSize);
 
-	GEngine->GetTableDescriptorHeap()->SetConstantBufferView(
-		GEngine->GetConstantBuffer()->Add(0, &Transform, sizeof(Transform)),
-		EConstantBufferViewRegisters::b0
+	DEVICE->CreateCommittedResource(	// 복사해줄 정점 정보를 저장하기 위한 GPU쪽 공간 할당
+		&HeapProperties,
+		D3D12_HEAP_FLAG_NONE,
+		&Desc,
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&IndexBuffer)
 	);
 
-	GEngine->GetTableDescriptorHeap()->SetConstantBufferView(
-	GEngine->GetConstantBuffer()->Add(0, &Transform, sizeof(Transform)),
-	EConstantBufferViewRegisters::b1
-	);
+	void* IndexData = nullptr;
+	CD3DX12_RANGE ReadRange(0, 0);
+	IndexBuffer->Map(0, &ReadRange, &IndexData);
+	::memcpy(IndexData, &Indices[0], BufferSize);
+	IndexBuffer->Unmap(0, nullptr);
 
-	GEngine->GetTableDescriptorHeap()->CommitTable();
-
-	COMMAND_LIST->DrawInstanced(VertexCount, 1, 0, 0);
+	IndexBufferView.BufferLocation = IndexBuffer->GetGPUVirtualAddress();
+	IndexBufferView.Format = DXGI_FORMAT_R32_UINT;
+	IndexBufferView.SizeInBytes = BufferSize;
 }
