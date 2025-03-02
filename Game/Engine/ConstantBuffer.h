@@ -33,6 +33,6 @@ private:
 	// CBV들을 저장하는 Descriptor Heap
 private:
 	ComPtr<ID3D12DescriptorHeap> ConstantBufferViewList;
-	D3D12_CPU_DESCRIPTOR_HANDLE ListBegin;
+	D3D12_CPU_DESCRIPTOR_HANDLE ListBegin{};
 	uint32 ListOffset = 0;
 };

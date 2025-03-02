@@ -4,10 +4,10 @@
 void FDevice::Initialize()
 {
 	/*
-	 *	D3D12 µð¹ö±× ·¹ÀÌ¾î È°¼ºÈ­
-	 *	VC++ Ãâ·ÂÃ¢¿¡ »ó¼¼ÇÑ µð¹ö±ë ¸Þ½ÃÁö Ãâ·Â
-	 *	riid: µð¹ÙÀÌ½ºÀÇ COM ID
-	 *	ppDevice: »ý¼ºµÈ ÀåÄ¡°¡ ¸Å°³º¯¼ö¿¡ ¼³Á¤
+	 *	D3D12 ë””ë²„ê·¸ ë ˆì´ì–´ í™œì„±í™”
+	 *	VC++ ì¶œë ¥ì°½ì— ìƒì„¸í•œ ë””ë²„ê¹… ë©”ì‹œì§€ ì¶œë ¥
+	 *	riid: ë””ë°”ì´ìŠ¤ì˜ COM ID
+	 *	ppDevice: ìƒì„±ëœ ìž¥ì¹˜ê°€ ë§¤ê°œë³€ìˆ˜ì— ì„¤ì •
 	 */
 #ifdef _DEBUG
 	::D3D12GetDebugInterface(IID_PPV_ARGS(&DebugContainer));
@@ -15,17 +15,20 @@ void FDevice::Initialize()
 #endif
 
 	/*
-	 *	riid: µð¹ÙÀÌ½ºÀÇ COM ID
-	 *	ppDevice: »ý¼ºµÈ ÀåÄ¡°¡ ¸Å°³º¯¼ö¿¡ ¼³Á¤
+	 *	riid: ë””ë°”ì´ìŠ¤ì˜ COM ID
+	 *	ppDevice: ìƒì„±ëœ ìž¥ì¹˜ê°€ ë§¤ê°œë³€ìˆ˜ì— ì„¤ì •
 	 */
 	::CreateDXGIFactory(IID_PPV_ARGS(&DXGI));
 
 	/*
-	 *	µð½ºÇÃ·¹ÀÌ ¾î´ðÅÍ(GPU)¸¦ ³ªÅ¸³»´Â °´Ã¼
-	 *	pAdapter: nullptrÀ» ÁöÁ¤ÇÏ¸é ½Ã½ºÅÛ ±âº» GPU »ç¿ë
-	 *	MinimumFeatureLevel: ApplicationÀÌ ¿ä±¸ÇÏ´Â ÃÖ¼Ò ¹öÀü
-	 *	riid: µð¹ÙÀÌ½º COM ID
-	 *	ppDevice: »ý¼ºµÈ ÀåÄ¡°¡ ¸Å°³º¯¼ö¿¡ ¼³Á¤
+	 *	ë””ìŠ¤í”Œë ˆì´ ì–´ëŒ‘í„°(GPU)ë¥¼ ë‚˜íƒ€ë‚´ëŠ” ê°ì²´
+	 *	pAdapter: nullptrì„ ì§€ì •í•˜ë©´ ì‹œìŠ¤í…œ ê¸°ë³¸ GPU ì‚¬ìš©
+	 *	MinimumFeatureLevel: Applicationì´ ìš”êµ¬í•˜ëŠ” ìµœì†Œ ë²„ì „
+	 *	riid: ë””ë°”ì´ìŠ¤ COM ID
+	 *	ppDevice: ìƒì„±ëœ ìž¥ì¹˜ê°€ ë§¤ê°œë³€ìˆ˜ì— ì„¤ì •
 	 */
-	::D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&Device));
+	if (FAILED(::D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&Device))))
+	{
+		assert(nullptr && "FDevice::Initialize() - D3D12CreateDevice() Failed");
+	}
 }

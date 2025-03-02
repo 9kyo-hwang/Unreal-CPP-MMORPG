@@ -38,6 +38,9 @@ void FCommandQueue::Initialize(shared_ptr<FSwapChain> InSwapChain)
 	 */
 	CommandList->Close();
 
+	DEVICE->CreateCommandAllocator(Type, IID_PPV_ARGS(&ResourceCommandAllocator));
+	DEVICE->CreateCommandList(0, Type, ResourceCommandAllocator.Get(), nullptr, IID_PPV_ARGS(&ResourceCommandList));
+
 	DEVICE->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&Fence));
 	FenceEvent = ::CreateEvent(nullptr, false, false, nullptr);
 }
@@ -107,4 +110,17 @@ void FCommandQueue::RenderEnd()
 	WaitSync();
 
 	SwapChain->SwapIndex();
+}
+
+void FCommandQueue::FlushResourceCommandQueue()
+{
+	ResourceCommandList->Close();
+
+	ID3D12CommandList* CommandLists[ ] = { ResourceCommandList.Get() };
+	CommandQueue->ExecuteCommandLists(_countof(CommandLists), CommandLists);
+
+	WaitSync();
+
+	ResourceCommandAllocator->Reset();
+	ResourceCommandList->Reset(ResourceCommandAllocator.Get(), nullptr);
 }

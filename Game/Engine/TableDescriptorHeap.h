@@ -7,13 +7,15 @@ public:
 	void Initialize(uint32 Count);
 	void Clear();
 	void SetConstantBufferView(D3D12_CPU_DESCRIPTOR_HANDLE Src, EConstantBufferViewRegisters Register);
+	void SetShaderResourceView(D3D12_CPU_DESCRIPTOR_HANDLE Src, EShaderResourceViewRegisters Register);
 	void CommitTable();
 
 	ComPtr<ID3D12DescriptorHeap> GetD3DDescriptorHeap() { return Data; }
 	D3D12_CPU_DESCRIPTOR_HANDLE GetCPUHandle(EConstantBufferViewRegisters Register);
+	D3D12_CPU_DESCRIPTOR_HANDLE GetCPUHandle(EShaderResourceViewRegisters Register);
 
 private:
-	D3D12_CPU_DESCRIPTOR_HANDLE GetCPUHandle(uint32 RegisterNumber);
+	D3D12_CPU_DESCRIPTOR_HANDLE GetCPUHandle(uint8 RegisterNumber);
 
 private:
 	ComPtr<ID3D12DescriptorHeap> Data;

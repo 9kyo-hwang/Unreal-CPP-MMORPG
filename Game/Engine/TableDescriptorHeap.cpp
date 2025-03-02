@@ -36,6 +36,15 @@ void FTableDescriptorHeap::SetConstantBufferView(D3D12_CPU_DESCRIPTOR_HANDLE Src
 	DEVICE->CopyDescriptors(1, &Dest, &DestRange, 1, &Src, &SrcRange, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 }
 
+void FTableDescriptorHeap::SetShaderResourceView(D3D12_CPU_DESCRIPTOR_HANDLE Src, EShaderResourceViewRegisters Register)
+{
+	D3D12_CPU_DESCRIPTOR_HANDLE Dest = GetCPUHandle(Register);
+
+	uint32 DestRange = 1;
+	uint32 SrcRange = 1;
+	DEVICE->CopyDescriptors(1, &Dest, &DestRange, 1, &Src, &SrcRange, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+}
+
 // Register에 있는 Table에 View DescriptorHeap 정보를 올려주는 용도
 void FTableDescriptorHeap::CommitTable()
 {
@@ -48,10 +57,15 @@ void FTableDescriptorHeap::CommitTable()
 
 D3D12_CPU_DESCRIPTOR_HANDLE FTableDescriptorHeap::GetCPUHandle(EConstantBufferViewRegisters Register)
 {
-	return GetCPUHandle(static_cast<uint32>(Register));
+	return GetCPUHandle(static_cast<uint8>(Register));
 }
 
-D3D12_CPU_DESCRIPTOR_HANDLE FTableDescriptorHeap::GetCPUHandle(uint32 RegisterNumber)
+D3D12_CPU_DESCRIPTOR_HANDLE FTableDescriptorHeap::GetCPUHandle(EShaderResourceViewRegisters Register)
+{
+	return GetCPUHandle(static_cast<uint8>(Register));
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE FTableDescriptorHeap::GetCPUHandle(uint8 RegisterNumber)
 {
 	D3D12_CPU_DESCRIPTOR_HANDLE Handle = Data->GetCPUDescriptorHandleForHeapStart();
 	Handle.ptr += CurrentGroupIndex * GroupSize;	// 적절한 그룹 찾기

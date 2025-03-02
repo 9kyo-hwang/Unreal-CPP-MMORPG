@@ -2,6 +2,7 @@
 #include "Mesh.h"
 
 #include "Engine.h"
+#include "Texture.h"
 
 void FMesh::Initialize(const vector<FVertex>& Vertices, const vector<uint32>& Indices)
 {
@@ -27,6 +28,8 @@ void FMesh::Render()
 		GEngine->GetConstantBuffer()->Add(0, &Transform, sizeof(Transform)),
 		EConstantBufferViewRegisters::b0
 	);
+
+	GEngine->GetTableDescriptorHeap()->SetShaderResourceView(Texture->GetCPUHandle(), EShaderResourceViewRegisters::t0);
 
 	GEngine->GetTableDescriptorHeap()->CommitTable();
 

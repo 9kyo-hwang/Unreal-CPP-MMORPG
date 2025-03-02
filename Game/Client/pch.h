@@ -1,6 +1,5 @@
 #pragma once
-
-// ¼Ó¼º - ¸µÄ¿ - Ãß°¡ Á¾¼Ó¼º°ú µ¿ÀÏÇÑ ±â´ÉÀ» ¼öÇà
-#pragma comment(lib, "Engine.lib")
-
 #include "EnginePCH.h"
+
+// ì†ì„± - ë§ì»¤ - ì¶”ê°€ ì¢…ì†ì„±ê³¼ ë™ì¼í•œ ê¸°ëŠ¥ì„ ìˆ˜í–‰
+#pragma comment(lib, "Engine.lib")

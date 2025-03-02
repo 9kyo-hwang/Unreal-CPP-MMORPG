@@ -1,5 +1,7 @@
 #pragma once
 
+class FTexture;
+
 class FMesh
 {
 public:
@@ -8,6 +10,7 @@ public:
 
 	// TEMP
 	void SetTransform(const FTransform& InTransform) { Transform = InTransform; }
+	void SetTexture(shared_ptr<FTexture> InTexture) { Texture = InTexture; }
 
 private:
 	void CreateVertexBuffer(const vector<FVertex>& Vertices);
@@ -23,4 +26,5 @@ private:
 	uint32 IndexCount = 0;
 
 	FTransform Transform{};
+	shared_ptr<FTexture> Texture{};  // TEMP
 };
