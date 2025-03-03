@@ -21,13 +21,13 @@ void FShader::Initialize(const wstring& Path)
 
 	PipelineStateDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 	PipelineStateDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-	PipelineStateDesc.DepthStencilState.DepthEnable = false;
-	PipelineStateDesc.DepthStencilState.StencilEnable = false;
+	PipelineStateDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);	// Default로 변경(depth = true, stencil = false)
 	PipelineStateDesc.SampleMask = UINT_MAX;
 	PipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 	PipelineStateDesc.NumRenderTargets = 1;
 	PipelineStateDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
 	PipelineStateDesc.SampleDesc.Count = 1;
+	PipelineStateDesc.DSVFormat = GEngine->GetDepthStencilBuffer()->GetFormat();
 
 	DEVICE->CreateGraphicsPipelineState(&PipelineStateDesc, IID_PPV_ARGS(&PipelineState));
 }

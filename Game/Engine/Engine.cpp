@@ -4,7 +4,6 @@
 void Engine::Initialize(const FWindowInfo& InInfo)
 {
 	Info = InInfo;
-	ResizeWindow(Info.Width, Info.Height);
 
 	Viewport =
 	{
@@ -22,6 +21,7 @@ void Engine::Initialize(const FWindowInfo& InInfo)
 	RootSignature = make_shared<FRootSignature>();
 	ConstantBuffer = make_shared<FConstantBuffer>();
 	TableDescriptorHeap = make_shared<FTableDescriptorHeap>();
+	DepthStencilBuffer = make_shared<FDepthStencilBuffer>();
 
 	Device->Initialize();
 	CommandQueue->Initialize(SwapChain);
@@ -29,6 +29,9 @@ void Engine::Initialize(const FWindowInfo& InInfo)
 	RootSignature->Initialize();
 	ConstantBuffer->Initialize(sizeof(FTransform), 256);	// 보통 개수는 100단위를 넘기지 않음
 	TableDescriptorHeap->Initialize(256);
+	DepthStencilBuffer->Initialize(Info);
+
+	ResizeWindow(Info.Width, Info.Height);  // DepthStencilBuffer init 과정 때문에 DEVICE 생성 후 Resize 하도록 조정
 }
 
 void Engine::Render()
@@ -58,4 +61,7 @@ void Engine::ResizeWindow(const int32 Width, const int32 Height)
 	RECT Rect{ .left = 0, .top = 0, .right = Width, .bottom = Height };
 	::AdjustWindowRect(&Rect, WS_OVERLAPPEDWINDOW, false);
 	::SetWindowPos(Info.Window, nullptr, 100, 100, Width, Height, 0);
+
+	// 해상도와 동일한 크기의 버퍼를 생성하므로 이 과정이 필요함
+	DepthStencilBuffer->Initialize(Info);
 }

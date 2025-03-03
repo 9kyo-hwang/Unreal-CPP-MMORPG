@@ -11,39 +11,39 @@ void FSwapChain::Initialize(const FWindowInfo& Info, ComPtr<IDXGIFactory> DXGI, 
 
 void FSwapChain::Present() const
 {
-	// ÇöÀç ÇÁ·¹ÀÓÀ» ±×¸®´Â °Í
+	// í˜„ì¬ í”„ë ˆì„ì„ ê·¸ë¦¬ëŠ” ê²ƒ
 	SwapChain->Present(0, 0);
 }
 
 void FSwapChain::SwapIndex()
 {
-	// Áö±İÀº ¼ıÀÚ°¡ 0, 1¹Û¿¡ ¾øÀ¸¹Ç·Î BackBufferIndex ^= 1; µµ °¡´ÉÇÒ µí
+	// ì§€ê¸ˆì€ ìˆ«ìê°€ 0, 1ë°–ì— ì—†ìœ¼ë¯€ë¡œ BackBufferIndex ^= 1; ë„ ê°€ëŠ¥í•  ë“¯
 	BackBufferIndex = (BackBufferIndex + 1) % SWAP_CHAIN_BUFFER_COUNT;
 }
 
 void FSwapChain::CreateSwapChain(const FWindowInfo& Info, ComPtr<IDXGIFactory> DXGI, ComPtr<ID3D12CommandQueue> CommandQueue)
 {
-	SwapChain.Reset();	// È¤½Ã Init ÇÔ¼ö°¡ 2¹ø È£ÃâµÉ °ÍÀ» ´ëºñÇØ Clear
+	SwapChain.Reset();	// í˜¹ì‹œ Init í•¨ìˆ˜ê°€ 2ë²ˆ í˜¸ì¶œë  ê²ƒì„ ëŒ€ë¹„í•´ Clear
 
-	DXGI_MODE_DESC BufferDesc  // ¹öÆÛ Á¤º¸
+	DXGI_MODE_DESC BufferDesc  // ë²„í¼ ì •ë³´
 	{
-		.Width = static_cast<uint32>(Info.Width),	// ÇØ»óµµ ³Êºñ
-		.Height = static_cast<uint32>(Info.Height),	// ÇØ»óµµ ³ôÀÌ
-		.RefreshRate = {.Numerator = 60, .Denominator = 1},	// ÁÖ»çÀ²
-		.Format = DXGI_FORMAT_R8G8B8A8_UNORM,	// µğ½ºÇÃ·¹ÀÌ Çü½Ä
+		.Width = static_cast<uint32>(Info.Width),	// í•´ìƒë„ ë„ˆë¹„
+		.Height = static_cast<uint32>(Info.Height),	// í•´ìƒë„ ë†’ì´
+		.RefreshRate = {.Numerator = 60, .Denominator = 1},	// ì£¼ì‚¬ìœ¨
+		.Format = DXGI_FORMAT_R8G8B8A8_UNORM,	// ë””ìŠ¤í”Œë ˆì´ í˜•ì‹
 		.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED,
 		.Scaling = DXGI_MODE_SCALING_UNSPECIFIED
 	};
 
-	DXGI_SWAP_CHAIN_DESC Desc	// Ã¼ÀÎ Á¤º¸
+	DXGI_SWAP_CHAIN_DESC Desc	// ì²´ì¸ ì •ë³´
 	{
 		.BufferDesc = BufferDesc,
-		.SampleDesc = {.Count = 1, .Quality = 0},	// ¸ÖÆ¼ »ùÇÃ¸µ OFF
-		.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,	// Back Buffer¿¡ ±×¸± °Í
-		.BufferCount = SWAP_CHAIN_BUFFER_COUNT,	// Front Buffer, Back Buffer 2°³
+		.SampleDesc = {.Count = 1, .Quality = 0},	// ë©€í‹° ìƒ˜í”Œë§ OFF
+		.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,	// Back Bufferì— ê·¸ë¦´ ê²ƒ
+		.BufferCount = SWAP_CHAIN_BUFFER_COUNT,	// Front Buffer, Back Buffer 2ê°œ
 		.OutputWindow = Info.Window,
 		.Windowed = Info.bWindowed,
-		.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD,	// Buffer Swap ½Ã ÀÌÀü ÇÁ·¹ÀÓ Á¤º¸ ¹ö¸®±â
+		.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD,	// Buffer Swap ì‹œ ì´ì „ í”„ë ˆì„ ì •ë³´ ë²„ë¦¬ê¸°
 		.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH
 	};
 
@@ -58,14 +58,14 @@ void FSwapChain::CreateSwapChain(const FWindowInfo& Info, ComPtr<IDXGIFactory> D
 void FSwapChain::CreateRenderTargetView()
 {
 	/*
-	 *	Descriptor HeapÀ¸·Î RTV »ı¼º
-	 *	DX11±îÁö´Â ¾Æ·¡ ¸ñ·ÏÀ» °¢°¢ °ü¸®, DX12ºÎÅÍ ÅëÇÕÀ¸·Î DescriptorHeap¿¡¼­ °ü¸®
+	 *	Descriptor Heapìœ¼ë¡œ RTV ìƒì„±
+	 *	DX11ê¹Œì§€ëŠ” ì•„ë˜ ëª©ë¡ì„ ê°ê° ê´€ë¦¬, DX12ë¶€í„° í†µí•©ìœ¼ë¡œ DescriptorHeapì—ì„œ ê´€ë¦¬
 	 *	RTV(Render Target View), DSV(Depth Stencil View), CBV(Constant Buffer View), SRV(Shader Resource View), UAV(Unordered Access View)
 	 */
 
-	uint32 RTVHeapSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	uint32 HeapSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
-	D3D12_DESCRIPTOR_HEAP_DESC RTVDesc
+	D3D12_DESCRIPTOR_HEAP_DESC HeapDesc
 	{
 		.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
 		.NumDescriptors = SWAP_CHAIN_BUFFER_COUNT,
@@ -73,17 +73,17 @@ void FSwapChain::CreateRenderTargetView()
 		.NodeMask = 0
 	};
 	/*
-	 *	°°Àº Á¾·ù µ¥ÀÌÅÍ³¢¸® ¹­¾î¼­ ¹è¿­(Èü)·Î °ü¸®
+	 *	ê°™ì€ ì¢…ë¥˜ ë°ì´í„°ë¼ë¦¬ ë¬¶ì–´ì„œ ë°°ì—´(í™)ë¡œ ê´€ë¦¬
 	 *	RTV: [ ] [ ]
 	 *	DSV: [ ] [ ]
 	 *	...
 	 */
-	DEVICE->CreateDescriptorHeap(&RTVDesc, IID_PPV_ARGS(&RenderTargetViewHeap));
+	DEVICE->CreateDescriptorHeap(&HeapDesc, IID_PPV_ARGS(&RenderTargetViewHeap));
 
-	D3D12_CPU_DESCRIPTOR_HANDLE RTVHeapBegin = RenderTargetViewHeap->GetCPUDescriptorHandleForHeapStart();
+	D3D12_CPU_DESCRIPTOR_HANDLE HeapStart = RenderTargetViewHeap->GetCPUDescriptorHandleForHeapStart();
 	for (int32 i = 0; i < SWAP_CHAIN_BUFFER_COUNT; ++i)
 	{
-		RenderTargetViewHandles[i] = CD3DX12_CPU_DESCRIPTOR_HANDLE(RTVHeapBegin, i * RTVHeapSize);
-		DEVICE->CreateRenderTargetView(RenderTargets[i].Get(), nullptr, RenderTargetViewHandles[i]);
+		RenderTargetViewHandle[i] = CD3DX12_CPU_DESCRIPTOR_HANDLE(HeapStart, i * HeapSize);
+		DEVICE->CreateRenderTargetView(RenderTargets[i].Get(), nullptr, RenderTargetViewHandle[i]);
 	}
 }

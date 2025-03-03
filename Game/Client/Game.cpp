@@ -14,20 +14,29 @@ void Game::Initialize(const FWindowInfo& Info)
 	GEngine->Initialize(Info);
 
 	// 사각형은 삼각형 2개를 이용해 그리는 것이므로 정점 정보가 6개 있어야 함
-
-	vector<FVertex> Vertices ( 4 );
-	Vertices[ 0 ].Position = FVector3 ( -0.5f , 0.5f , 0.5f );
-	Vertices[ 0 ].Color = FVector4 ( 1.f , 0.f , 0.f , 1.f );
-	Vertices[ 0 ].UV = FVector2 ( 0.f , 0.f );
-	Vertices[ 1 ].Position = FVector3 ( 0.5f , 0.5f , 0.5f );
-	Vertices[ 1 ].Color = FVector4 ( 0.f , 1.f , 0.f , 1.f );
-	Vertices[ 1 ].UV = FVector2 ( 1.f , 0.f );
-	Vertices[ 2 ].Position = FVector3 ( 0.5f , -0.5f , 0.5f );
-	Vertices[ 2 ].Color = FVector4 ( 0.f , 0.f , 1.f , 1.f );
-	Vertices[ 2 ].UV = FVector2 ( 1.f , 1.f );
-	Vertices[ 3 ].Position = FVector3 ( -0.5f , -0.5f , 0.5f );
-	Vertices[ 3 ].Color = FVector4 ( 0.f , 1.f , 0.f , 1.f );
-	Vertices[ 3 ].UV = FVector2 ( 0.f , 1.f );
+	vector<FVertex> Vertices
+	{
+		{
+			FVector3 ( -0.5f , 0.5f , 0.5f ),
+			FVector4 ( 1.f , 0.f , 0.f , 1.f ),
+			FVector2 ( 0.f , 0.f )
+		},
+		{
+			FVector3 ( 0.5f , 0.5f , 0.5f ),
+			FVector4 ( 0.f , 1.f , 0.f , 1.f ),
+			FVector2 ( 1.f , 0.f )
+		},
+		{
+			FVector3 ( 0.5f , -0.5f , 0.5f ),
+			FVector4 ( 0.f , 0.f , 1.f , 1.f ),
+			FVector2 ( 1.f , 1.f )
+		},
+		{
+			FVector3 ( -0.5f , -0.5f , 0.5f ),
+			FVector4 ( 0.f , 1.f , 0.f , 1.f ),
+			FVector2 ( 0.f , 1.f )
+		}
+	};
 
 	vector<uint32> Indices{0, 1, 2, 0, 2, 3};
 
@@ -45,10 +54,18 @@ void Game::Update()
 
 	Shader->Update();
 	{
-		FTransform Transform{FVector4(0.f, 0.f, 0.f, 0.f)};
+		// 초기값 0.5, 셰이더 파일에서 오프셋을 더해주고 있기 때문에 최종적으로 0.7 -> 뒤로 가짐
+		FTransform Transform{FVector4(0.25f, 0.25f, 0.2f, 0.f)};
 		Mesh->SetTransform(Transform);
 		Mesh->SetTexture(Texture);
 		Mesh->Render();
+	}
+
+	{
+		FTransform Transform{ FVector4 ( 0.f, 0.f, 0.f, 0.f ) };
+		Mesh->SetTransform ( Transform );
+		Mesh->SetTexture ( Texture );
+		Mesh->Render ( );
 	}
 
 	GEngine->RenderEnd();

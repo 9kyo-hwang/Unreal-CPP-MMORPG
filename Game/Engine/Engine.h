@@ -5,6 +5,7 @@
 #include "SwapChain.h"
 #include "RootSignature.h"
 #include "ConstantBuffer.h"
+#include "DepthStencilBuffer.h"
 #include "TableDescriptorHeap.h"
 
 class Engine
@@ -26,6 +27,7 @@ public:
 	shared_ptr<FRootSignature> GetRootSignature() { return RootSignature; }
 	shared_ptr<FConstantBuffer> GetConstantBuffer() { return ConstantBuffer; }
 	shared_ptr<FTableDescriptorHeap> GetTableDescriptorHeap() { return TableDescriptorHeap; }
+	shared_ptr<FDepthStencilBuffer> GetDepthStencilBuffer() { return DepthStencilBuffer; }
 
 private:
 	FWindowInfo Info{};
@@ -38,5 +40,6 @@ private:
 	shared_ptr<FRootSignature> RootSignature;
 	shared_ptr<FConstantBuffer> ConstantBuffer;
 	shared_ptr<FTableDescriptorHeap> TableDescriptorHeap;
+	shared_ptr<FDepthStencilBuffer> DepthStencilBuffer;
 };
 
