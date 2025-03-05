@@ -69,7 +69,10 @@ void FCommandQueue::RenderBegin(const D3D12_VIEWPORT* Viewport, const D3D12_RECT
 	);
 
 	CommandList->SetGraphicsRootSignature(ROOT_SIGNATURE.Get());	// 루트 서명 추가
-	GEngine->GetConstantBuffer()->Clear();	// RenderBegin에서 상수 버퍼도 초기화
+
+	GEngine->GetConstantBuffer(EConstantBufferType::Transform)->Clear();	// 여러 개의 상수 버퍼가 생기면서
+	GEngine->GetConstantBuffer(EConstantBufferType::Material)->Clear();		// 각 타입 별 버퍼 모두 초기화
+
 	GEngine->GetTableDescriptorHeap()->Clear();  // TableDescriptorHeap도 초기화
 
 	/**

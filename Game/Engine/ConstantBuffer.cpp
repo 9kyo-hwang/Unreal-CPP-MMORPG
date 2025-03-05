@@ -4,6 +4,7 @@
 #include "Engine.h"
 
 FConstantBuffer::FConstantBuffer()
+	: Register()
 {
 }
 
@@ -16,8 +17,10 @@ FConstantBuffer::~FConstantBuffer()
 	}
 }
 
-void FConstantBuffer::Initialize(uint32 Size, uint32 Count)
+void FConstantBuffer::Initialize(EConstantBufferViewRegisters InRegister, uint32 Size, uint32 Count)
 {
+	Register = InRegister;
+	
 	/**
 	 *	상수 버퍼는 256 바이트의 배수로 만들어야 함
 	 *	~255: 1111 1111 .... 0000 0000(하위 8비트만 0)
@@ -34,9 +37,10 @@ void FConstantBuffer::Initialize(uint32 Size, uint32 Count)
 	CreateView();
 }
 
-D3D12_CPU_DESCRIPTOR_HANDLE FConstantBuffer::Add(int32 RootParameterIndex, void* InData, uint32 InDataSize)
+void FConstantBuffer::Add(void* InData, uint32 InDataSize)
 {
-	assert(CurrentIndex < ElementSize);
+	assert(CurrentIndex < ElementCount);
+	assert(ElementSize == (InDataSize + 255 & ~255));
 
 	::memcpy(&MappedElement[CurrentIndex * ElementSize], InData, InDataSize);
 
@@ -45,9 +49,9 @@ D3D12_CPU_DESCRIPTOR_HANDLE FConstantBuffer::Add(int32 RootParameterIndex, void*
 	// COMMAND_LIST->SetGraphicsRootConstantBufferView(RootParameterIndex, Address);
 
 	// 이제 추가한 데이터의 주소를 TableDescriptorHeap에게 넘겨줘야 함
-	D3D12_CPU_DESCRIPTOR_HANDLE Handle = GetCPUHandle(CurrentIndex);
+	// 기존 Mesh에서 수행하던 작업을 내부에서 수행하도록 변경(레지스터 종류가 늘어남에 따라 잘못된 레지스터를 매핑하는 실수를 막기 위해)
+	GEngine->GetTableDescriptorHeap()->SetConstantBufferView(GetCPUHandle(CurrentIndex), Register);
 	CurrentIndex++;
-	return Handle;
 }
 
 D3D12_GPU_VIRTUAL_ADDRESS FConstantBuffer::GetGPUVirtualAddress(uint32 Index)

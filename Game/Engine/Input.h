@@ -41,12 +41,15 @@ enum class EKeyState : uint8
 	End
 };
 
-constexpr int32 KeyCodeCount = UINT8_MAX;
+constexpr int32 KeyCodeCount = UINT8_MAX + 1;	// 256개(0번 ~ 255번)
 constexpr int32 KeyStateCount = static_cast<int32>(EKeyState::End);
 
 class FInput
 {
 public:
+	FInput();
+	~FInput();
+
 	void Initialize(HWND InWindow);
 	void Update();
 

@@ -1,14 +1,23 @@
 #pragma once
 
+enum class EConstantBufferType : uint8
+{
+	Transform,
+	Material,
+	END
+};
+
+constexpr uint8 ConstantBufferCount = static_cast<uint8>(EConstantBufferType::END);
+
 class FConstantBuffer
 {
 public:
 	FConstantBuffer();
 	~FConstantBuffer();
 
-	void Initialize(uint32 Size, uint32 Count);
+	void Initialize(EConstantBufferViewRegisters InRegister, uint32 Size, uint32 Count);
 	void Clear() { CurrentIndex = 0; }
-	D3D12_CPU_DESCRIPTOR_HANDLE Add(int32 RootParameterIndex, void* InData, uint32 InDataSize);
+	void Add(void* InData, uint32 InDataSize);
 
 	D3D12_GPU_VIRTUAL_ADDRESS GetGPUVirtualAddress(uint32 Index);
 	D3D12_CPU_DESCRIPTOR_HANDLE GetCPUHandle(uint32 Index);
@@ -35,4 +44,6 @@ private:
 	ComPtr<ID3D12DescriptorHeap> ConstantBufferViewList;
 	D3D12_CPU_DESCRIPTOR_HANDLE ListBegin{};
 	uint32 ListOffset = 0;
+
+	EConstantBufferViewRegisters Register;
 };

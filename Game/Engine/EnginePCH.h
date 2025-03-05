@@ -107,6 +107,7 @@ struct FTransform
 #define COMMAND_LIST			GEngine->GetCommandQueue()->GetD3DCommandList()
 #define ROOT_SIGNATURE			GEngine->GetRootSignature()->GetD3DRootSignature()
 #define RESOURCE_COMMAND_LIST	GEngine->GetCommandQueue()->GetD3DResourceCommandList()
+#define CONSTANT_BUFFER(Type)	GEngine->GetConstantBuffer(Type)
 
 #define DELTA_TIME				GEngine->GetTimer()->GetDeltaTime()
 

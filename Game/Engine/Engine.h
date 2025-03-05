@@ -32,7 +32,7 @@ public:
 	shared_ptr<FCommandQueue> GetCommandQueue() { return CommandQueue; }
 	shared_ptr<FSwapChain> GetSwapChain() { return SwapChain; }
 	shared_ptr<FRootSignature> GetRootSignature() { return RootSignature; }
-	shared_ptr<FConstantBuffer> GetConstantBuffer() { return ConstantBuffer; }
+	shared_ptr<FConstantBuffer> GetConstantBuffer(EConstantBufferType Type) { return ConstantBufferList[static_cast<uint8>(Type)]; }
 	shared_ptr<FTableDescriptorHeap> GetTableDescriptorHeap() { return TableDescriptorHeap; }
 	shared_ptr<FDepthStencilBuffer> GetDepthStencilBuffer() { return DepthStencilBuffer; }
 
@@ -41,6 +41,7 @@ public:
 
 private:
 	void ShowFPS();
+	void CreateConstantBuffer(EConstantBufferViewRegisters Register, uint32 BufferSize, uint32 Count);
 
 private:
 	FWindowInfo Info;
@@ -51,7 +52,7 @@ private:
 	shared_ptr<FCommandQueue> CommandQueue;
 	shared_ptr<FSwapChain> SwapChain;
 	shared_ptr<FRootSignature> RootSignature;
-	shared_ptr<FConstantBuffer> ConstantBuffer;
+	vector<shared_ptr<FConstantBuffer>> ConstantBufferList;
 	shared_ptr<FTableDescriptorHeap> TableDescriptorHeap;
 	shared_ptr<FDepthStencilBuffer> DepthStencilBuffer;
 

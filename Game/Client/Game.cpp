@@ -1,13 +1,12 @@
 #include "pch.h"
 #include "Game.h"
 #include "Engine.h"
+#include "Material.h"
 #include "Mesh.h"
 #include "Shader.h"
 #include "Texture.h"
 
 shared_ptr<FMesh> Mesh = make_shared<FMesh>();
-shared_ptr<FShader> Shader = make_shared<FShader>();
-shared_ptr<FTexture> Texture = make_shared<FTexture>();
 
 void Game::Initialize(const FWindowInfo& Info)
 {
@@ -41,8 +40,19 @@ void Game::Initialize(const FWindowInfo& Info)
 	vector<uint32> Indices{0, 1, 2, 0, 2, 3};
 
 	Mesh->Initialize(Vertices, Indices);
+
+	shared_ptr<FShader> Shader = make_shared<FShader> ( );
+	shared_ptr<FTexture> Texture = make_shared<FTexture> ( );
 	Shader->Initialize(L"..\\Resources\\Shader\\Default.hlsli");
 	Texture->Initialize(L"..\\Resources\\Texture\\F1.png");
+
+	shared_ptr<FMaterial> Material = make_shared<FMaterial>();
+	Material->SetShader ( Shader );
+	Material->SetMaterialParameters ( 0 , 0.3f );
+	Material->SetMaterialParameters ( 1 , 0.4f );
+	Material->SetMaterialParameters ( 2 , 0.3f );
+	Material->SetTexture ( 0 , Texture );
+	Mesh->SetMaterial ( Material );
 
 	GEngine->GetCommandQueue()->WaitSync();
 }
@@ -55,7 +65,6 @@ void Game::Update()
 
 	GEngine->RenderBegin();	// Render는 Engine 내부에서 호출해줄 예정
 
-	Shader->Update();
 	{
 		// 초기값 0.5, 셰이더 파일에서 오프셋을 더해주고 있기 때문에 최종적으로 0.7 -> 뒤로 가짐
 		static FTransform Transform{};
@@ -77,8 +86,7 @@ void Game::Update()
 		}
 
 		Mesh->SetTransform(Transform);
-		Mesh->SetTexture(Texture);
-		Mesh->Render();
+		Mesh->Render();		// 내부적으로 Material->Update(), 그 속에서 다시 Shader->Update() 수행
 	}
 
 	GEngine->RenderEnd();

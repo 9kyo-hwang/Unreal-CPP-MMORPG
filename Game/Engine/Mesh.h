@@ -1,6 +1,6 @@
 #pragma once
 
-class FTexture;
+class FMaterial;
 
 class FMesh
 {
@@ -10,7 +10,7 @@ public:
 
 	// TEMP
 	void SetTransform(const FTransform& InTransform) { Transform = InTransform; }
-	void SetTexture(shared_ptr<FTexture> InTexture) { Texture = InTexture; }
+	void SetMaterial(shared_ptr<FMaterial> InMaterial) { Material = InMaterial; }	// Unity에서는 MeshRenderer란 이름으로 분리
 
 private:
 	void CreateVertexBuffer(const vector<FVertex>& Vertices);
@@ -26,5 +26,5 @@ private:
 	uint32 IndexCount = 0;
 
 	FTransform Transform{};
-	shared_ptr<FTexture> Texture{};  // TEMP
+	shared_ptr<FMaterial> Material;	// 이제 Texture를 바로 들고 있지 않고, Material을 들고 있도록 변경
 };

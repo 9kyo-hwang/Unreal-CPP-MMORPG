@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "Engine.h"
 
+#include "Material.h"
+
 Engine::Engine()
 	: Info()
 	, Viewport()
@@ -10,7 +12,6 @@ Engine::Engine()
 	CommandQueue = make_shared<FCommandQueue>();
 	SwapChain = make_shared<FSwapChain>();
 	RootSignature = make_shared<FRootSignature>();
-	ConstantBuffer = make_shared<FConstantBuffer>();
 	TableDescriptorHeap = make_shared<FTableDescriptorHeap>();
 	DepthStencilBuffer = make_shared<FDepthStencilBuffer>();
 
@@ -40,7 +41,10 @@ void Engine::Initialize(const FWindowInfo& InInfo)
 	CommandQueue->Initialize(SwapChain);
 	SwapChain->Initialize(Info, Device->GetDXGI(), CommandQueue->GetD3DCommandQueue());
 	RootSignature->Initialize();
-	ConstantBuffer->Initialize(sizeof(FTransform), 256);	// 보통 개수는 100단위를 넘기지 않음
+
+	CreateConstantBuffer(EConstantBufferViewRegisters::b0, sizeof(FTransform), 256);
+	CreateConstantBuffer(EConstantBufferViewRegisters::b1, sizeof(FMaterialParameters), 256);
+
 	TableDescriptorHeap->Initialize(256);
 	DepthStencilBuffer->Initialize(Info);
 
@@ -96,4 +100,13 @@ void Engine::ShowFPS()
 	::wsprintf(Text, L"FPS: %d", Timer->GetFPS());
 
 	::SetWindowText(Info.Window, Text);
+}
+
+void Engine::CreateConstantBuffer(EConstantBufferViewRegisters Register, uint32 BufferSize, uint32 Count)
+{
+	assert(ConstantBufferList.size() == static_cast<uint8>(Register));
+
+	shared_ptr<FConstantBuffer> ConstantBuffer = make_shared<FConstantBuffer>();
+	ConstantBuffer->Initialize(Register, BufferSize, Count);
+	ConstantBufferList.push_back(ConstantBuffer);
 }

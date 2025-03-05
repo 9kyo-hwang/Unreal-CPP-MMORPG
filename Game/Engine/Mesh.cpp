@@ -2,7 +2,7 @@
 #include "Mesh.h"
 
 #include "Engine.h"
-#include "Texture.h"
+#include "Material.h"
 
 void FMesh::Initialize(const vector<FVertex>& Vertices, const vector<uint32>& Indices)
 {
@@ -24,12 +24,8 @@ void FMesh::Render()
 	 *	세팅 완료 시 TableDescriptorHeap을 Commit(Register의 Root Descriptor Table에 매핑)
 	 */
 
-	GEngine->GetTableDescriptorHeap()->SetConstantBufferView(
-		GEngine->GetConstantBuffer()->Add(0, &Transform, sizeof(Transform)),
-		EConstantBufferViewRegisters::b0
-	);
-
-	GEngine->GetTableDescriptorHeap()->SetShaderResourceView(Texture->GetCPUHandle(), EShaderResourceViewRegisters::t0);
+	CONSTANT_BUFFER(EConstantBufferType::Transform)->Add(&Transform, sizeof(Transform));	// FConstantBuffer::Add()에서 SetShaderResourceView()를 자동적으로 수행해주고 있음.
+	Material->Update();	// 이제 Material을 Update해줌
 
 	GEngine->GetTableDescriptorHeap()->CommitTable();
 
