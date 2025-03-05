@@ -8,11 +8,18 @@
 #include "DepthStencilBuffer.h"
 #include "TableDescriptorHeap.h"
 
+#include "Input.h"
+#include "Timer.h"
+
 class Engine
 {
 public:
+	Engine();
+	~Engine();
+
 	// Client의 Initialize를 호출할 때 함께 호출됨
 	void Initialize(const FWindowInfo& InInfo);
+	void Update();
 	void Render();
 
 public:
@@ -29,10 +36,16 @@ public:
 	shared_ptr<FTableDescriptorHeap> GetTableDescriptorHeap() { return TableDescriptorHeap; }
 	shared_ptr<FDepthStencilBuffer> GetDepthStencilBuffer() { return DepthStencilBuffer; }
 
+	shared_ptr<FInput> GetInput() { return Input; }
+	shared_ptr<FTimer> GetTimer() { return Timer; }
+
 private:
-	FWindowInfo Info{};
-	D3D12_VIEWPORT Viewport{};
-	D3D12_RECT ScissorRect{};
+	void ShowFPS();
+
+private:
+	FWindowInfo Info;
+	D3D12_VIEWPORT Viewport;
+	D3D12_RECT ScissorRect;
 
 	shared_ptr<FDevice> Device;
 	shared_ptr<FCommandQueue> CommandQueue;
@@ -41,5 +54,8 @@ private:
 	shared_ptr<FConstantBuffer> ConstantBuffer;
 	shared_ptr<FTableDescriptorHeap> TableDescriptorHeap;
 	shared_ptr<FDepthStencilBuffer> DepthStencilBuffer;
+
+	shared_ptr<FInput> Input;
+	shared_ptr<FTimer> Timer;
 };
 

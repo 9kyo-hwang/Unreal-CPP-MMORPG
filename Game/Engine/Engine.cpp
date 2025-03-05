@@ -1,6 +1,27 @@
 #include "pch.h"
 #include "Engine.h"
 
+Engine::Engine()
+	: Info()
+	, Viewport()
+	, ScissorRect()
+{
+	Device = make_shared<FDevice>();
+	CommandQueue = make_shared<FCommandQueue>();
+	SwapChain = make_shared<FSwapChain>();
+	RootSignature = make_shared<FRootSignature>();
+	ConstantBuffer = make_shared<FConstantBuffer>();
+	TableDescriptorHeap = make_shared<FTableDescriptorHeap>();
+	DepthStencilBuffer = make_shared<FDepthStencilBuffer>();
+
+	Input = make_shared<FInput>();
+	Timer = make_shared<FTimer>();
+}
+
+Engine::~Engine()
+{
+}
+
 void Engine::Initialize(const FWindowInfo& InInfo)
 {
 	Info = InInfo;
@@ -15,14 +36,6 @@ void Engine::Initialize(const FWindowInfo& InInfo)
 
 	ScissorRect = CD3DX12_RECT(0, 0, Info.Width, Info.Height);
 
-	Device = make_shared<FDevice>();
-	CommandQueue = make_shared<FCommandQueue>();
-	SwapChain = make_shared<FSwapChain>();
-	RootSignature = make_shared<FRootSignature>();
-	ConstantBuffer = make_shared<FConstantBuffer>();
-	TableDescriptorHeap = make_shared<FTableDescriptorHeap>();
-	DepthStencilBuffer = make_shared<FDepthStencilBuffer>();
-
 	Device->Initialize();
 	CommandQueue->Initialize(SwapChain);
 	SwapChain->Initialize(Info, Device->GetDXGI(), CommandQueue->GetD3DCommandQueue());
@@ -31,7 +44,18 @@ void Engine::Initialize(const FWindowInfo& InInfo)
 	TableDescriptorHeap->Initialize(256);
 	DepthStencilBuffer->Initialize(Info);
 
+	Input->Initialize(Info.Window);
+	Timer->Initialize();
+
 	ResizeWindow(Info.Width, Info.Height);  // DepthStencilBuffer init 과정 때문에 DEVICE 생성 후 Resize 하도록 조정
+}
+
+void Engine::Update()
+{
+	Input->Update();
+	Timer->Update();
+
+	ShowFPS();
 }
 
 void Engine::Render()
@@ -64,4 +88,12 @@ void Engine::ResizeWindow(const int32 Width, const int32 Height)
 
 	// 해상도와 동일한 크기의 버퍼를 생성하므로 이 과정이 필요함
 	DepthStencilBuffer->Initialize(Info);
+}
+
+void Engine::ShowFPS()
+{
+	WCHAR Text[100] = L"";
+	::wsprintf(Text, L"FPS: %d", Timer->GetFPS());
+
+	::SetWindowText(Info.Window, Text);
 }

@@ -108,4 +108,6 @@ struct FTransform
 #define ROOT_SIGNATURE			GEngine->GetRootSignature()->GetD3DRootSignature()
 #define RESOURCE_COMMAND_LIST	GEngine->GetCommandQueue()->GetD3DResourceCommandList()
 
+#define DELTA_TIME				GEngine->GetTimer()->GetDeltaTime()
+
 extern unique_ptr<class Engine> GEngine;  // 전역에서 사용 가능한 Engine 클래스

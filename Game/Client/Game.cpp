@@ -49,23 +49,36 @@ void Game::Initialize(const FWindowInfo& Info)
 
 void Game::Update()
 {
+
 	// TEMP: 임시로 테스트를 위해 Begin, End 직접 호출
-	GEngine->RenderBegin();
+	GEngine->Update();
+
+	GEngine->RenderBegin();	// Render는 Engine 내부에서 호출해줄 예정
 
 	Shader->Update();
 	{
 		// 초기값 0.5, 셰이더 파일에서 오프셋을 더해주고 있기 때문에 최종적으로 0.7 -> 뒤로 가짐
-		FTransform Transform{FVector4(0.25f, 0.25f, 0.2f, 0.f)};
+		static FTransform Transform{};
+		if (GEngine->GetInput()->GetButton(EKeyCode::W))
+		{
+			Transform.Offset.y += 1.f * DELTA_TIME;
+		}
+		if ( GEngine->GetInput ( )->GetButton ( EKeyCode::S ) )
+		{
+			Transform.Offset.y -= 1.f * DELTA_TIME;
+		}
+		if ( GEngine->GetInput ( )->GetButton ( EKeyCode::A ) )
+		{
+			Transform.Offset.x -= 1.f * DELTA_TIME;
+		}
+		if ( GEngine->GetInput ( )->GetButton ( EKeyCode::D ) )
+		{
+			Transform.Offset.x += 1.f * DELTA_TIME;
+		}
+
 		Mesh->SetTransform(Transform);
 		Mesh->SetTexture(Texture);
 		Mesh->Render();
-	}
-
-	{
-		FTransform Transform{ FVector4 ( 0.f, 0.f, 0.f, 0.f ) };
-		Mesh->SetTransform ( Transform );
-		Mesh->SetTexture ( Texture );
-		Mesh->Render ( );
 	}
 
 	GEngine->RenderEnd();
