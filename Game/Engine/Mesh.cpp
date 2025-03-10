@@ -24,8 +24,7 @@ void FMesh::Render()
 	 *	세팅 완료 시 TableDescriptorHeap을 Commit(Register의 Root Descriptor Table에 매핑)
 	 */
 
-	CONSTANT_BUFFER(EConstantBufferType::Transform)->Add(&Transform, sizeof(Transform));	// FConstantBuffer::Add()에서 SetShaderResourceView()를 자동적으로 수행해주고 있음.
-	Material->Update();	// 이제 Material을 Update해줌
+	// Material의 Update는 GameObject를 통해 이루어짐
 
 	GEngine->GetTableDescriptorHeap()->CommitTable();
 

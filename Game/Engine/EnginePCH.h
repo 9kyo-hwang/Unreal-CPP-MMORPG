@@ -98,11 +98,6 @@ struct FVertex
 	FVector2 UV;		// UV 좌표계(== Texture 좌표. 3D 물체를 2D에 대응시키기 위해 사용)
 };
 
-struct FTransform
-{
-	FVector4 Offset;  // Shader에서 float4 offset 1개를 들고 있기 때문에 타입을 맞춰줌
-};
-
 #define DEVICE					GEngine->GetDevice()->GetD3DDevice()
 #define COMMAND_LIST			GEngine->GetCommandQueue()->GetD3DCommandList()
 #define ROOT_SIGNATURE			GEngine->GetRootSignature()->GetD3DRootSignature()

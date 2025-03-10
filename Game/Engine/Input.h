@@ -53,12 +53,12 @@ public:
 	void Initialize(HWND InWindow);
 	void Update();
 
-	bool GetButton(EKeyCode Key) { return GetState(Key) == EKeyState::Hold; }
-	bool GetButtonDown(EKeyCode Key) { return GetState(Key) == EKeyState::Down; }
-	bool GetButtonUp(EKeyCode Key) { return GetState(Key) == EKeyState::Up; }
+	bool GetButton(EKeyCode Key) const { return GetState(Key) == EKeyState::Hold; }
+	bool GetButtonDown(EKeyCode Key) const { return GetState(Key) == EKeyState::Down; }
+	bool GetButtonUp(EKeyCode Key) const { return GetState(Key) == EKeyState::Up; }
 
 private:
-	EKeyState GetState(EKeyCode Key) { return KeyStates[static_cast<uint8>(Key)]; }
+	EKeyState GetState(EKeyCode Key) const { return KeyStates[static_cast<uint8>(Key)]; }
 
 private:
 	HWND Window;

@@ -8,10 +8,6 @@ public:
 	void Initialize(const vector<FVertex>& Vertices, const vector<uint32>& Indices);
 	void Render();
 
-	// TEMP
-	void SetTransform(const FTransform& InTransform) { Transform = InTransform; }
-	void SetMaterial(shared_ptr<FMaterial> InMaterial) { Material = InMaterial; }	// Unity에서는 MeshRenderer란 이름으로 분리
-
 private:
 	void CreateVertexBuffer(const vector<FVertex>& Vertices);
 	void CreateIndexBuffer(const vector<uint32>& Indices);
@@ -24,7 +20,4 @@ private:
 	ComPtr<ID3D12Resource> IndexBuffer;
 	D3D12_INDEX_BUFFER_VIEW IndexBufferView{};
 	uint32 IndexCount = 0;
-
-	FTransform Transform{};
-	shared_ptr<FMaterial> Material;	// 이제 Texture를 바로 들고 있지 않고, Material을 들고 있도록 변경
 };

@@ -2,6 +2,7 @@
 #include "Engine.h"
 
 #include "Material.h"
+#include "Transform.h"
 
 Engine::Engine()
 	: Info()
@@ -42,7 +43,7 @@ void Engine::Initialize(const FWindowInfo& InInfo)
 	SwapChain->Initialize(Info, Device->GetDXGI(), CommandQueue->GetD3DCommandQueue());
 	RootSignature->Initialize();
 
-	CreateConstantBuffer(EConstantBufferViewRegisters::b0, sizeof(FTransform), 256);
+	CreateConstantBuffer(EConstantBufferViewRegisters::b0, sizeof(FTransformMatrix), 256);
 	CreateConstantBuffer(EConstantBufferViewRegisters::b1, sizeof(FMaterialParameters), 256);
 
 	TableDescriptorHeap->Initialize(256);
@@ -60,6 +61,11 @@ void Engine::Update()
 	Timer->Update();
 
 	ShowFPS();
+}
+
+void Engine::LateUpdate()
+{
+	// TODO: 가지고 있는 모든 오브젝트에 대한 Update/LateUpdate 호출
 }
 
 void Engine::Render()

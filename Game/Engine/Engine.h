@@ -20,6 +20,7 @@ public:
 	// Client의 Initialize를 호출할 때 함께 호출됨
 	void Initialize(const FWindowInfo& InInfo);
 	void Update();
+	void LateUpdate();
 	void Render();
 
 public:
