@@ -1,7 +1,10 @@
 #include "pch.h"
 #include "Engine.h"
 
+#include "InputManager.h"
 #include "Material.h"
+#include "SceneManager.h"
+#include "TimeManager.h"
 #include "Transform.h"
 
 Engine::Engine()
@@ -15,9 +18,6 @@ Engine::Engine()
 	RootSignature = make_shared<FRootSignature>();
 	TableDescriptorHeap = make_shared<FTableDescriptorHeap>();
 	DepthStencilBuffer = make_shared<FDepthStencilBuffer>();
-
-	Input = make_shared<FInput>();
-	Timer = make_shared<FTimer>();
 }
 
 Engine::~Engine()
@@ -49,30 +49,28 @@ void Engine::Initialize(const FWindowInfo& InInfo)
 	TableDescriptorHeap->Initialize(256);
 	DepthStencilBuffer->Initialize(Info);
 
-	Input->Initialize(Info.Window);
-	Timer->Initialize();
+	InputManager::Get()->Initialize(Info.Window);
+	TimeManager::Get()->Initialize();
 
 	ResizeWindow(Info.Width, Info.Height);  // DepthStencilBuffer init 과정 때문에 DEVICE 생성 후 Resize 하도록 조정
 }
 
 void Engine::Update()
 {
-	Input->Update();
-	Timer->Update();
+	InputManager::Get()->Update();
+	TimeManager::Get()->Update();
+
+	Render();
 
 	ShowFPS();
-}
-
-void Engine::LateUpdate()
-{
-	// TODO: 가지고 있는 모든 오브젝트에 대한 Update/LateUpdate 호출
 }
 
 void Engine::Render()
 {
 	RenderBegin();
 
-	// TODO: 물체를 그려야 함
+	// TODO: 추후 Update와 Render를 분리할 수도...
+	SceneManager::Get()->Update();
 
 	RenderEnd();
 }
@@ -103,7 +101,7 @@ void Engine::ResizeWindow(const int32 Width, const int32 Height)
 void Engine::ShowFPS()
 {
 	WCHAR Text[100] = L"";
-	::wsprintf(Text, L"FPS: %d", Timer->GetFPS());
+	::wsprintf(Text, L"FPS: %d", TimeManager::Get()->GetFPS());
 
 	::SetWindowText(Info.Window, Text);
 }

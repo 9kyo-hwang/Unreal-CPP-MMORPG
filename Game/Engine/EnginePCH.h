@@ -98,12 +98,21 @@ struct FVertex
 	FVector2 UV;		// UV 좌표계(== Texture 좌표. 3D 물체를 2D에 대응시키기 위해 사용)
 };
 
+#define GENERATED_SINGLETON(type)	\
+public:								\
+	static type* Get()				\
+	{								\
+		static type Instance;		\
+		return &Instance;			\
+	}								\
+private:							\
+	type() {}						\
+	~type() {}						\
+
 #define DEVICE					GEngine->GetDevice()->GetD3DDevice()
 #define COMMAND_LIST			GEngine->GetCommandQueue()->GetD3DCommandList()
 #define ROOT_SIGNATURE			GEngine->GetRootSignature()->GetD3DRootSignature()
 #define RESOURCE_COMMAND_LIST	GEngine->GetCommandQueue()->GetD3DResourceCommandList()
 #define CONSTANT_BUFFER(Type)	GEngine->GetConstantBuffer(Type)
-
-#define DELTA_TIME				GEngine->GetTimer()->GetDeltaTime()
 
 extern unique_ptr<class Engine> GEngine;  // 전역에서 사용 가능한 Engine 클래스

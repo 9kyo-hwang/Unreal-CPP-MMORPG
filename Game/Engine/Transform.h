@@ -19,4 +19,3 @@ public:
 private:
 	// TODO: World Position 세팅
 };
-

@@ -8,9 +8,6 @@
 #include "DepthStencilBuffer.h"
 #include "TableDescriptorHeap.h"
 
-#include "Input.h"
-#include "Timer.h"
-
 class Engine
 {
 public:
@@ -20,7 +17,6 @@ public:
 	// Client의 Initialize를 호출할 때 함께 호출됨
 	void Initialize(const FWindowInfo& InInfo);
 	void Update();
-	void LateUpdate();
 	void Render();
 
 public:
@@ -36,9 +32,6 @@ public:
 	shared_ptr<FConstantBuffer> GetConstantBuffer(EConstantBufferType Type) { return ConstantBufferList[static_cast<uint8>(Type)]; }
 	shared_ptr<FTableDescriptorHeap> GetTableDescriptorHeap() { return TableDescriptorHeap; }
 	shared_ptr<FDepthStencilBuffer> GetDepthStencilBuffer() { return DepthStencilBuffer; }
-
-	shared_ptr<FInput> GetInput() { return Input; }
-	shared_ptr<FTimer> GetTimer() { return Timer; }
 
 private:
 	void ShowFPS();
@@ -56,8 +49,5 @@ private:
 	vector<shared_ptr<FConstantBuffer>> ConstantBufferList;
 	shared_ptr<FTableDescriptorHeap> TableDescriptorHeap;
 	shared_ptr<FDepthStencilBuffer> DepthStencilBuffer;
-
-	shared_ptr<FInput> Input;
-	shared_ptr<FTimer> Timer;
 };
 
