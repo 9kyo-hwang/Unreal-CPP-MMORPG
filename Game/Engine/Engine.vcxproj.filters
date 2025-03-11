@@ -19,6 +19,9 @@
     <Filter Include="Managers">
       <UniqueIdentifier>{d4f2ea33-bf89-414c-ab05-b1fd3834b663}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Objects\Test">
+      <UniqueIdentifier>{95863b5d-6e4d-43a2-bf1a-edcc1cbf2d61}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -93,6 +96,15 @@
     <ClInclude Include="TimeManager.h">
       <Filter>Managers</Filter>
     </ClInclude>
+    <ClInclude Include="SimpleMath.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="CameraMovement.h">
+      <Filter>Objects\Test</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -164,10 +176,22 @@
     <ClCompile Include="TimeManager.cpp">
       <Filter>Managers</Filter>
     </ClCompile>
+    <ClCompile Include="SimpleMath.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="CameraMovement.cpp">
+      <Filter>Objects\Test</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Resources\Shader\Default.hlsli">
       <Filter>Shader</Filter>
+    </None>
+    <None Include="SimpleMath.inl">
+      <Filter>Utils</Filter>
     </None>
   </ItemGroup>
 </Project>

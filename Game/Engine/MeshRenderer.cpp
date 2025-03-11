@@ -3,6 +3,7 @@
 
 #include "Material.h"
 #include "Mesh.h"
+#include "Transform.h"
 
 FMeshRenderer::FMeshRenderer()
 	: Super(EComponentType::MeshRenderer)
@@ -13,15 +14,9 @@ FMeshRenderer::~FMeshRenderer()
 {
 }
 
-void FMeshRenderer::Update()
-{
-	//Super::Update();
-	Render();
-}
-
 void FMeshRenderer::Render()
 {
-	// GetTransform()->Update();
-	Material->Update();
+	GetTransform()->Add();
+	Material->Add();
 	Mesh->Render();
 }

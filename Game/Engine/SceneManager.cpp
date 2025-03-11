@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "SceneManager.h"
 
+#include "Camera.h"
+#include "CameraMovement.h"
 #include "GameObject.h"
 #include "Material.h"
 #include "Mesh.h"
@@ -8,6 +10,7 @@
 #include "Scene.h"
 #include "Shader.h"
 #include "Texture.h"
+#include "Transform.h"
 
 void SceneManager::Update()
 {
@@ -18,6 +21,24 @@ void SceneManager::Update()
 
 	ActiveScene->Update();
 	ActiveScene->LateUpdate();
+	ActiveScene->FinalUpdate();
+}
+
+// TEMP
+void SceneManager::Render()
+{
+	if (!ActiveScene )
+	{
+		return;
+	}
+
+	for (const auto& GameObject : GetActiveScene()->GetGameObjects())
+	{
+		if (const auto& Camera = GameObject->GetCamera())
+		{
+			Camera->Render();
+		}
+	}
 }
 
 void SceneManager::LoadScene(wstring SceneName)
@@ -32,63 +53,81 @@ void SceneManager::LoadScene(wstring SceneName)
 
 shared_ptr<Scene> SceneManager::LoadTestScene()
 {
-	// 사각형은 삼각형 2개를 이용해 그리는 것이므로 정점 정보가 6개 있어야 함
-	vector<FVertex> Vertices
-	{
-		{
-			FVector3(-0.5f , 0.5f , 0.5f),
-			FVector4(1.f , 0.f , 0.f , 1.f),
-			FVector2(0.f , 0.f)
-		},
-		{
-			FVector3(0.5f , 0.5f , 0.5f),
-			FVector4(0.f , 1.f , 0.f , 1.f),
-			FVector2(1.f , 0.f)
-		},
-		{
-			FVector3(0.5f , -0.5f , 0.5f),
-			FVector4(0.f , 0.f , 1.f , 1.f),
-			FVector2(1.f , 1.f)
-		},
-		{
-			FVector3(-0.5f , -0.5f , 0.5f),
-			FVector4(0.f , 1.f , 0.f , 1.f),
-			FVector2(0.f , 1.f)
-		}
-	};
-
-	vector<uint32> Indices{ 0, 1, 2, 0, 2, 3 };
-
-	shared_ptr<GameObject> Object = make_shared<GameObject>();
-	Object->Initialize();	// Add Transform Component
-
-	// Test
-	shared_ptr<FMeshRenderer> MeshRenderer = make_shared<FMeshRenderer>();
-	{
-		shared_ptr<FMesh> Mesh = make_shared<FMesh>();
-		Mesh->Initialize(Vertices, Indices);
-		MeshRenderer->SetMesh(Mesh);
-	}
-	{
-		shared_ptr<FShader> Shader = make_shared<FShader>();
-		shared_ptr<FTexture> Texture = make_shared<FTexture>();
-		Shader->Initialize(L"..\\Resources\\Shader\\Default.hlsli");
-		Texture->Initialize(L"..\\Resources\\Texture\\F1.png");
-
-		shared_ptr<FMaterial> Material = make_shared<FMaterial>();
-		Material->SetShader(Shader);
-		Material->SetMaterialParameters(0, 0.3f);
-		Material->SetMaterialParameters(1, 0.4f);
-		Material->SetMaterialParameters(2, 0.3f);
-		Material->SetTexture(0, Texture);
-
-		MeshRenderer->SetMaterial(Material);
-	}
-
-	Object->AddComponent(MeshRenderer);
-
 	// 여기서 임시로 만든 신을 ActiveScene으로 지정
 	shared_ptr<Scene> CurrentScene = make_shared<Scene>();
-	CurrentScene->AddGameObject(Object);
+
+#pragma region TestObject
+	{
+		// 사각형은 삼각형 2개를 이용해 그리는 것이므로 정점 정보가 6개 있어야 함
+		vector<FVertex> Vertices
+		{
+			{
+				FVector3(-0.5f , 0.5f , 0.5f),
+				FVector4(1.f , 0.f , 0.f , 1.f),
+				FVector2(0.f , 0.f)
+			},
+			{
+				FVector3(0.5f , 0.5f , 0.5f),
+				FVector4(0.f , 1.f , 0.f , 1.f),
+				FVector2(1.f , 0.f)
+			},
+			{
+				FVector3(0.5f , -0.5f , 0.5f),
+				FVector4(0.f , 0.f , 1.f , 1.f),
+				FVector2(1.f , 1.f)
+			},
+			{
+				FVector3(-0.5f , -0.5f , 0.5f),
+				FVector4(0.f , 1.f , 0.f , 1.f),
+				FVector2(0.f , 1.f)
+			}
+		};
+
+		vector<uint32> Indices{ 0, 1, 2, 0, 2, 3 };
+
+		shared_ptr<GameObject> Object = make_shared<GameObject>();
+		Object->AddComponent(make_shared<Transform>());	// Initialize 함수 제거, 직접 추가
+		auto Transform = Object->GetTransform();
+		Transform->SetLocalPosition(FVector3(0.f, 100.f, 200.f));
+		Transform->SetLocalScale(FVector3(100.f, 100.f, 1.f));
+
+		// Test
+		shared_ptr<FMeshRenderer> MeshRenderer = make_shared<FMeshRenderer>();
+		{
+			shared_ptr<FMesh> Mesh = make_shared<FMesh>();
+			Mesh->Initialize(Vertices, Indices);
+			MeshRenderer->SetMesh(Mesh);
+		}
+		{
+			shared_ptr<FShader> Shader = make_shared<FShader>();
+			shared_ptr<FTexture> Texture = make_shared<FTexture>();
+			Shader->Initialize(L"..\\Resources\\Shader\\Default.hlsli");
+			Texture->Initialize(L"..\\Resources\\Texture\\F1.png");
+
+			shared_ptr<FMaterial> Material = make_shared<FMaterial>();
+			Material->SetShader(Shader);
+			Material->SetMaterialParameters(0, 0.3f);
+			Material->SetMaterialParameters(1, 0.4f);
+			Material->SetMaterialParameters(2, 0.3f);
+			Material->SetTexture(0, Texture);
+
+			MeshRenderer->SetMaterial(Material);
+		}
+
+		Object->AddComponent(MeshRenderer);
+		CurrentScene->AddGameObject(Object);
+	}
+#pragma endregion
+
+#pragma region Camera
+	shared_ptr<GameObject> CameraObject = make_shared<GameObject>();
+	CameraObject->AddComponent(make_shared<Transform>());
+	CameraObject->AddComponent(make_shared<Camera>());
+	CameraObject->AddComponent(make_shared<CameraMovementComponent>());
+	CameraObject->GetTransform()->SetLocalPosition(FVector3(0.f, 100.f, 0.f));
+
+	CurrentScene->AddGameObject(CameraObject);
+#pragma endregion
+	
 	return CurrentScene;
 }

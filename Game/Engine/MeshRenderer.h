@@ -12,7 +12,6 @@ public:
 	FMeshRenderer();
 	~FMeshRenderer() override;
 
-	void Update() override;
 	void Render();
 
 	void SetMesh(shared_ptr<FMesh> InMesh) { Mesh = InMesh; }

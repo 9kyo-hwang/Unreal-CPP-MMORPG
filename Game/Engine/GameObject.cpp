@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "GameObject.h"
 
+#include "Camera.h"
+#include "MeshRenderer.h"
 #include "MonoBehaviour.h"
 #include "Transform.h"
 
@@ -10,11 +12,6 @@ GameObject::GameObject()
 
 GameObject::~GameObject()
 {
-}
-
-void GameObject::Initialize()
-{
-	AddComponent(make_shared<Transform>());
 }
 
 void GameObject::Awake()
@@ -81,10 +78,24 @@ void GameObject::LateUpdate()
 	}
 }
 
-shared_ptr<Transform> GameObject::GetTransform() const
+void GameObject::FinalUpdate()
 {
-	uint8 Index = static_cast<uint8>(EComponentType::Transform);
-	return static_pointer_cast< Transform >( Components[Index] );
+	for ( shared_ptr<Component>& Component : Components )
+	{
+		if ( Component )
+		{
+			Component->FinalUpdate();
+		}
+	}
+
+	// MonoBehaviour를 상속받는 스크립트들은 FinalUpdate를 수행하지 않음
+}
+
+shared_ptr<Component> GameObject::GetComponent(EComponentType Type) const
+{
+	uint8 Index = static_cast<uint8>(Type);
+	assert(Index < ComponentCount);
+	return Components[Index];
 }
 
 void GameObject::AddComponent(shared_ptr<Component> Component)
@@ -100,4 +111,19 @@ void GameObject::AddComponent(shared_ptr<Component> Component)
 	{
 		Scripts.push_back(dynamic_pointer_cast< MonoBehaviour >( Component ));
 	}
+}
+
+shared_ptr<Transform> GameObject::GetTransform() const
+{
+	return static_pointer_cast<Transform>( GetComponent(EComponentType::Transform) );
+}
+
+shared_ptr<FMeshRenderer> GameObject::GetMeshRenderer() const
+{
+	return static_pointer_cast< FMeshRenderer >( GetComponent(EComponentType::MeshRenderer) );
+}
+
+shared_ptr<Camera> GameObject::GetCamera() const
+{
+	return static_pointer_cast< Camera >( GetComponent(EComponentType::Camera) );
 }

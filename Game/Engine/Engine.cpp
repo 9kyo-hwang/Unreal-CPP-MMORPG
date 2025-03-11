@@ -43,7 +43,7 @@ void Engine::Initialize(const FWindowInfo& InInfo)
 	SwapChain->Initialize(Info, Device->GetDXGI(), CommandQueue->GetD3DCommandQueue());
 	RootSignature->Initialize();
 
-	CreateConstantBuffer(EConstantBufferViewRegisters::b0, sizeof(FTransformMatrix), 256);
+	CreateConstantBuffer(EConstantBufferViewRegisters::b0, sizeof(FTransformParameters), 256);
 	CreateConstantBuffer(EConstantBufferViewRegisters::b1, sizeof(FMaterialParameters), 256);
 
 	TableDescriptorHeap->Initialize(256);
@@ -59,6 +59,7 @@ void Engine::Update()
 {
 	InputManager::Get()->Update();
 	TimeManager::Get()->Update();
+	SceneManager::Get()->Update();
 
 	Render();
 
@@ -69,8 +70,7 @@ void Engine::Render()
 {
 	RenderBegin();
 
-	// TODO: 추후 Update와 Render를 분리할 수도...
-	SceneManager::Get()->Update();
+	SceneManager::Get()->Render();
 
 	RenderEnd();
 }

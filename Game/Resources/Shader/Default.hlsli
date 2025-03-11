@@ -1,6 +1,6 @@
-cbuffer TEST_B0 : register(b0)
+cbuffer TRANSFORM_PARAMETERS : register(b0)
 {
-    float4 offset0;
+    row_major matrix wvp_matrix;    // row_major: shader <-> dx 행렬 해석 순서가 달라 일치시키기 위함
 };
 
 cbuffer MATERIAL_PARAMETERS : register(b1)
@@ -44,12 +44,9 @@ VS_OUT VS_Main(VS_IN input)
 {
     VS_OUT output = (VS_OUT)0;
 
-    output.pos = float4(input.pos, 1.f);
-    //output.pos += offset0;
-    output.pos.x += float_0;
-    output.pos.y += float_1;
-    output.pos.z += float_2;
-
+    // 계산된 좌표값을 적용하도록 wvp_matrix를 최종적으로 곱해줌
+	// 1.f: 행렬을 곱할 때 좌표로 인식, 0.f: 방향성만 추출
+    output.pos = mul(float4(input.pos, 1.f), wvp_matrix);
 	output.color = input.color;
     output.uv = input.uv;
 

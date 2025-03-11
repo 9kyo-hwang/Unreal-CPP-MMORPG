@@ -8,6 +8,8 @@ class SceneManager
 
 public:
 	void Update();
+	void Render();
+
 	void LoadScene(wstring SceneName);
 
 	shared_ptr<Scene> GetActiveScene() { return ActiveScene; }

@@ -4,6 +4,7 @@ enum class EComponentType : uint8
 {
 	Transform,
 	MeshRenderer,
+	Camera,
 	// ...
 	MonoBehaviour,	// 항상 마지막에 위치
 	END
@@ -24,6 +25,7 @@ public:
 	virtual void Start();
 	virtual void Update();
 	virtual void LateUpdate();
+	virtual void FinalUpdate();	// 행렬 연산 등 엔진 단에서 활용할 최종 업데이트
 
 	EComponentType GetType() const { return Type; }
 	shared_ptr<GameObject> GetParent() const;

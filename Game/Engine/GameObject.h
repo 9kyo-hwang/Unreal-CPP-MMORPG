@@ -1,6 +1,8 @@
 #pragma once
 #include "Component.h"
 
+class Camera;
+class FMeshRenderer;
 class MonoBehaviour;
 class Transform;
 
@@ -10,16 +12,20 @@ public:
 	GameObject();
 	virtual ~GameObject();
 
-	void Initialize();
-
 	// 들고 있는 Component들의 Event Function들을 실행시킬 것임
 	void Awake();
 	void Start();
 	void Update();
 	void LateUpdate();
+	void FinalUpdate();
 
-	shared_ptr<Transform> GetTransform() const;
+	shared_ptr<Component> GetComponent(EComponentType Type) const;
 	void AddComponent(shared_ptr<Component> Component);
+
+public:
+	shared_ptr<Transform> GetTransform() const;
+	shared_ptr<FMeshRenderer> GetMeshRenderer() const;
+	shared_ptr<Camera> GetCamera() const;
 
 private:
 	array<shared_ptr<Component>, ComponentCount> Components;	// 컴포넌트는 유일하게 1개씩만

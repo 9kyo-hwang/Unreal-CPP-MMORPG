@@ -30,11 +30,11 @@ public:
 	void SetMaterialParameters(uint8 Index, float Value) { MaterialParameters.Set(Index, Value); }
 	void SetTexture(uint8 Index, shared_ptr<FTexture> Texture) { Textures[Index] = Texture; }
 
-	void Update();
+	void Add();
 
 private:
 	shared_ptr<FShader> Shader;
-	FMaterialParameters MaterialParameters;
+	FMaterialParameters MaterialParameters{};
 	array<shared_ptr<FTexture>, MaterialTextureCount> Textures;
 };
 

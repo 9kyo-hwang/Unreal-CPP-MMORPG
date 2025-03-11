@@ -28,6 +28,10 @@ void Component::LateUpdate()
 {
 }
 
+void Component::FinalUpdate()
+{
+}
+
 shared_ptr<GameObject> Component::GetParent() const
 {
 	if (!Parent.expired())

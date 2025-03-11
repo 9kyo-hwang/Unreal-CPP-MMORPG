@@ -9,9 +9,12 @@ public:
 	void Start();
 	void Update();
 	void LateUpdate();
+	void FinalUpdate();
 
 	void AddGameObject(shared_ptr<GameObject> GameObject);
 	void RemoveGameObject(shared_ptr<GameObject> GameObject);
+
+	const vector<shared_ptr<GameObject>>& GetGameObjects() { return GameObjects; }
 
 private:
 	vector<shared_ptr<GameObject>> GameObjects;

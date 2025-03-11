@@ -17,6 +17,7 @@ using namespace std;
 using FPaths = filesystem::path;
 
 #include "d3dx12.h"
+#include "SimpleMath.h"
 #include <d3d12.h>
 #include <wrl.h>
 #include <d3dcompiler.h>
@@ -50,10 +51,10 @@ using uint8 = unsigned __int8;
 using uint16 = unsigned __int16;
 using uint32 = unsigned __int32;
 using uint64 = unsigned __int64;
-using FVector2 = XMFLOAT2;
-using FVector3 = XMFLOAT3;
-using FVector4 = XMFLOAT4;
-using FMatrix = XMMATRIX;
+using FVector2 = DirectX::SimpleMath::Vector2;
+using FVector3 = DirectX::SimpleMath::Vector3;
+using FVector4 = DirectX::SimpleMath::Vector4;
+using FMatrix = DirectX::SimpleMath::Matrix;
 
 enum class EConstantBufferViewRegisters : uint8
 {
@@ -96,6 +97,11 @@ struct FVertex
 	FVector3 Position;	// 3차원 공간(x, y, z)
 	FVector4 Color;		// RGBA
 	FVector2 UV;		// UV 좌표계(== Texture 좌표. 3D 물체를 2D에 대응시키기 위해 사용)
+};
+
+struct FTransformParameters
+{
+	FMatrix WVPMatrix;	// World View Projection 정보를 담는 matrix
 };
 
 #define GENERATED_SINGLETON(type)	\

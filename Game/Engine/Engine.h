@@ -32,6 +32,7 @@ public:
 	shared_ptr<FConstantBuffer> GetConstantBuffer(EConstantBufferType Type) { return ConstantBufferList[static_cast<uint8>(Type)]; }
 	shared_ptr<FTableDescriptorHeap> GetTableDescriptorHeap() { return TableDescriptorHeap; }
 	shared_ptr<FDepthStencilBuffer> GetDepthStencilBuffer() { return DepthStencilBuffer; }
+	FWindowInfo GetWindow() const { return Info; }
 
 private:
 	void ShowFPS();
