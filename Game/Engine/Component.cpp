@@ -4,7 +4,8 @@
 #include "GameObject.h"
 
 Component::Component(EComponentType InType)
-	: Type(InType)
+	: Super(EObjectType::Component)
+	, Type(InType)
 {
 }
 

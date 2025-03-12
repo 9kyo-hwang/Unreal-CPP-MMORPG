@@ -7,6 +7,7 @@
 #include "Material.h"
 #include "Mesh.h"
 #include "MeshRenderer.h"
+#include "Resources.h"
 #include "Scene.h"
 #include "Shader.h"
 #include "Texture.h"
@@ -56,47 +57,27 @@ shared_ptr<Scene> SceneManager::LoadTestScene()
 	// 여기서 임시로 만든 신을 ActiveScene으로 지정
 	shared_ptr<Scene> CurrentScene = make_shared<Scene>();
 
-#pragma region TestObject
+#pragma region Camera
+	shared_ptr<GameObject> CameraObject = make_shared<GameObject>();
+	CameraObject->AddComponent(make_shared<Transform>());
+	CameraObject->AddComponent(make_shared<Camera>());
+	CameraObject->AddComponent(make_shared<CameraMovementComponent>());
+	CameraObject->GetTransform()->SetLocalPosition(FVector3(0.f, 100.f, 0.f));
+
+	CurrentScene->AddGameObject(CameraObject);
+#pragma endregion
+
+#pragma region Sphere
 	{
-		// 사각형은 삼각형 2개를 이용해 그리는 것이므로 정점 정보가 6개 있어야 함
-		vector<FVertex> Vertices
-		{
-			{
-				FVector3(-0.5f , 0.5f , 0.5f),
-				FVector4(1.f , 0.f , 0.f , 1.f),
-				FVector2(0.f , 0.f)
-			},
-			{
-				FVector3(0.5f , 0.5f , 0.5f),
-				FVector4(0.f , 1.f , 0.f , 1.f),
-				FVector2(1.f , 0.f)
-			},
-			{
-				FVector3(0.5f , -0.5f , 0.5f),
-				FVector4(0.f , 0.f , 1.f , 1.f),
-				FVector2(1.f , 1.f)
-			},
-			{
-				FVector3(-0.5f , -0.5f , 0.5f),
-				FVector4(0.f , 1.f , 0.f , 1.f),
-				FVector2(0.f , 1.f)
-			}
-		};
+		shared_ptr<GameObject> SphereObject = make_shared<GameObject>();
+		SphereObject->AddComponent(make_shared<Transform>());
+		SphereObject->GetTransform()->SetLocalScale(FVector3(100.f, 100.f, 100.f));
+		SphereObject->GetTransform()->SetLocalPosition(FVector3(0.f, 100.f, 200.f));
 
-		vector<uint32> Indices{ 0, 1, 2, 0, 2, 3 };
-
-		shared_ptr<GameObject> Object = make_shared<GameObject>();
-		Object->AddComponent(make_shared<Transform>());	// Initialize 함수 제거, 직접 추가
-		auto Transform = Object->GetTransform();
-		Transform->SetLocalPosition(FVector3(0.f, 100.f, 200.f));
-		Transform->SetLocalScale(FVector3(100.f, 100.f, 1.f));
-
-		// Test
 		shared_ptr<FMeshRenderer> MeshRenderer = make_shared<FMeshRenderer>();
 		{
-			shared_ptr<FMesh> Mesh = make_shared<FMesh>();
-			Mesh->Initialize(Vertices, Indices);
-			MeshRenderer->SetMesh(Mesh);
+			shared_ptr<FMesh> Sphere = Resources::Get()->LoadSphere();
+			MeshRenderer->SetMesh(Sphere);
 		}
 		{
 			shared_ptr<FShader> Shader = make_shared<FShader>();
@@ -106,27 +87,44 @@ shared_ptr<Scene> SceneManager::LoadTestScene()
 
 			shared_ptr<FMaterial> Material = make_shared<FMaterial>();
 			Material->SetShader(Shader);
-			Material->SetMaterialParameters(0, 0.3f);
-			Material->SetMaterialParameters(1, 0.4f);
-			Material->SetMaterialParameters(2, 0.3f);
 			Material->SetTexture(0, Texture);
 
 			MeshRenderer->SetMaterial(Material);
 		}
 
-		Object->AddComponent(MeshRenderer);
-		CurrentScene->AddGameObject(Object);
+		SphereObject->AddComponent(MeshRenderer);
+		CurrentScene->AddGameObject(SphereObject);
 	}
 #pragma endregion
 
-#pragma region Camera
-	shared_ptr<GameObject> CameraObject = make_shared<GameObject>();
-	CameraObject->AddComponent(make_shared<Transform>());
-	CameraObject->AddComponent(make_shared<Camera>());
-	CameraObject->AddComponent(make_shared<CameraMovementComponent>());
-	CameraObject->GetTransform()->SetLocalPosition(FVector3(0.f, 100.f, 0.f));
+#pragma region Cube
+	{
+		shared_ptr<GameObject> CubeObject = make_shared<GameObject>();
+		CubeObject->AddComponent(make_shared<Transform>());
+		CubeObject->GetTransform()->SetLocalScale(FVector3(100.f, 100.f, 100.f));
+		CubeObject->GetTransform()->SetLocalPosition(FVector3(150.f, 100.f, 200.f));
 
-	CurrentScene->AddGameObject(CameraObject);
+		shared_ptr<FMeshRenderer> MeshRenderer = make_shared<FMeshRenderer>();
+		{
+			shared_ptr<FMesh> Sphere = Resources::Get()->LoadCube();
+			MeshRenderer->SetMesh(Sphere);
+		}
+		{
+			shared_ptr<FShader> Shader = make_shared<FShader>();
+			shared_ptr<FTexture> Texture = make_shared<FTexture>();
+			Shader->Initialize(L"..\\Resources\\Shader\\Default.hlsli");
+			Texture->Initialize(L"..\\Resources\\Texture\\F1.png");
+
+			shared_ptr<FMaterial> Material = make_shared<FMaterial>();
+			Material->SetShader(Shader);
+			Material->SetTexture(0, Texture);
+
+			MeshRenderer->SetMaterial(Material);
+		}
+
+		CubeObject->AddComponent(MeshRenderer);
+		CurrentScene->AddGameObject(CubeObject);
+	}
 #pragma endregion
 	
 	return CurrentScene;

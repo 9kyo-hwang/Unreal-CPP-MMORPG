@@ -4,6 +4,15 @@
 #include "Engine.h"
 #include "Material.h"
 
+FMesh::FMesh()
+	: Super(EObjectType::Mesh)
+{
+}
+
+FMesh::~FMesh()
+{
+}
+
 void FMesh::Initialize(const vector<FVertex>& Vertices, const vector<uint32>& Indices)
 {
 	CreateVertexBuffer(Vertices);

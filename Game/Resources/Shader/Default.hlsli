@@ -29,14 +29,14 @@ SamplerState sam_0 : register(s0);
 struct VS_IN
 {
     float3 pos : POSITION;
-    float4 color : COLOR;
     float2 uv : TEXCOORD;
+    float3 normal : NORMAL;
+    float3 tangent : TANGENT;
 };
 
 struct VS_OUT
 {
     float4 pos : SV_Position;
-    float4 color : COLOR;
     float2 uv : TEXCOORD;
 };
 
@@ -47,7 +47,6 @@ VS_OUT VS_Main(VS_IN input)
     // 계산된 좌표값을 적용하도록 wvp_matrix를 최종적으로 곱해줌
 	// 1.f: 행렬을 곱할 때 좌표로 인식, 0.f: 방향성만 추출
     output.pos = mul(float4(input.pos, 1.f), wvp_matrix);
-	output.color = input.color;
     output.uv = input.uv;
 
     return output;

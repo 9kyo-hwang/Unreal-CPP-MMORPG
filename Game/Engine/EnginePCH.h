@@ -94,9 +94,20 @@ struct FWindowInfo
 
 struct FVertex
 {
+	FVertex() {}
+	FVertex(FVector3 InPosition, FVector2 InUV, FVector3 InNormal, FVector3 InTangent)
+		: Position(InPosition)
+		, UV(InUV)
+		, Normal(InNormal)
+		, Tangent(InTangent)
+	{}
+
 	FVector3 Position;	// 3차원 공간(x, y, z)
-	FVector4 Color;		// RGBA
 	FVector2 UV;		// UV 좌표계(== Texture 좌표. 3D 물체를 2D에 대응시키기 위해 사용)
+
+	// Lighting을 위해 필요한 정보
+	FVector3 Normal;
+	FVector3 Tangent;
 };
 
 struct FTransformParameters

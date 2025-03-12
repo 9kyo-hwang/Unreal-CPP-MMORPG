@@ -5,6 +5,15 @@
 #include "Shader.h"
 #include "Texture.h"
 
+FMaterial::FMaterial()
+	: Super(EObjectType::Material)
+{
+}
+
+FMaterial::~FMaterial()
+{
+}
+
 void FMaterial::Add()
 {
 	CONSTANT_BUFFER(EConstantBufferType::Material)->Add(&MaterialParameters, sizeof(MaterialParameters));	// Upload CBV

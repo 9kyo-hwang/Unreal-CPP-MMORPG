@@ -1,4 +1,5 @@
 #pragma once
+#include "Object.h"
 
 enum class EComponentType : uint8
 {
@@ -15,11 +16,13 @@ constexpr uint8 ComponentCount = static_cast<uint8>(EComponentType::END) - 1;
 class GameObject;
 class Transform;
 
-class Component
+class Component : public Object	// MonoBehaviour 스크립트가 툴에서 Load/Save 가능하기 때문에 상속
 {
+	using Super = Object;
+
 public:
 	Component(EComponentType InType);
-	virtual ~Component();
+	~Component() override;
 
 	virtual void Awake();
 	virtual void Start();

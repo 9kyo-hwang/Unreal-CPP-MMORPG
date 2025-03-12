@@ -1,8 +1,14 @@
 #pragma once
+#include "Object.h"
 
-class FTexture
+class FTexture : public Object
 {
+	using Super = Object;
+
 public:
+	FTexture();
+	~FTexture() override;
+
 	void Initialize(const wstring& Path);
 
 	D3D12_CPU_DESCRIPTOR_HANDLE GetCPUHandle() { return ViewHandle; }
@@ -19,4 +25,3 @@ private:
 	ComPtr<ID3D12DescriptorHeap> ShaderResourceViewList;
 	D3D12_CPU_DESCRIPTOR_HANDLE ViewHandle{};
 };
-

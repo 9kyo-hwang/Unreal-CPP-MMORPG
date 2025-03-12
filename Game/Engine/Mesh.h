@@ -1,10 +1,16 @@
 #pragma once
+#include "Object.h"
 
 class FMaterial;
 
-class FMesh
+class FMesh : public Object
 {
+	using Super = Object;
+
 public:
+	FMesh();
+	~FMesh() override;
+
 	void Initialize(const vector<FVertex>& Vertices, const vector<uint32>& Indices);
 	void Render();
 

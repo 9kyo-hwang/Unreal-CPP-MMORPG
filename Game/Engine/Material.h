@@ -1,4 +1,5 @@
 #pragma once
+#include "Object.h"
 
 class FShader;
 class FTexture;
@@ -20,9 +21,14 @@ struct FMaterialParameters
 	array<float, MaterialFloatCount> FloatParameters;
 };
 
-class FMaterial
+class FMaterial : public Object
 {
+	using Super = Object;
+
 public:
+	FMaterial();
+	~FMaterial() override;
+
 	shared_ptr<FShader> GetShader() { return Shader; }
 
 	void SetShader(shared_ptr<FShader> InShader) { Shader = InShader; }

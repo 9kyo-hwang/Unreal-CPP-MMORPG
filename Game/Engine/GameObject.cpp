@@ -7,6 +7,7 @@
 #include "Transform.h"
 
 GameObject::GameObject()
+	: Super(EObjectType::GameObject)
 {
 }
 

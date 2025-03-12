@@ -1,16 +1,19 @@
 #pragma once
 #include "Component.h"
+#include "Object.h"
 
 class Camera;
 class FMeshRenderer;
 class MonoBehaviour;
 class Transform;
 
-class GameObject : public enable_shared_from_this<GameObject>
+class GameObject : public Object, public enable_shared_from_this<GameObject>
 {
+	using Super = Object;
+
 public:
 	GameObject();
-	virtual ~GameObject();
+	~GameObject() override;
 
 	// 들고 있는 Component들의 Event Function들을 실행시킬 것임
 	void Awake();

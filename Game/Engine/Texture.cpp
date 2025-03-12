@@ -3,6 +3,15 @@
 
 #include "Engine.h"
 
+FTexture::FTexture()
+	: Super(EObjectType::Texture)
+{
+}
+
+FTexture::~FTexture()
+{
+}
+
 void FTexture::Initialize(const wstring& Path)
 {
 	CreateTexture(Path);

@@ -1,9 +1,16 @@
 #pragma once
 
-class FShader
+#include "Object.h"
+
+class FShader : public Object
 {
+	using Super = Object;
+
 public:
-	// ¿ÜºÎÀÇ ÆÄÀÏ·Î °ü¸®ÇÏ°Ô µÉ ¿¹Á¤, ±×°ÍµéÀ» ·Îµå
+	FShader();
+	~FShader() override;
+
+	// ì™¸ë¶€ì˜ íŒŒì¼ë¡œ ê´€ë¦¬í•˜ê²Œ ë  ì˜ˆì •, ê·¸ê²ƒë“¤ì„ ë¡œë“œ
 	void Initialize(const wstring& Path);
 	void Update();
 
