@@ -10,14 +10,14 @@ void FTableDescriptorHeap::Initialize(uint32 Count)
 	D3D12_DESCRIPTOR_HEAP_DESC Desc
 	{
 		.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-		.NumDescriptors = Count * REGISTER_COUNT,	// 그룹 개수 * 각 그룹 별 View(Register) 개수
+		.NumDescriptors = Count * (REGISTER_COUNT - 1),	// 그룹 개수 * 각 그룹 별 View(Register) 개수, b0는 전역으로 사용하기 때문에 -1
 		.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,	// ShaderVisible로 해줘야 GPU DRAM에 상주, 사용 가능
 	};
 
 	DEVICE->CreateDescriptorHeap(&Desc, IID_PPV_ARGS(&Data));
 
 	ViewSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-	GroupSize = ViewSize * REGISTER_COUNT;
+	GroupSize = ViewSize * ( REGISTER_COUNT - 1 );
 }
 
 void FTableDescriptorHeap::Clear()
@@ -50,7 +50,7 @@ void FTableDescriptorHeap::CommitTable()
 {
 	D3D12_GPU_DESCRIPTOR_HANDLE Handle = Data->GetGPUDescriptorHandleForHeapStart();
 	Handle.ptr += CurrentGroupIndex * GroupSize;
-	COMMAND_LIST->SetGraphicsRootDescriptorTable(0, Handle);	// 현재 사용 중인 그룹을 올림
+	COMMAND_LIST->SetGraphicsRootDescriptorTable(1, Handle);	// 현재 사용 중인 그룹을 올림
 
 	CurrentGroupIndex++;
 }
@@ -67,8 +67,10 @@ D3D12_CPU_DESCRIPTOR_HANDLE FTableDescriptorHeap::GetCPUHandle(EShaderResourceVi
 
 D3D12_CPU_DESCRIPTOR_HANDLE FTableDescriptorHeap::GetCPUHandle(uint8 RegisterNumber)
 {
+	assert(RegisterNumber > 0);	// b0는 이제 들어오지 않음
+
 	D3D12_CPU_DESCRIPTOR_HANDLE Handle = Data->GetCPUDescriptorHandleForHeapStart();
 	Handle.ptr += CurrentGroupIndex * GroupSize;	// 적절한 그룹 찾기
-	Handle.ptr += RegisterNumber * ViewSize;		// 해당 그룹 내 적절한 레지스터(View) 찾기
+	Handle.ptr += (RegisterNumber - 1) * ViewSize;	// 해당 그룹 내 적절한 레지스터(View) 찾기
 	return Handle;
 }

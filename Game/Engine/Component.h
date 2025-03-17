@@ -6,6 +6,7 @@ enum class EComponentType : uint8
 	Transform,
 	MeshRenderer,
 	Camera,
+	Light,
 	// ...
 	MonoBehaviour,	// 항상 마지막에 위치
 	END

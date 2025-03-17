@@ -34,9 +34,17 @@ void Transform::FinalUpdate()
 	}
 }
 
-void Transform::Add()
+void Transform::PushData()
 {
-	FMatrix WVPMatrix = WorldMatrix * Camera::StaticViewMatrix * Camera::StaticProjectionMatrix;
-	// FConstantBuffer::Add()에서 SetShaderResourceView()를 자동적으로 수행해주고 있음.
-	CONSTANT_BUFFER(EConstantBufferType::Transform)->Add(&WVPMatrix, sizeof(WVPMatrix));
+	FTransformParameters Parameters
+	{
+		WorldMatrix,
+		Camera::StaticViewMatrix,
+		Camera::StaticProjectionMatrix,
+		WorldMatrix * Camera::StaticViewMatrix,
+		WorldMatrix* Camera::StaticViewMatrix* Camera::StaticProjectionMatrix
+	};
+	
+	// FConstantBuffer::PushData()에서 SetShaderResourceView()를 자동적으로 수행해주고 있음.
+	CONSTANT_BUFFER(EConstantBufferType::Transform)->PushData(&Parameters, sizeof(Parameters));
 }

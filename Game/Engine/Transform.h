@@ -11,13 +11,14 @@ public:
 
 	// TODO: Parent/Child 관계 설정
 	void FinalUpdate() override;
-	void Add();
+	void PushData();
 
 public:
 	const FVector3& GetLocalPosition() const { return LocalPosition; }
 	const FVector3& GetLocalRotation() const { return LocalRotation; }
 	const FVector3& GetLocalScale() const { return LocalScale; }
 
+	// TODO: const& 반환이 아닌 복사 반환으로?
 	const FMatrix& GetLocalToWorldMatrix() const { return WorldMatrix; }
 	const FVector3& GetWorldPosition() const { return WorldMatrix.Translation(); }
 

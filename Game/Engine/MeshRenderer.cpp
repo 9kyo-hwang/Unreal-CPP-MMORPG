@@ -16,7 +16,7 @@ FMeshRenderer::~FMeshRenderer()
 
 void FMeshRenderer::Render()
 {
-	GetTransform()->Add();
-	Material->Add();
+	GetTransform()->PushData();
+	Material->PushData();
 	Mesh->Render();
 }

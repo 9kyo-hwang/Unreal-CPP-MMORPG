@@ -2,6 +2,7 @@
 
 enum class EConstantBufferType : uint8
 {
+	Global,
 	Transform,
 	Material,
 	END
@@ -17,7 +18,8 @@ public:
 
 	void Initialize(EConstantBufferViewRegisters InRegister, uint32 Size, uint32 Count);
 	void Clear() { CurrentIndex = 0; }
-	void Add(void* InData, uint32 InDataSize);
+	void PushData(void* NewData, uint32 NewDataSize);
+	void SetStaticData(void* InData, uint32 InDataSize);	// 전역으로 사용될 데이터 세팅(b0 레지스터)
 
 	D3D12_GPU_VIRTUAL_ADDRESS GetGPUVirtualAddress(uint32 Index);
 	D3D12_CPU_DESCRIPTOR_HANDLE GetCPUHandle(uint32 Index);

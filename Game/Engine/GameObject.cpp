@@ -2,6 +2,7 @@
 #include "GameObject.h"
 
 #include "Camera.h"
+#include "Light.h"
 #include "MeshRenderer.h"
 #include "MonoBehaviour.h"
 #include "Transform.h"
@@ -127,4 +128,9 @@ shared_ptr<FMeshRenderer> GameObject::GetMeshRenderer() const
 shared_ptr<Camera> GameObject::GetCamera() const
 {
 	return static_pointer_cast< Camera >( GetComponent(EComponentType::Camera) );
+}
+
+shared_ptr<Light> GameObject::GetLight() const
+{
+	return static_pointer_cast< Light >( GetComponent(EComponentType::Light) );
 }

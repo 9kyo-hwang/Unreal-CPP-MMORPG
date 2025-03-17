@@ -90,7 +90,7 @@ void FCommandQueue::RenderBegin(const D3D12_VIEWPORT* Viewport, const D3D12_RECT
 
 	// GPU가 사용할(결과물을 그려야할) 백 버퍼를 지정
 	D3D12_CPU_DESCRIPTOR_HANDLE BackBufferView = SwapChain->GetCurrentBackBufferView();
-	CommandList->ClearRenderTargetView(BackBufferView, Colors::LightSteelBlue, 0, nullptr);
+	CommandList->ClearRenderTargetView(BackBufferView, Colors::Black, 0, nullptr);
 
 	D3D12_CPU_DESCRIPTOR_HANDLE DepthStencilView = GEngine->GetDepthStencilBuffer()->GetCPUDescriptorHandle();
 	CommandList->OMSetRenderTargets(1, &BackBufferView, false, &DepthStencilView);

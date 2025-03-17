@@ -114,6 +114,9 @@
     <ClInclude Include="Transform.h">
       <Filter>Objects\Components</Filter>
     </ClInclude>
+    <ClInclude Include="Light.h">
+      <Filter>Objects\Components</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -200,6 +203,9 @@
     <ClCompile Include="Transform.cpp">
       <Filter>Objects\Components</Filter>
     </ClCompile>
+    <ClCompile Include="Light.cpp">
+      <Filter>Objects\Components</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Resources\Shader\Default.hlsli">
@@ -207,6 +213,12 @@
     </None>
     <None Include="SimpleMath.inl">
       <Filter>Utils</Filter>
+    </None>
+    <None Include="..\Resources\Shader\Parameters.hlsli">
+      <Filter>Shader</Filter>
+    </None>
+    <None Include="..\Resources\Shader\Utils.hlsli">
+      <Filter>Shader</Filter>
     </None>
   </ItemGroup>
 </Project>

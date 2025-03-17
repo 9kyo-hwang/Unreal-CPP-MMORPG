@@ -112,7 +112,12 @@ struct FVertex
 
 struct FTransformParameters
 {
-	FMatrix WVPMatrix;	// World View Projection 정보를 담는 matrix
+	// WVP Matrix 외에도 중간 단계 행렬이 필요할 경우를 대비해 같이 정보를 담도록 수정
+	FMatrix WorldMatrix;
+	FMatrix ViewMatrix;
+	FMatrix ProjectionMatrix;
+	FMatrix WVMatrix;
+	FMatrix WVPMatrix;
 };
 
 #define GENERATED_SINGLETON(type)	\

@@ -2,10 +2,10 @@
 #include "Engine.h"
 
 #include "InputManager.h"
+#include "Light.h"
 #include "Material.h"
 #include "SceneManager.h"
 #include "TimeManager.h"
-#include "Transform.h"
 
 Engine::Engine()
 	: Info()
@@ -43,8 +43,9 @@ void Engine::Initialize(const FWindowInfo& InInfo)
 	SwapChain->Initialize(Info, Device->GetDXGI(), CommandQueue->GetD3DCommandQueue());
 	RootSignature->Initialize();
 
-	CreateConstantBuffer(EConstantBufferViewRegisters::b0, sizeof(FTransformParameters), 256);
-	CreateConstantBuffer(EConstantBufferViewRegisters::b1, sizeof(FMaterialParameters), 256);
+	CreateConstantBuffer(EConstantBufferViewRegisters::b0, sizeof(FLightParameters), 1);	// 1개만 세팅하므로 버퍼 1개만
+	CreateConstantBuffer(EConstantBufferViewRegisters::b1, sizeof(FTransformParameters), 256);
+	CreateConstantBuffer(EConstantBufferViewRegisters::b2, sizeof(FMaterialParameters), 256);
 
 	TableDescriptorHeap->Initialize(256);
 	DepthStencilBuffer->Initialize(Info);

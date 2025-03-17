@@ -2,6 +2,7 @@
 #include "Component.h"
 #include "Object.h"
 
+class Light;
 class Camera;
 class FMeshRenderer;
 class MonoBehaviour;
@@ -29,6 +30,7 @@ public:
 	shared_ptr<Transform> GetTransform() const;
 	shared_ptr<FMeshRenderer> GetMeshRenderer() const;
 	shared_ptr<Camera> GetCamera() const;
+	shared_ptr<Light> GetLight() const;
 
 private:
 	array<shared_ptr<Component>, ComponentCount> Components;	// 컴포넌트는 유일하게 1개씩만

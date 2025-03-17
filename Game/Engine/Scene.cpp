@@ -1,7 +1,11 @@
 #include "pch.h"
 #include "Scene.h"
 
+#include "Camera.h"
+#include "ConstantBuffer.h"
+#include "Engine.h"
 #include "GameObject.h"
+#include "Light.h"
 
 void Scene::Awake()
 {
@@ -44,6 +48,19 @@ void Scene::FinalUpdate()
 	}
 }
 
+void Scene::Render()
+{
+	PushLightData();	// 프레임 당 1번만
+
+	for (const auto& GameObject : GameObjects)
+	{
+		if (const auto& Camera = GameObject->GetCamera())
+		{
+			Camera->Render();
+		}
+	}
+}
+
 void Scene::AddGameObject(shared_ptr<GameObject> GameObject)
 {
 	GameObjects.push_back(GameObject);
@@ -56,4 +73,18 @@ void Scene::RemoveGameObject(shared_ptr<GameObject> GameObject)
 	{
 		GameObjects.erase(Iterator);
 	}
+}
+
+void Scene::PushLightData()
+{
+	FLightParameters Parameters{};
+	for (auto& GameObject : GameObjects)
+	{
+		if ( const auto& LightComponent = GameObject->GetLight() )
+		{
+			Parameters.Lights[Parameters.LightCount++] = LightComponent->GetInfo();
+		}
+	}
+
+	CONSTANT_BUFFER(EConstantBufferType::Global)->SetStaticData(&Parameters, sizeof(Parameters));
 }

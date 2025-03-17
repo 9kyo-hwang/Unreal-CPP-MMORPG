@@ -14,9 +14,9 @@ FMaterial::~FMaterial()
 {
 }
 
-void FMaterial::Add()
+void FMaterial::PushData()
 {
-	CONSTANT_BUFFER(EConstantBufferType::Material)->Add(&MaterialParameters, sizeof(MaterialParameters));	// Upload CBV
+	CONSTANT_BUFFER(EConstantBufferType::Material)->PushData(&MaterialParameters, sizeof(MaterialParameters));	// Upload CBV
 
 	for (uint32 Index = 0; Index < Textures.size(); ++Index)	// Upload SRV
 	{
