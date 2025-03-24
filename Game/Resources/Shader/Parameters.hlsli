@@ -49,6 +49,12 @@ cbuffer MATERIAL_PARAMETERS : register(b2)
     float g_float_2;
     float g_float_3;
     float g_float_4;
+
+    int g_tex_on_0; // Shader 코드엔 null check 기능이 없어서 별도의 사용유무 변수를 둠
+    int g_tex_on_1;
+    int g_tex_on_2;
+    int g_tex_on_3;
+    int g_tex_on_4;
 };
 
 Texture2D g_tex_0 : register(t0);

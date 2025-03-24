@@ -16,9 +16,11 @@ struct FMaterialParameters
 {
 	void Set(uint8 Index, int32 Value) { IntParameters[Index] = Value; }
 	void Set(uint8 Index, float Value) { FloatParameters[Index] = Value; }
+	void SetUseTexture(uint8 Index, int32 Use) { UsedTextureParameters[Index] = Use; }
 
 	array<int32, MaterialIntCount> IntParameters;
 	array<float, MaterialFloatCount> FloatParameters;
+	array<int32, MaterialTextureCount> UsedTextureParameters;
 };
 
 class FMaterial : public Object
@@ -34,7 +36,11 @@ public:
 	void SetShader(shared_ptr<FShader> InShader) { Shader = InShader; }
 	void SetMaterialParameters(uint8 Index, int32 Value) { MaterialParameters.Set(Index, Value); }
 	void SetMaterialParameters(uint8 Index, float Value) { MaterialParameters.Set(Index, Value); }
-	void SetTexture(uint8 Index, shared_ptr<FTexture> Texture) { Textures[Index] = Texture; }
+	void SetTexture(uint8 Index, shared_ptr<FTexture> Texture)
+	{
+		Textures[Index] = Texture;
+		MaterialParameters.SetUseTexture(Index, Texture ? 1 : 0);
+	}
 
 	void PushData();
 
