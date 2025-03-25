@@ -51,5 +51,18 @@ void CameraMovementComponent::LateUpdate()
 		Transform->SetLocalRotation(Rotation);
 	}
 
+	if ( InputManager::Get()->GetButton(EKeyCode::Z) )
+	{
+		FVector3 Rotation = Transform->GetLocalRotation();
+		Rotation.y -= DeltaTime * 0.5f;
+		Transform->SetLocalRotation(Rotation);
+	}
+	if ( InputManager::Get()->GetButton(EKeyCode::C) )
+	{
+		FVector3 Rotation = Transform->GetLocalRotation();
+		Rotation.y += DeltaTime * 0.5f;
+		Transform->SetLocalRotation(Rotation);
+	}
+
 	Transform->SetLocalPosition(Position);
 }

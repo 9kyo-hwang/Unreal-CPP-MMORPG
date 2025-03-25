@@ -2,6 +2,28 @@
 
 #include "Object.h"
 
+enum class ERasterizeType
+{
+	CullNone,
+	CullFront,
+	CullBack,	// Default
+	Wireframe,
+};
+
+enum class EDepthStencilType
+{
+	Less,	// Default
+	LessEqual,
+	Greater,
+	GreaterEqual,
+};
+
+struct FShaderInfo
+{
+	ERasterizeType RasterizeType = ERasterizeType::CullBack;
+	EDepthStencilType DepthStencilType = EDepthStencilType::Less;  // Skybox는 1에 위치해도 그려야하므로
+};
+
 class FShader : public Object
 {
 	using Super = Object;
@@ -11,7 +33,7 @@ public:
 	~FShader() override;
 
 	// 외부의 파일로 관리하게 될 예정, 그것들을 로드
-	void Initialize(const wstring& Path);
+	void Initialize(const wstring& Path, FShaderInfo Info = {});
 	void Update();
 
 private:

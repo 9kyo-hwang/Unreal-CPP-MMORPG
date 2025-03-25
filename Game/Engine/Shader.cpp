@@ -12,7 +12,7 @@ FShader::~FShader()
 {
 }
 
-void FShader::Initialize(const wstring& Path)
+void FShader::Initialize(const wstring& Path, FShaderInfo Info)
 {
 	CreateVertexShader(Path, "VS_Main", "vs_5_0");
 	CreatePixelShader(Path, "PS_Main", "ps_5_0");
@@ -38,6 +38,46 @@ void FShader::Initialize(const wstring& Path)
 	PipelineStateDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
 	PipelineStateDesc.SampleDesc.Count = 1;
 	PipelineStateDesc.DSVFormat = GEngine->GetDepthStencilBuffer()->GetFormat();
+
+	switch (Info.RasterizeType)
+	{
+	case ERasterizeType::CullNone:
+		PipelineStateDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
+		PipelineStateDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+		break;
+	case ERasterizeType::CullFront:
+		PipelineStateDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
+		PipelineStateDesc.RasterizerState.CullMode = D3D12_CULL_MODE_FRONT;
+		break;
+	case ERasterizeType::CullBack:
+		PipelineStateDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
+		PipelineStateDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
+		break;
+	case ERasterizeType::Wireframe:	// 외곽만 보임
+		PipelineStateDesc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
+		PipelineStateDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+		break;
+	}
+
+	switch (Info.DepthStencilType)
+	{
+	case EDepthStencilType::Less:
+		PipelineStateDesc.DepthStencilState.DepthEnable = true;
+		PipelineStateDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
+		break;
+	case EDepthStencilType::LessEqual:
+		PipelineStateDesc.DepthStencilState.DepthEnable = true;
+		PipelineStateDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+		break;
+	case EDepthStencilType::Greater:
+		PipelineStateDesc.DepthStencilState.DepthEnable = true;
+		PipelineStateDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_GREATER;
+		break;
+	case EDepthStencilType::GreaterEqual:
+		PipelineStateDesc.DepthStencilState.DepthEnable = true;
+		PipelineStateDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_GREATER_EQUAL;
+		break;
+	}
 
 	DEVICE->CreateGraphicsPipelineState(&PipelineStateDesc, IID_PPV_ARGS(&PipelineState));
 }

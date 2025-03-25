@@ -237,6 +237,7 @@
   <ItemGroup>
     <None Include="..\Resources\Shader\Default.hlsli" />
     <None Include="..\Resources\Shader\Parameters.hlsli" />
+    <None Include="..\Resources\Shader\Skybox.hlsli" />
     <None Include="..\Resources\Shader\Utils.hlsli" />
     <None Include="SimpleMath.inl" />
   </ItemGroup>

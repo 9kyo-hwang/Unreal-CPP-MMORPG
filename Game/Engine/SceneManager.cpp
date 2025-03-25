@@ -90,6 +90,37 @@ shared_ptr<Scene> SceneManager::LoadTestScene()
 //	}
 //#pragma endregion
 
+#pragma region Skybox
+	{
+		shared_ptr<GameObject> SkyboxObject = make_shared<GameObject>();
+		SkyboxObject->AddComponent(make_shared<Transform>());	// 크기, 위치, 회전 아무것도 설정하지 않음
+
+		shared_ptr<FMeshRenderer> MeshRenderer = make_shared<FMeshRenderer>();
+		{
+			shared_ptr<FMesh> Skybox = Resources::Get()->LoadSphere();
+			MeshRenderer->SetMesh(Skybox);
+		}
+		{
+			shared_ptr<FShader> Shader = make_shared<FShader>();
+			shared_ptr<FTexture> Texture = make_shared<FTexture>();
+			Shader->Initialize(
+				L"..\\Resources\\Shader\\Skybox.hlsli",
+				{ ERasterizeType::CullNone, EDepthStencilType::LessEqual }
+			);
+			Texture->Initialize(L"..\\Resources\\Texture\\Sky02.jpeg");
+
+			shared_ptr<FMaterial> Material = make_shared<FMaterial>();
+			Material->SetShader(Shader);
+			Material->SetTexture(0, Texture);
+
+			MeshRenderer->SetMaterial(Material);
+		}
+
+		SkyboxObject->AddComponent(MeshRenderer);
+		CurrentScene->AddGameObject(SkyboxObject);
+	}
+#pragma endregion
+
 #pragma region Cube
 	{
 		shared_ptr<GameObject> CubeObject = make_shared<GameObject>();
