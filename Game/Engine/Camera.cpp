@@ -46,6 +46,8 @@ void Camera::FinalUpdate()
 
 	StaticViewMatrix = ViewMatrix;
 	StaticProjectionMatrix = ProjectionMatrix;
+
+	Frustum.FinalUpdate();
 }
 
 void Camera::Render()
@@ -55,6 +57,15 @@ void Camera::Render()
 	{
 		if (const auto& MeshRenderer = GameObject->GetMeshRenderer())
 		{
+			if (GameObject->GetCheckFrustum())
+			{
+				auto Transform = GameObject->GetTransform();
+				if (!Frustum.ContainsSphere(Transform->GetWorldPosition(), Transform->GetFrustumBound()))
+				{
+					continue;
+				}
+			}
+
 			MeshRenderer->Render();
 		}
 	}

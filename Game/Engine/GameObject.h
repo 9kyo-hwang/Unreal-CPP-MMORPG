@@ -32,8 +32,13 @@ public:
 	shared_ptr<Camera> GetCamera() const;
 	shared_ptr<Light> GetLight() const;
 
+	bool GetCheckFrustum() const { return bCheckFrustum; }
+	void SetCheckFrustum(bool Value) { bCheckFrustum = Value; }
+
 private:
 	array<shared_ptr<Component>, ComponentCount> Components;	// 컴포넌트는 유일하게 1개씩만
 	vector<shared_ptr<MonoBehaviour>> Scripts;	// 스크립트는 동적으로 여러 개
+
+	bool bCheckFrustum = true;
 };
 

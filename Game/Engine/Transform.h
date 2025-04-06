@@ -18,9 +18,12 @@ public:
 	const FVector3& GetLocalRotation() const { return LocalRotation; }
 	const FVector3& GetLocalScale() const { return LocalScale; }
 
+	// TEMP
+	float GetFrustumBound() const { return max(max(LocalScale.x, LocalScale.y), LocalScale.z); }
+
 	// TODO: const& 반환이 아닌 복사 반환으로?
-	const FMatrix& GetLocalToWorldMatrix() const { return WorldMatrix; }
-	const FVector3& GetWorldPosition() const { return WorldMatrix.Translation(); }
+	FMatrix GetLocalToWorldMatrix() const { return WorldMatrix; }
+	FVector3 GetWorldPosition() const { return WorldMatrix.Translation(); }
 
 	// 아래 3종류 벡터는 월드 좌표계를 기준으로 계산됨
 	FVector3 GetRight() const { return WorldMatrix.Right(); }

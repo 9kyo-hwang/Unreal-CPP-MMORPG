@@ -94,6 +94,7 @@ shared_ptr<Scene> SceneManager::LoadTestScene()
 	{
 		shared_ptr<GameObject> SkyboxObject = make_shared<GameObject>();
 		SkyboxObject->AddComponent(make_shared<Transform>());	// 크기, 위치, 회전 아무것도 설정하지 않음
+		SkyboxObject->SetCheckFrustum(false);	// Skybox는 예외적으로 Frustum 범위 밖에 있더라도 그려져야 함
 
 		shared_ptr<FMeshRenderer> MeshRenderer = make_shared<FMeshRenderer>();
 		{

@@ -1,5 +1,6 @@
 #pragma once
 #include "Component.h"
+#include "Frustum.h"
 
 enum class ECameraProjectionType : uint8
 {
@@ -28,6 +29,7 @@ private:
 
 	FMatrix ViewMatrix;
 	FMatrix ProjectionMatrix;
+	Frustum Frustum;
 
 public:
 	// TEMP
