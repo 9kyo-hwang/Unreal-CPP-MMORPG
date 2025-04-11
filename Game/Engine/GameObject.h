@@ -35,10 +35,14 @@ public:
 	bool GetCheckFrustum() const { return bCheckFrustum; }
 	void SetCheckFrustum(bool Value) { bCheckFrustum = Value; }
 
+	uint8 GetLayer() const { return Layer; }
+	void SetLayer(uint8 InLayer) { Layer = InLayer; }
+
 private:
 	array<shared_ptr<Component>, ComponentCount> Components;	// 컴포넌트는 유일하게 1개씩만
 	vector<shared_ptr<MonoBehaviour>> Scripts;	// 스크립트는 동적으로 여러 개
 
 	bool bCheckFrustum = true;
+	uint8 Layer = 0;
 };
 

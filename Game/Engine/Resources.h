@@ -9,6 +9,8 @@ class Resources
 	GENERATED_SINGLETON(Resources);
 
 public:
+	void Initialize();
+
 	template<typename T>
 	shared_ptr<T> Load(const wstring& Name, const wstring& Path);
 
@@ -23,8 +25,12 @@ public:
 	EObjectType GetObjectType() const;
 
 public:
+	shared_ptr<FMesh> LoadRectangle();
 	shared_ptr<FMesh> LoadCube();
 	shared_ptr<FMesh> LoadSphere();
+
+private:
+	void CreateDefaultShader();
 
 private:
 	using ResourceNameMap = std::unordered_map<wstring, shared_ptr<Object>>;

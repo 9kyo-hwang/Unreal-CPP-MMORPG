@@ -19,8 +19,16 @@ public:
 	void FinalUpdate() override;
 	void Render();
 
+	ECameraProjectionType GetProjection() const { return Projection; }
+	void SetProjection(ECameraProjectionType InProjection) { Projection = InProjection; }
+
+	void EnableLayerCulling(uint8 Layer, bool Enable) { Enable ? CullingMask |= ( 1 << Layer ) : CullingMask &= ~( 1 << Layer ); }
+	void CullAllLayers() { SetCullingMask(UINT32_MAX); }	// UINT32_MAX: 1111111... -> 모든 레이어 컬링
+	void SetCullingMask(uint32 Mask) { CullingMask = Mask; }
+	bool IsLayerCulled(uint8 Layer) const { return ( CullingMask & 1 << Layer ) != 0; }
+
 private:
-	ECameraProjectionType Type;
+	ECameraProjectionType Projection;
 
 	float Near;
 	float Far;
@@ -30,6 +38,13 @@ private:
 	FMatrix ViewMatrix;
 	FMatrix ProjectionMatrix;
 	Frustum Frustum;
+
+	/**
+	 * 0: Culling하지 않음 <-> 1: Culling
+	 * 예) UI는 레이어 1번으로 설정, [1][1][1][1][1][1][0][1]: UI만 Culling하지 않을 것. 즉 이 카메라에서는 UI만 보여줄 것. Orthographic.
+	 */
+	// 
+	uint32 CullingMask = 0;
 
 public:
 	// TEMP

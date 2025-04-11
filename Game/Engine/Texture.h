@@ -9,7 +9,7 @@ public:
 	FTexture();
 	~FTexture() override;
 
-	void Initialize(const wstring& Path);
+	void Load(const wstring& Path) override;
 
 	D3D12_CPU_DESCRIPTOR_HANDLE GetCPUHandle() { return ViewHandle; }
 

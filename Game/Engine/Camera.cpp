@@ -13,7 +13,7 @@ FMatrix Camera::StaticProjectionMatrix;
 
 Camera::Camera()
 	: Super(EComponentType::Camera)
-	, Type(ECameraProjectionType::Perspective)
+	, Projection(ECameraProjectionType::Perspective)
 	, Near(1.f)
 	, Far(1000.f)
 	, Fov(XM_PI / 4.f)	// 45도
@@ -34,7 +34,7 @@ void Camera::FinalUpdate()
 	float Width = static_cast<float>(GEngine->GetWindow().Width);
 	float Height = static_cast<float>(GEngine->GetWindow().Height);
 
-	switch (Type)
+	switch (Projection)
 	{
 	case ECameraProjectionType::Perspective:
 		ProjectionMatrix = XMMatrixPerspectiveFovLH(Fov, Width / Height, Near, Far);
@@ -44,19 +44,23 @@ void Camera::FinalUpdate()
 		break;
 	}
 
-	StaticViewMatrix = ViewMatrix;
-	StaticProjectionMatrix = ProjectionMatrix;
-
 	Frustum.FinalUpdate();
 }
 
 void Camera::Render()
 {
-	// TODO: Layer 구분
+	StaticViewMatrix = ViewMatrix;
+	StaticProjectionMatrix = ProjectionMatrix;
+
 	for (auto& GameObject : SceneManager::Get()->GetActiveScene()->GetGameObjects())
 	{
 		if (const auto& MeshRenderer = GameObject->GetMeshRenderer())
 		{
+			if (IsLayerCulled(GameObject->GetLayer()))
+			{
+				continue;
+			}
+
 			if (GameObject->GetCheckFrustum())
 			{
 				auto Transform = GameObject->GetTransform();

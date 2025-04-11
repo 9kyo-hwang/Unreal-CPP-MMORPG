@@ -4,6 +4,7 @@
 #include "InputManager.h"
 #include "Light.h"
 #include "Material.h"
+#include "Resources.h"
 #include "SceneManager.h"
 #include "TimeManager.h"
 
@@ -52,6 +53,7 @@ void Engine::Initialize(const FWindowInfo& InInfo)
 
 	InputManager::Get()->Initialize(Info.Window);
 	TimeManager::Get()->Initialize();
+	Resources::Get()->Initialize();
 
 	ResizeWindow(Info.Width, Info.Height);  // DepthStencilBuffer init 과정 때문에 DEVICE 생성 후 Resize 하도록 조정
 }

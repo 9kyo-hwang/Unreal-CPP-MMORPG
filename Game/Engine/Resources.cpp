@@ -1,6 +1,66 @@
 #include "pch.h"
 #include "Resources.h"
 
+#include "Shader.h"
+
+void Resources::Initialize()
+{
+	CreateDefaultShader();
+}
+
+shared_ptr<FMesh> Resources::LoadRectangle()
+{
+	if (shared_ptr<FMesh> Rectangle = Get<FMesh>(L"Rectangle"))
+	{
+		return Rectangle;
+	}
+
+	float WidthHalf = 0.5f;
+	float HeightHalf = 0.5f;
+
+	// Cube에서 앞면만 그리면 Rectangle
+	vector<FVertex> Vertices
+	{
+		// 앞면
+		FVertex
+		(
+			FVector3(-WidthHalf, -HeightHalf, 0),
+			FVector2(0.f, 1.f),
+			FVector3(0.f, 0.f, -1.f),
+			FVector3(1.f, 0.f, 0.f)
+		),
+		FVertex
+		(
+			FVector3(-WidthHalf, +HeightHalf, 0),
+			FVector2(0.f, 0.f),
+			FVector3(0.f, 0.f, -1.f),
+			FVector3(1.f, 0.f, 0.f)
+		),
+		FVertex
+		(
+			FVector3(+WidthHalf, +HeightHalf, 0),
+			FVector2(1.f, 0.f),
+			FVector3(0.f, 0.f, -1.f),
+			FVector3(1.f, 0.f, 0.f)
+		),
+		FVertex
+		(
+			FVector3(+WidthHalf, -HeightHalf, 0),
+			FVector2(1.f, 1.f),
+			FVector3(0.f, 0.f, -1.f),
+			FVector3(1.f, 0.f, 0.f)
+		),
+	};
+
+	vector<uint32> Indices{ 0, 1, 2, 0, 2, 3 };
+
+	shared_ptr<FMesh> Rectangle = make_shared<FMesh>();
+	Rectangle->Initialize(Vertices, Indices);
+	Add<FMesh>(L"Rectangle", Rectangle);
+
+	return Rectangle;
+}
+
 shared_ptr<FMesh> Resources::LoadCube()
 {
 	if (shared_ptr<FMesh> Cube = Get<FMesh>(L"Cube"))
@@ -339,4 +399,25 @@ shared_ptr<FMesh> Resources::LoadSphere()
 	Add<FMesh>(L"Sphere", Sphere);
 
 	return Sphere;
+}
+
+void Resources::CreateDefaultShader()
+{
+	// Skybox
+	{
+		shared_ptr<FShader> Shader = make_shared<FShader>();
+		Shader->Initialize(
+			L"..\\Resources\\Shader\\Skybox.fx",
+			{ ERasterizeType::CullNone, EDepthStencilType::LessEqual }
+		);
+
+		Add<FShader>(L"Skybox", Shader);
+	}
+
+	// Forward(구 Default)
+	{
+		shared_ptr<FShader> Shader = make_shared<FShader>();
+		Shader->Initialize(L"..\\Resources\\Shader\\Forward.fx", {});
+		Add<FShader>(L"Forward", Shader);
+	}
 }

@@ -214,20 +214,22 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\Resources\Shader\Default.hlsli">
-      <Filter>Shader</Filter>
-    </None>
     <None Include="SimpleMath.inl">
       <Filter>Utils</Filter>
     </None>
-    <None Include="..\Resources\Shader\Parameters.hlsli">
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\Resources\Shader\Forward.fx">
       <Filter>Shader</Filter>
-    </None>
-    <None Include="..\Resources\Shader\Utils.hlsli">
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\Parameters.fx">
       <Filter>Shader</Filter>
-    </None>
-    <None Include="..\Resources\Shader\Skybox.hlsli">
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\Skybox.fx">
       <Filter>Shader</Filter>
-    </None>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\Utils.fx">
+      <Filter>Shader</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

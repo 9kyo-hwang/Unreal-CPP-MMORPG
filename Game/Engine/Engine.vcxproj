@@ -144,6 +144,10 @@
       </SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <FxCompile>
+      <ShaderModel>5.0</ShaderModel>
+      <ShaderType>Effect</ShaderType>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -165,6 +169,10 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <FxCompile>
+      <ShaderModel>5.0</ShaderModel>
+      <ShaderType>Effect</ShaderType>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
@@ -237,11 +245,13 @@
     <ClCompile Include="Transform.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\Resources\Shader\Default.hlsli" />
-    <None Include="..\Resources\Shader\Parameters.hlsli" />
-    <None Include="..\Resources\Shader\Skybox.hlsli" />
-    <None Include="..\Resources\Shader\Utils.hlsli" />
     <None Include="SimpleMath.inl" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\Resources\Shader\Forward.fx" />
+    <FxCompile Include="..\Resources\Shader\Parameters.fx" />
+    <FxCompile Include="..\Resources\Shader\Skybox.fx" />
+    <FxCompile Include="..\Resources\Shader\Utils.fx" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -12,7 +12,7 @@ FTexture::~FTexture()
 {
 }
 
-void FTexture::Initialize(const wstring& Path)
+void FTexture::Load(const wstring& Path)
 {
 	CreateTexture(Path);
 	CreateView();
