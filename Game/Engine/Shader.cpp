@@ -12,8 +12,10 @@ FShader::~FShader()
 {
 }
 
-void FShader::Initialize(const wstring& Path, FShaderInfo Info)
+void FShader::Initialize(const wstring& Path, FShaderInfo InInfo)
 {
+	Info = InInfo;
+
 	CreateVertexShader(Path, "VS_Main", "vs_5_0");
 	CreatePixelShader(Path, "PS_Main", "ps_5_0");
 
@@ -33,13 +35,27 @@ void FShader::Initialize(const wstring& Path, FShaderInfo Info)
 	PipelineStateDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 	PipelineStateDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);	// Default로 변경(depth = true, stencil = false)
 	PipelineStateDesc.SampleMask = UINT_MAX;
-	PipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	PipelineStateDesc.PrimitiveTopologyType = InInfo.Topology;
 	PipelineStateDesc.NumRenderTargets = 1;
 	PipelineStateDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
 	PipelineStateDesc.SampleDesc.Count = 1;
-	PipelineStateDesc.DSVFormat = GEngine->GetDepthStencilBuffer()->GetFormat();
+	PipelineStateDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;	// 변경되지 않음
 
-	switch (Info.RasterizeType)
+	switch (InInfo.Shader)
+	{
+	case EShaderType::Deferred:
+		PipelineStateDesc.NumRenderTargets = NumRenderTargetGeometryBufferMember;
+		PipelineStateDesc.RTVFormats[0] = DXGI_FORMAT_R32G32B32A32_FLOAT;	// POSITION
+		PipelineStateDesc.RTVFormats[1] = DXGI_FORMAT_R32G32B32A32_FLOAT;	// Normal
+		PipelineStateDesc.RTVFormats[2] = DXGI_FORMAT_R8G8B8A8_UNORM;	// Color
+		break;
+	case EShaderType::Forward:
+		PipelineStateDesc.NumRenderTargets = 1;
+		PipelineStateDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+		break;
+	}
+
+	switch (InInfo.Rasterize)
 	{
 	case ERasterizeType::CullNone:
 		PipelineStateDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
@@ -59,7 +75,7 @@ void FShader::Initialize(const wstring& Path, FShaderInfo Info)
 		break;
 	}
 
-	switch (Info.DepthStencilType)
+	switch (InInfo.DepthStencil)
 	{
 	case EDepthStencilType::Less:
 		PipelineStateDesc.DepthStencilState.DepthEnable = true;

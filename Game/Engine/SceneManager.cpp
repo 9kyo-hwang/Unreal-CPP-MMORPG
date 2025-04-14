@@ -3,6 +3,7 @@
 
 #include "Camera.h"
 #include "CameraMovement.h"
+#include "Engine.h"
 #include "GameObject.h"
 #include "Light.h"
 #include "Material.h"
@@ -153,7 +154,7 @@ shared_ptr<Scene> SceneManager::LoadTestScene()
 			MeshRenderer->SetMesh(Sphere);
 		}
 		{
-			shared_ptr<FShader> Shader = Resources::Get()->Get<FShader>(L"Forward");
+			shared_ptr<FShader> Shader = Resources::Get()->Get<FShader>(L"Deferred");	// Deferred로 변경
 			shared_ptr<FTexture> Texture = Resources::Get()->Load<FTexture>(L"Wood", L"..\\Resources\\Texture\\Wood.jpg");
 			shared_ptr<FTexture> NormalTexture =  Resources::Get()->Load<FTexture>(L"Wood_Normal", L"..\\Resources\\Texture\\Wood_Normal.jpg");
 
@@ -171,6 +172,7 @@ shared_ptr<Scene> SceneManager::LoadTestScene()
 #pragma endregion
 
 #pragma region UI Test
+	for (int32 Index = 0; Index < 3; ++Index)
 	{
 		shared_ptr<GameObject> SphereObject = make_shared<GameObject>();
 		SphereObject->SetLayer(SceneManager::Get()->NameToLayer(L"UI"));	// UI, 즉 1번으로 세팅
@@ -178,7 +180,7 @@ shared_ptr<Scene> SceneManager::LoadTestScene()
 
 		auto Transform = SphereObject->GetTransform();
 		Transform->SetLocalScale(FVector3(100.f, 100.f, 100.f));
-		Transform->SetLocalPosition(FVector3(0, 0, 500.f));
+		Transform->SetLocalPosition(FVector3(-350.f + (Index * 160), 250.f, 500.f));
 
 		shared_ptr<FMeshRenderer> MeshRenderer = make_shared<FMeshRenderer>();
 		{
@@ -186,7 +188,7 @@ shared_ptr<Scene> SceneManager::LoadTestScene()
 		}
 		{
 			auto Shader = Resources::Get()->Get<FShader>(L"Forward");
-			auto Texture = Resources::Get()->Load<FTexture>(L"Wood", L"..\\Resources\\Texture\\Wood.jpg");
+			auto Texture = GEngine->GetMultipleRenderTarget(EMultipleRenderTargetType::GeometryBuffer)->GetRenderTargetTexture(Index);	// Position, Normal, Color
 
 			auto Material = make_shared<FMaterial>();
 			Material->SetShader(Shader);

@@ -2,6 +2,7 @@
 #include "Resources.h"
 
 #include "Shader.h"
+#include "Texture.h"
 
 void Resources::Initialize()
 {
@@ -401,6 +402,26 @@ shared_ptr<FMesh> Resources::LoadSphere()
 	return Sphere;
 }
 
+shared_ptr<FTexture> Resources::CreateTexture(const wstring& Name, DXGI_FORMAT Format, uint32 Width, uint32 Height,
+	const D3D12_HEAP_PROPERTIES& HeapProperties, D3D12_HEAP_FLAGS HeapFlags, D3D12_RESOURCE_FLAGS ResourceFlags,
+	FVector4 ClearColor)
+{
+	shared_ptr<FTexture> Texture = make_shared<FTexture>();
+	Texture->Create(Format, Width, Height, HeapProperties, HeapFlags, ResourceFlags, ClearColor);
+	Add<FTexture>(Name, Texture);
+
+	return Texture;
+}
+
+shared_ptr<FTexture> Resources::CreateTexture(const wstring& Name, ComPtr<ID3D12Resource> Texture2D)
+{
+	shared_ptr<FTexture> Texture = make_shared<FTexture>();
+	Texture->Create(Texture2D);
+	Add<FTexture>(Name, Texture);
+
+	return Texture;
+}
+
 void Resources::CreateDefaultShader()
 {
 	// Skybox
@@ -408,16 +429,29 @@ void Resources::CreateDefaultShader()
 		shared_ptr<FShader> Shader = make_shared<FShader>();
 		Shader->Initialize(
 			L"..\\Resources\\Shader\\Skybox.fx",
-			{ ERasterizeType::CullNone, EDepthStencilType::LessEqual }
+			{ EShaderType::Forward, ERasterizeType::CullNone, EDepthStencilType::LessEqual }
 		);
 
 		Add<FShader>(L"Skybox", Shader);
 	}
 
+	// Deferred
+	{
+		shared_ptr<FShader> Shader = make_shared<FShader>();
+		Shader->Initialize(
+			L"..\\Resources\\Shader\\Deferred.fx",
+			{ EShaderType::Deferred, }
+		);
+		Add<FShader>(L"Deferred", Shader);
+	}
+
 	// Forward(구 Default)
 	{
 		shared_ptr<FShader> Shader = make_shared<FShader>();
-		Shader->Initialize(L"..\\Resources\\Shader\\Forward.fx", {});
+		Shader->Initialize(
+			L"..\\Resources\\Shader\\Forward.fx", 
+			{EShaderType::Forward, }
+		);
 		Add<FShader>(L"Forward", Shader);
 	}
 }

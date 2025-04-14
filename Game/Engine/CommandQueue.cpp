@@ -3,6 +3,7 @@
 
 #include "Engine.h"
 #include "SwapChain.h"
+#include "Texture.h"
 
 FCommandQueue::~FCommandQueue()
 {
@@ -62,8 +63,10 @@ void FCommandQueue::RenderBegin(const D3D12_VIEWPORT* Viewport, const D3D12_RECT
 	CommandAllocator->Reset();
 	CommandList->Reset(CommandAllocator.Get(), nullptr);
 
+	int8 BackBufferIndex = SwapChain->GetBackBufferIndex();
+
 	D3D12_RESOURCE_BARRIER Barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-		SwapChain->GetCurrentBackBufferResource().Get(), 
+		GEngine->GetMultipleRenderTarget(EMultipleRenderTargetType::SwapChain)->GetRenderTargetTexture(BackBufferIndex)->GetTexture2D().Get(),
 		D3D12_RESOURCE_STATE_PRESENT,	// 화면 출력(Before). FrontBuffer -> BackBuffer Swap
 		D3D12_RESOURCE_STATE_RENDER_TARGET	// 외주 결과물(After)
 	);
@@ -88,19 +91,14 @@ void FCommandQueue::RenderBegin(const D3D12_VIEWPORT* Viewport, const D3D12_RECT
 	CommandList->RSSetViewports(1, Viewport);
 	CommandList->RSSetScissorRects(1, Rect);
 
-	// GPU가 사용할(결과물을 그려야할) 백 버퍼를 지정
-	D3D12_CPU_DESCRIPTOR_HANDLE BackBufferView = SwapChain->GetCurrentBackBufferView();
-	CommandList->ClearRenderTargetView(BackBufferView, Colors::Black, 0, nullptr);
-
-	D3D12_CPU_DESCRIPTOR_HANDLE DepthStencilView = GEngine->GetDepthStencilBuffer()->GetCPUDescriptorHandle();
-	CommandList->OMSetRenderTargets(1, &BackBufferView, false, &DepthStencilView);
-	CommandList->ClearDepthStencilView(DepthStencilView, D3D12_CLEAR_FLAG_DEPTH/* | D3D12_CLEAR_FLAG_STENCIL*/, 1.f, 0, 0, nullptr);
+	// NOTE: 원래 여기서 수행하던 ClearRenderTargetView/OMSetRenderTargets/ClearDepthStencilView는 Scene의 Render로 이관됨
 }
 
 void FCommandQueue::RenderEnd()
 {
+	int8 BackBufferIndex = SwapChain->GetBackBufferIndex();
 	D3D12_RESOURCE_BARRIER Barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-		SwapChain->GetCurrentBackBufferResource().Get(),
+		GEngine->GetMultipleRenderTarget(EMultipleRenderTargetType::SwapChain)->GetRenderTargetTexture(BackBufferIndex)->GetTexture2D().Get(),
 		D3D12_RESOURCE_STATE_RENDER_TARGET,	// 외주 결과물(Before)
 		D3D12_RESOURCE_STATE_PRESENT	// 화면 출력(After). BackBuffer -> FrontBuffer Swap
 	);

@@ -66,9 +66,6 @@
     <ClInclude Include="Texture.h">
       <Filter>Objects\Resource</Filter>
     </ClInclude>
-    <ClInclude Include="DepthStencilBuffer.h">
-      <Filter>Engine</Filter>
-    </ClInclude>
     <ClInclude Include="Material.h">
       <Filter>Objects\Resource</Filter>
     </ClInclude>
@@ -120,6 +117,9 @@
     <ClInclude Include="Frustum.h">
       <Filter>Objects\Components</Filter>
     </ClInclude>
+    <ClInclude Include="MultipleRenderTarget.h">
+      <Filter>Engine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -157,9 +157,6 @@
     </ClCompile>
     <ClCompile Include="Texture.cpp">
       <Filter>Objects\Resource</Filter>
-    </ClCompile>
-    <ClCompile Include="DepthStencilBuffer.cpp">
-      <Filter>Engine</Filter>
     </ClCompile>
     <ClCompile Include="Material.cpp">
       <Filter>Objects\Resource</Filter>
@@ -212,6 +209,9 @@
     <ClCompile Include="Frustum.cpp">
       <Filter>Objects\Components</Filter>
     </ClCompile>
+    <ClCompile Include="MultipleRenderTarget.cpp">
+      <Filter>Engine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleMath.inl">
@@ -229,6 +229,9 @@
       <Filter>Shader</Filter>
     </FxCompile>
     <FxCompile Include="..\Resources\Shader\Utils.fx">
+      <Filter>Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="..\Resources\Shader\Deferred.fx">
       <Filter>Shader</Filter>
     </FxCompile>
   </ItemGroup>

@@ -29,6 +29,11 @@ public:
 	shared_ptr<FMesh> LoadCube();
 	shared_ptr<FMesh> LoadSphere();
 
+	shared_ptr<FTexture> CreateTexture(const wstring& Name, DXGI_FORMAT Format, uint32 Width, uint32 Height,
+		const D3D12_HEAP_PROPERTIES& HeapProperties, D3D12_HEAP_FLAGS HeapFlags,
+		D3D12_RESOURCE_FLAGS ResourceFlags = D3D12_RESOURCE_FLAG_NONE, FVector4 ClearColor = {});
+	shared_ptr<FTexture> CreateTexture(const wstring& Name, ComPtr<ID3D12Resource> Texture2D);
+
 private:
 	void CreateDefaultShader();
 

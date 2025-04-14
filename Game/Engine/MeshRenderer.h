@@ -14,6 +14,8 @@ public:
 
 	void Render();
 
+	shared_ptr<FMaterial> GetMaterial() { return Material;  }
+
 	void SetMesh(shared_ptr<FMesh> InMesh) { Mesh = InMesh; }
 	void SetMaterial(shared_ptr<FMaterial> InMaterial) { Material = InMaterial; }
 

@@ -10,14 +10,14 @@ void FTableDescriptorHeap::Initialize(uint32 Count)
 	D3D12_DESCRIPTOR_HEAP_DESC Desc
 	{
 		.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-		.NumDescriptors = Count * (REGISTER_COUNT - 1),	// 그룹 개수 * 각 그룹 별 View(Register) 개수, b0는 전역으로 사용하기 때문에 -1
+		.NumDescriptors = Count * (NumRegister - 1),	// 그룹 개수 * 각 그룹 별 View(Register) 개수, b0는 전역으로 사용하기 때문에 -1
 		.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,	// ShaderVisible로 해줘야 GPU DRAM에 상주, 사용 가능
 	};
 
 	DEVICE->CreateDescriptorHeap(&Desc, IID_PPV_ARGS(&Data));
 
 	ViewSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-	GroupSize = ViewSize * ( REGISTER_COUNT - 1 );
+	GroupSize = ViewSize * ( NumRegister - 1 );
 }
 
 void FTableDescriptorHeap::Clear()

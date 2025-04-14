@@ -3,9 +3,11 @@
 
 #include "Engine.h"
 #include "GameObject.h"
+#include "Material.h"
 #include "MeshRenderer.h"
 #include "Scene.h"
 #include "SceneManager.h"
+#include "Shader.h"
 #include "Transform.h"
 
 FMatrix Camera::StaticViewMatrix;
@@ -47,14 +49,16 @@ void Camera::FinalUpdate()
 	Frustum.FinalUpdate();
 }
 
-void Camera::Render()
+void Camera::SortGameObject()
 {
-	StaticViewMatrix = ViewMatrix;
-	StaticProjectionMatrix = ProjectionMatrix;
+	auto ActiveScene = SceneManager::Get()->GetActiveScene();
+	const auto& GameObjects = ActiveScene->GetGameObjects();
 
-	for (auto& GameObject : SceneManager::Get()->GetActiveScene()->GetGameObjects())
+	Shaders[0].clear(); Shaders[1].clear();
+
+	for (auto& GameObject : GameObjects)
 	{
-		if (const auto& MeshRenderer = GameObject->GetMeshRenderer())
+		if (auto MeshRenderer = GameObject->GetMeshRenderer())
 		{
 			if (IsLayerCulled(GameObject->GetLayer()))
 			{
@@ -70,7 +74,30 @@ void Camera::Render()
 				}
 			}
 
-			MeshRenderer->Render();
+			EShaderType ShaderType = MeshRenderer->GetMaterial()->GetShader()->GetShaderType();
+			Shaders[static_cast<uint8>(ShaderType)].emplace_back(GameObject);
 		}
+	}
+}
+
+void Camera::RenderDeferred()
+{
+	StaticViewMatrix = ViewMatrix;
+	StaticProjectionMatrix = ProjectionMatrix;
+
+	for (auto& GameObject : Shaders[static_cast<uint8>(EShaderType::Deferred)])
+	{
+		GameObject->GetMeshRenderer()->Render();
+	}
+}
+
+void Camera::RenderForward()
+{
+	StaticViewMatrix = ViewMatrix;
+	StaticProjectionMatrix = ProjectionMatrix;
+
+	for (auto& GameObject : Shaders[static_cast<uint8>(EShaderType::Forward)])
+	{
+		GameObject->GetMeshRenderer()->Render();
 	}
 }

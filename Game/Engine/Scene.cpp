@@ -52,11 +52,29 @@ void Scene::Render()
 {
 	PushLightData();	// 프레임 당 1번만
 
+	// TODO: CommandQueue에서 수행하던 ClearRenderTargetView를 이곳에서 수행
+	int8 BackBufferIndex = GEngine->GetSwapChain()->GetBackBufferIndex();
+	GEngine->GetMultipleRenderTarget(EMultipleRenderTargetType::SwapChain)->ClearRenderTargetView(BackBufferIndex);
+	GEngine->GetMultipleRenderTarget(EMultipleRenderTargetType::GeometryBuffer)->ClearRenderTargetView();
+
 	for (const auto& GameObject : GameObjects)
 	{
 		if (const auto& Camera = GameObject->GetCamera())
 		{
-			Camera->Render();
+			/**
+			 *	1. Camera에 표시할 게임 오브젝트들을 정렬
+			 *	2. Deferred 셰이더들에 대한 OMSetRenderTargets 수행
+			 *	3. Light에 대한 OMSet 수행
+			 *	4. SwapChain에 대한 OMSet 수행
+			 */
+
+			Camera->SortGameObject();
+
+			GEngine->GetMultipleRenderTarget(EMultipleRenderTargetType::GeometryBuffer)->OMSetRenderTargets();
+			Camera->RenderDeferred();
+
+			GEngine->GetMultipleRenderTarget(EMultipleRenderTargetType::SwapChain)->OMSetRenderTargets(1, BackBufferIndex);
+			Camera->RenderForward();
 		}
 	}
 }

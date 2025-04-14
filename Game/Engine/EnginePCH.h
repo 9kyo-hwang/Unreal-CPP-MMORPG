@@ -79,10 +79,10 @@ enum class EShaderResourceViewRegisters : uint8
 	END
 };
 
-constexpr uint8 SWAP_CHAIN_BUFFER_COUNT = 2;
-constexpr uint8 CBV_REGISTER_COUNT = static_cast<uint8>(EConstantBufferViewRegisters::END);
-constexpr uint8 SRV_REGISTER_COUNT = static_cast<uint8>(EShaderResourceViewRegisters::END) - CBV_REGISTER_COUNT;
-constexpr uint8 REGISTER_COUNT = CBV_REGISTER_COUNT + SRV_REGISTER_COUNT;
+constexpr uint8 NumSwapChainBuffer = 2;
+constexpr uint8 NumCBVRegister = static_cast<uint8>(EConstantBufferViewRegisters::END);
+constexpr uint8 NumSRVRegister = static_cast<uint8>(EShaderResourceViewRegisters::END) - NumCBVRegister;
+constexpr uint8 NumRegister = NumCBVRegister + NumSRVRegister;
 
 struct FWindowInfo
 {

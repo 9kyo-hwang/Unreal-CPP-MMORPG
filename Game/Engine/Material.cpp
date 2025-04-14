@@ -26,7 +26,7 @@ void FMaterial::PushData()
 		}
 
 		EShaderResourceViewRegisters Register = static_cast<EShaderResourceViewRegisters>(static_cast<int8>(EShaderResourceViewRegisters::t0) + Index);
-		GEngine->GetTableDescriptorHeap()->SetShaderResourceView(Textures[Index]->GetCPUHandle(), Register);
+		GEngine->GetTableDescriptorHeap()->SetShaderResourceView(Textures[Index]->GetShaderResourceDescriptorHandle(), Register);
 	}
 
 	Shader->Update();	// Set Pipeline

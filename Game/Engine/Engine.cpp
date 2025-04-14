@@ -18,7 +18,6 @@ Engine::Engine()
 	SwapChain = make_shared<FSwapChain>();
 	RootSignature = make_shared<FRootSignature>();
 	TableDescriptorHeap = make_shared<FTableDescriptorHeap>();
-	DepthStencilBuffer = make_shared<FDepthStencilBuffer>();
 }
 
 Engine::~Engine()
@@ -48,8 +47,9 @@ void Engine::Initialize(const FWindowInfo& InInfo)
 	CreateConstantBuffer(EConstantBufferViewRegisters::b1, sizeof(FTransformParameters), 256);
 	CreateConstantBuffer(EConstantBufferViewRegisters::b2, sizeof(FMaterialParameters), 256);
 
+	CreateMultipleRenderTargets();
+
 	TableDescriptorHeap->Initialize(256);
-	DepthStencilBuffer->Initialize(Info);
 
 	InputManager::Get()->Initialize(Info.Window);
 	TimeManager::Get()->Initialize();
@@ -96,9 +96,6 @@ void Engine::ResizeWindow(const int32 Width, const int32 Height)
 	RECT Rect{ .left = 0, .top = 0, .right = Width, .bottom = Height };
 	::AdjustWindowRect(&Rect, WS_OVERLAPPEDWINDOW, false);
 	::SetWindowPos(Info.Window, nullptr, 100, 100, Width, Height, 0);
-
-	// 해상도와 동일한 크기의 버퍼를 생성하므로 이 과정이 필요함
-	DepthStencilBuffer->Initialize(Info);
 }
 
 void Engine::ShowFPS()
@@ -116,4 +113,69 @@ void Engine::CreateConstantBuffer(EConstantBufferViewRegisters Register, uint32 
 	shared_ptr<FConstantBuffer> ConstantBuffer = make_shared<FConstantBuffer>();
 	ConstantBuffer->Initialize(Register, BufferSize, Count);
 	ConstantBufferList.push_back(ConstantBuffer);
+}
+
+void Engine::CreateMultipleRenderTargets()
+{
+	shared_ptr<FTexture> DepthStencilTexture = Resources::Get()->CreateTexture(
+		L"DepthStencil",
+		DXGI_FORMAT_D32_FLOAT,
+		Info.Width, Info.Height,
+		CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+		D3D12_HEAP_FLAG_NONE,
+		D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL
+	);
+
+	// SwapChain
+	{
+		EMultipleRenderTargetType Type = EMultipleRenderTargetType::SwapChain;
+
+		vector<FRenderTarget> RenderTargets(NumSwapChainBuffer);
+		for (uint32 Index = 0; Index < NumSwapChainBuffer; ++Index)
+		{
+			wstring Name = L"SwapChainTarget_" + std::to_wstring(Index);
+			ComPtr<ID3D12Resource> Resource;
+
+			// 원래 SwapChain Create 단계에서 내부적으로 버퍼 세팅을 진행했었음
+			SwapChain->GetDXGISwapChain()->GetBuffer(Index, IID_PPV_ARGS(&Resource));
+			RenderTargets[Index].Target = Resources::Get()->CreateTexture(Name, Resource);
+		}
+
+		MultipleRenderTargetArray[static_cast<uint8>( Type )] = make_shared<MultipleRenderTarget>();
+		MultipleRenderTargetArray[static_cast< uint8 >( Type )]->Create(Type, RenderTargets, DepthStencilTexture);
+	}
+
+	// Deferred
+	{
+		EMultipleRenderTargetType Type = EMultipleRenderTargetType::GeometryBuffer;
+
+		vector<FRenderTarget> RenderTargets(NumRenderTargetGeometryBufferMember);
+
+		RenderTargets[0].Target = Resources::Get()->CreateTexture(
+			L"PositionTarget",
+			DXGI_FORMAT_R32G32B32A32_FLOAT,
+			Info.Width, Info.Height,
+			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET
+		);
+
+		RenderTargets[1].Target = Resources::Get()->CreateTexture(
+			L"NormalTarget",
+			DXGI_FORMAT_R32G32B32A32_FLOAT,
+			Info.Width, Info.Height,
+			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET
+		);
+
+		RenderTargets[2].Target = Resources::Get()->CreateTexture(
+			L"DiffuseTarget",
+			DXGI_FORMAT_R8G8B8A8_UNORM,
+			Info.Width, Info.Height,
+			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET
+		);
+
+		MultipleRenderTargetArray[static_cast<uint8>(Type)] = make_shared<MultipleRenderTarget>();
+		MultipleRenderTargetArray[static_cast<uint8>(Type)]->Create(Type, RenderTargets, DepthStencilTexture);
+	}
 }
