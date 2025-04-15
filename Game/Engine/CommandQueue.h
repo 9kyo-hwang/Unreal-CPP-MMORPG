@@ -2,10 +2,11 @@
 
 class FSwapChain;
 
-class FCommandQueue
+class FGraphicsCommandQueue
 {
 public:
-	~FCommandQueue();
+	FGraphicsCommandQueue();
+	~FGraphicsCommandQueue();
 
 	void Initialize(shared_ptr<FSwapChain> InSwapChain);
 	void WaitSync();
@@ -22,7 +23,6 @@ public:
 
 private:
 	ComPtr<ID3D12CommandQueue> CommandQueue;
-
 	ComPtr<ID3D12CommandAllocator> CommandAllocator;
 	ComPtr<ID3D12GraphicsCommandList> CommandList;
 
@@ -31,9 +31,31 @@ private:
 
 	// CPU - GPU 동기화를 위해 필요한 변수들
 	ComPtr<ID3D12Fence> Fence;
-	uint32 FenceValue = 0;
-	HANDLE FenceEvent = INVALID_HANDLE_VALUE;
+	uint32 FenceValue;
+	HANDLE FenceEvent;
 
 	shared_ptr<FSwapChain> SwapChain;
 };
 
+class FComputeCommandQueue
+{
+public:
+	FComputeCommandQueue();
+	~FComputeCommandQueue();
+
+	void Initialize();
+	void WaitSync();
+	void Flush();
+
+	ComPtr<ID3D12CommandQueue> GetD3DCommandQueue() { return CommandQueue; }
+	ComPtr<ID3D12GraphicsCommandList> GetD3DCommandList() { return CommandList; }
+
+private:
+	ComPtr<ID3D12CommandQueue> CommandQueue;
+	ComPtr<ID3D12CommandAllocator> CommandAllocator;
+	ComPtr<ID3D12GraphicsCommandList> CommandList;
+
+	ComPtr<ID3D12Fence> Fence;
+	uint32 FenceValue;
+	HANDLE FenceEvent;
+};

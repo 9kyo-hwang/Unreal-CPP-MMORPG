@@ -7,6 +7,7 @@ enum class EShaderType : uint8 // 해당 셰이더를 어떤 방식으로 그려
 	Deferred,
 	Forward,
 	Lighting,
+	Compute,
 };
 
 enum class ERasterizeType : uint8
@@ -55,24 +56,28 @@ public:
 	~FShader() override;
 
 	// 외부의 파일로 관리하게 될 예정, 그것들을 로드
-	void Initialize(const wstring& Path, FShaderInfo InInfo = {}, const string& VertexShaderInitter = "VSMain", const string& PixelShaderInitter = "PSMain");
+	void CreateGraphicsShader(const wstring& Path, FShaderInfo InInfo = {}, const string& VertexShaderInitter = "VSMain", const string& PixelShaderInitter = "PSMain");
+	void CreateComputeShader(const wstring& Path, const string& Name, const string& Version);
 	void Update();
 
 	EShaderType GetShaderType() const { return Info.ShaderType; }
 
 private:
-	void CreateShader(const wstring& Path, const string& Name, const string& Version, ComPtr<ID3DBlob>& Blob, D3D12_SHADER_BYTECODE& ShaderBytecode);
+	void Create(const wstring& Path, const string& Name, const string& Version, ComPtr<ID3DBlob>& Blob, D3D12_SHADER_BYTECODE& ShaderBytecode);
 	void CreateVertexShader(const wstring& Path, const string& Name, const string& Version);
 	void CreatePixelShader(const wstring& Path, const string& Name, const string& Version);
 
 private:
 	FShaderInfo Info;
+	ComPtr<ID3D12PipelineState> PipelineState;
 
+private:
 	ComPtr<ID3DBlob> VertexShaderBlob;
 	ComPtr<ID3DBlob> PixelShaderBlob;
 	ComPtr<ID3DBlob> ErrorBlob;
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC GraphicsPipelineStateDesc;
 
-	ComPtr<ID3D12PipelineState> PipelineState;
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC PipelineStateDesc{};
+private:
+	ComPtr<ID3DBlob> ComputeShaderBlob;
+	D3D12_COMPUTE_PIPELINE_STATE_DESC ComputePipelineStateDesc;
 };
-

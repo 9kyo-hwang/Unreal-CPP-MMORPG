@@ -27,7 +27,7 @@ void Light::Render()
 	GetTransform()->PushData();	// VolumeMesh에 대한 데이터 추가
 
 	Material->SetParameter(0, Index);
-	Material->PushData();	// 셰이더에게 내 정보를 넘겨줌
+	Material->PushGraphicsData();	// 셰이더에게 내 정보를 넘겨줌
 
 	switch (static_cast<ELightType>(Info.Type))
 	{

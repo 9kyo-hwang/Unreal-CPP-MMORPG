@@ -37,7 +37,7 @@ void FConstantBuffer::Initialize(EConstantBufferViewRegisters InRegister, uint32
 	CreateView();
 }
 
-void FConstantBuffer::PushData(void* NewData, uint32 NewDataSize)
+void FConstantBuffer::PushGraphicsData(void* NewData, uint32 NewDataSize)
 {
 	assert(CurrentIndex < ElementCount);
 	assert(ElementSize == (NewDataSize + 255 & ~255));
@@ -46,11 +46,22 @@ void FConstantBuffer::PushData(void* NewData, uint32 NewDataSize)
 
 	// TableDescriptorHeap 추가로 RootDescriptor가 삭제됨 -> 아래 코드 크래시!
 	// D3D12_GPU_VIRTUAL_ADDRESS Address = GetGPUVirtualAddress(CurrentIndex);
-	// COMMAND_LIST->SetGraphicsRootConstantBufferView(RootParameterIndex, Address);
+	// GRAPHICS_COMMAND_LIST->SetGraphicsRootConstantBufferView(RootParameterIndex, Address);
 
 	// 이제 추가한 데이터의 주소를 TableDescriptorHeap에게 넘겨줘야 함
 	// 기존 Mesh에서 수행하던 작업을 내부에서 수행하도록 변경(레지스터 종류가 늘어남에 따라 잘못된 레지스터를 매핑하는 실수를 막기 위해)
-	GEngine->GetTableDescriptorHeap()->SetConstantBufferView(GetCPUHandle(CurrentIndex), Register);
+	GEngine->GetGraphicsDescriptorTable()->SetConstantBufferView(GetCPUHandle(CurrentIndex), Register);
+	CurrentIndex++;
+}
+
+void FConstantBuffer::PushComputeData(void* NewData, uint32 NewDataSize)
+{
+	assert(CurrentIndex < ElementCount);
+	assert(ElementSize == ( NewDataSize + 255 & ~255 ));
+
+	::memcpy(&MappedElement[CurrentIndex * ElementSize], NewData, NewDataSize);
+
+	GEngine->GetComputeDescriptorTable()->SetDescriptor(GetCPUHandle(CurrentIndex), Register);
 	CurrentIndex++;
 }
 
@@ -58,7 +69,7 @@ void FConstantBuffer::SetStaticData(void* InData, uint32 InDataSize)
 {
 	assert(ElementSize == (( InDataSize + 255 ) & ~255));
 	::memcpy(&MappedElement[0], InData, InDataSize);
-	COMMAND_LIST->SetGraphicsRootConstantBufferView(0, GetGPUVirtualAddress(0));
+	GRAPHICS_COMMAND_LIST->SetGraphicsRootConstantBufferView(0, GetGPUVirtualAddress(0));
 }
 
 D3D12_GPU_VIRTUAL_ADDRESS FConstantBuffer::GetGPUVirtualAddress(uint32 Index)

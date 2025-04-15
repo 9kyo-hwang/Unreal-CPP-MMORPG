@@ -21,9 +21,10 @@ public:
 	ComPtr<ID3D12DescriptorHeap> GetShaderResourceDescriptorHeap() { return ShaderResourceDescriptorHeap; }
 	ComPtr<ID3D12DescriptorHeap> GetRenderTargetDescriptorHeap() { return RenderTargetDescriptorHeap; }
 	ComPtr<ID3D12DescriptorHeap> GetDepthStencilDescriptorHeap() { return DepthStencilDescriptorHeap; }
+	ComPtr<ID3D12DescriptorHeap> GetUnorderedAccessDescriptorHeap() { return UnorderedAccessDescriptorHeap; }
 
 	D3D12_CPU_DESCRIPTOR_HANDLE GetShaderResourceDescriptorHandle() { return ShaderResourceDescriptorHeapStart; }
-
+	D3D12_CPU_DESCRIPTOR_HANDLE GetUnorderedAccessDescriptorHandle() { return UnorderedAccessDescriptorHeapStart; }
 
 private:
 	ScratchImage Image;
@@ -33,7 +34,9 @@ private:
 	ComPtr<ID3D12DescriptorHeap> ShaderResourceDescriptorHeap;
 	ComPtr<ID3D12DescriptorHeap> RenderTargetDescriptorHeap;
 	ComPtr<ID3D12DescriptorHeap> DepthStencilDescriptorHeap;
+	ComPtr<ID3D12DescriptorHeap> UnorderedAccessDescriptorHeap;
 
 private:
-	D3D12_CPU_DESCRIPTOR_HANDLE ShaderResourceDescriptorHeapStart{};
+	D3D12_CPU_DESCRIPTOR_HANDLE ShaderResourceDescriptorHeapStart;
+	D3D12_CPU_DESCRIPTOR_HANDLE UnorderedAccessDescriptorHeapStart;
 };

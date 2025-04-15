@@ -429,7 +429,7 @@ void Resources::CreateDefaultShader()
 	// Skybox
 	{
 		shared_ptr<FShader> Shader = make_shared<FShader>();
-		Shader->Initialize(
+		Shader->CreateGraphicsShader(
 			L"..\\Resources\\Shader\\Skybox.fx",
 			{ EShaderType::Forward, ERasterizeType::CullNone, EDepthStencilType::LessEqual }
 		);
@@ -440,7 +440,7 @@ void Resources::CreateDefaultShader()
 	// Deferred
 	{
 		shared_ptr<FShader> Shader = make_shared<FShader>();
-		Shader->Initialize(
+		Shader->CreateGraphicsShader(
 			L"..\\Resources\\Shader\\Deferred.fx",
 			{ EShaderType::Deferred, }
 		);
@@ -450,7 +450,7 @@ void Resources::CreateDefaultShader()
 	// Forward(구 Default)
 	{
 		shared_ptr<FShader> Shader = make_shared<FShader>();
-		Shader->Initialize(
+		Shader->CreateGraphicsShader(
 			L"..\\Resources\\Shader\\Forward.fx", 
 			{EShaderType::Forward, }
 		);
@@ -460,7 +460,7 @@ void Resources::CreateDefaultShader()
 	// Texture
 	{
 		shared_ptr<FShader> Shader = make_shared<FShader>();
-		Shader->Initialize(
+		Shader->CreateGraphicsShader(
 			L"..\\Resources\\Shader\\Forward.fx",
 			{EShaderType::Forward, ERasterizeType::CullNone, EDepthStencilType::NoDepthNoWrite},
 			"VSTex", "PSTex"
@@ -471,7 +471,7 @@ void Resources::CreateDefaultShader()
 	// Directional Light
 	{
 		shared_ptr<FShader> Shader = make_shared<FShader>();
-		Shader->Initialize(
+		Shader->CreateGraphicsShader(
 			L"..\\Resources\\Shader\\Lighting.fx",
 			{ EShaderType::Lighting, ERasterizeType::CullNone, EDepthStencilType::NoDepthNoWrite, EBlendType::OneToOneBlend },
 			"VSDirectionalLight", "PSDirectionalLight"
@@ -483,7 +483,7 @@ void Resources::CreateDefaultShader()
 	{
 		// CullNone으로 세팅해줘야 빛의 범위가 매우 커지더라도 정상적으로 표시됨
 		shared_ptr<FShader> Shader = make_shared<FShader>();
-		Shader->Initialize(
+		Shader->CreateGraphicsShader(
 			L"..\\Resources\\Shader\\Lighting.fx",
 			{ EShaderType::Lighting, ERasterizeType::CullNone, EDepthStencilType::NoDepthNoWrite, EBlendType::OneToOneBlend },
 			"VSPointLight", "PSPointLight"
@@ -494,12 +494,19 @@ void Resources::CreateDefaultShader()
 	// Final
 	{
 		shared_ptr<FShader> Shader = make_shared<FShader>();
-		Shader->Initialize(
+		Shader->CreateGraphicsShader(
 			L"..\\Resources\\Shader\\Lighting.fx",
 			{ EShaderType::Lighting, ERasterizeType::CullBack, EDepthStencilType::NoDepthNoWrite },
 			"VSFinal", "PSFinal"
 		);
 		Add<FShader>(L"Final", Shader);
+	}
+
+	// Compute Shader
+	{
+		shared_ptr<FShader> Shader = make_shared<FShader>();
+		Shader->CreateComputeShader(L"..\\Resources\\Shader\\Compute.fx", "CSMain", "cs_5_0");
+		Add<FShader>(L"ComputeShader", Shader);
 	}
 }
 
@@ -554,5 +561,13 @@ void Resources::CreateDefaultMaterial()
 		Material->SetTexture(2, Get()->Get<FTexture>(L"SpecularLightTarget"));
 
 		Add<FMaterial>(L"Final", Material);
+	}
+
+	// Compute Shader
+	{
+		shared_ptr<FShader> Shader = Get()->Get<FShader>(L"ComputeShader");
+		shared_ptr<FMaterial> Material = make_shared<FMaterial>();	// 셰이더에게 인자를 넘길 때 활용
+		Material->SetShader(Shader);
+		Add<FMaterial>(L"ComputeShader", Material);
 	}
 }

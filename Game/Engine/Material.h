@@ -46,7 +46,9 @@ public:
 		Parameters.SetUseTexture(Index, Texture ? 1 : 0);
 	}
 
-	void PushData();
+	void PushGraphicsData();
+	void PushComputeData();
+	void Dispatch(uint32 X, uint32 Y, uint32 Z);
 
 private:
 	shared_ptr<FShader> Shader;

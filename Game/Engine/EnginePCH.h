@@ -74,7 +74,23 @@ enum class EShaderResourceViewRegisters : uint8
 	t1,
 	t2,
 	t3,
-	t4,
+	t4,	// 확장
+	t5,	
+	t6,
+	t7,
+	t8,
+	t9,
+
+	END
+};
+
+enum class EUnorderedAccessViewRegisters : uint8
+{
+	u0 = static_cast<uint8>(EShaderResourceViewRegisters::END),
+	u1,
+	u2,
+	u3,
+	u4,
 
 	END
 };
@@ -82,7 +98,9 @@ enum class EShaderResourceViewRegisters : uint8
 constexpr uint8 NumSwapChainBuffer = 2;
 constexpr uint8 NumCBVRegister = static_cast<uint8>(EConstantBufferViewRegisters::END);
 constexpr uint8 NumSRVRegister = static_cast<uint8>(EShaderResourceViewRegisters::END) - NumCBVRegister;
-constexpr uint8 NumRegister = NumCBVRegister + NumSRVRegister;
+constexpr uint8 NumUAVRegister = static_cast<uint8>(EUnorderedAccessViewRegisters::END) - NumSRVRegister - NumCBVRegister;
+constexpr uint8 NumCBVSRVRegister = NumCBVRegister + NumSRVRegister;
+constexpr uint8 NumTotalRegister = NumCBVRegister + NumSRVRegister + NumUAVRegister;
 
 struct FWindowInfo
 {
@@ -132,9 +150,11 @@ private:							\
 	~type() {}						\
 
 #define DEVICE					GEngine->GetDevice()->GetD3DDevice()
-#define COMMAND_LIST			GEngine->GetCommandQueue()->GetD3DCommandList()
-#define ROOT_SIGNATURE			GEngine->GetRootSignature()->GetD3DRootSignature()
-#define RESOURCE_COMMAND_LIST	GEngine->GetCommandQueue()->GetD3DResourceCommandList()
+#define GRAPHICS_COMMAND_LIST	GEngine->GetGraphicsCommandQueue()->GetD3DCommandList()
+#define RESOURCE_COMMAND_LIST	GEngine->GetGraphicsCommandQueue()->GetD3DResourceCommandList()
+#define COMPUTE_COMMAND_LIST	GEngine->GetComputeCommandQueue()->GetD3DCommandList()
+#define GRAPHICS_ROOT_SIGNATURE	GEngine->GetGraphicsRootSignature()->GetD3DRootSignature()
+#define COMPUTE_ROOT_SIGNATURE	GEngine->GetComputeRootSignature()->GetD3DRootSignature()
 #define CONSTANT_BUFFER(Type)	GEngine->GetConstantBuffer(Type)
 
 extern unique_ptr<class Engine> GEngine;  // 전역에서 사용 가능한 Engine 클래스

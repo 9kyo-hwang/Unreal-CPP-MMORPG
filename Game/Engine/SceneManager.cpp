@@ -73,6 +73,28 @@ shared_ptr<Scene> SceneManager::LoadTestScene()
 	SetLayer(1, L"UI");
 #pragma endregion
 
+	// Compute Shader Texture를 UI에게 넘길 예정
+#pragma region Compute Shader
+	{
+		shared_ptr<FShader> Shader = Resources::Get()->Get<FShader>(L"ComputeShader");
+		shared_ptr<FTexture> Texture = Resources::Get()->CreateTexture(
+			L"UAVTexture",
+			DXGI_FORMAT_R8G8B8A8_UNORM,
+			1024, 1024,
+			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+			D3D12_HEAP_FLAG_NONE,
+			D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS	// NOT Render Target!
+		);
+
+		shared_ptr<FMaterial> Material = Resources::Get()->Get<FMaterial>(L"ComputeShader");
+		Material->SetShader(Shader);
+		Material->SetParameter(0, 1);
+		GEngine->GetComputeDescriptorTable()->SetDescriptor(Texture->GetUnorderedAccessDescriptorHandle(), EUnorderedAccessViewRegisters::u0);
+
+		Material->Dispatch(1, 1024, 1);	// 쓰레드 그룹: (1, 1024, 1)
+	}
+#pragma endregion
+
 	// 여기서 임시로 만든 신을 ActiveScene으로 지정
 	shared_ptr<Scene> CurrentScene = make_shared<Scene>();
 
@@ -161,31 +183,41 @@ shared_ptr<Scene> SceneManager::LoadTestScene()
 #pragma endregion
 
 #pragma region UI Test
-	for (int32 Index = 0; Index < 5; ++Index)
+	for (int32 Index = 0; Index < 6; ++Index)
 	{
-		shared_ptr<GameObject> SphereObject = make_shared<GameObject>();
-		SphereObject->SetLayer(Get()->NameToLayer(L"UI"));	// UI, 즉 1번으로 세팅
-		SphereObject->AddComponent(make_shared<Transform>());
+		shared_ptr<GameObject> UIObject = make_shared<GameObject>();
+		UIObject->SetLayer(Get()->NameToLayer(L"UI"));	// UI, 즉 1번으로 세팅
+		UIObject->AddComponent(make_shared<Transform>());
 
-		auto Transform = SphereObject->GetTransform();
+		auto Transform = UIObject->GetTransform();
 		Transform->SetLocalScale(FVector3(100.f, 100.f, 100.f));
-		Transform->SetLocalPosition(FVector3(-350.f + (Index * 160), 250.f, 500.f));
+		Transform->SetLocalPosition(FVector3(-350.f + (Index * 120), 250.f, 500.f));
 
 		shared_ptr<FMeshRenderer> MeshRenderer = make_shared<FMeshRenderer>();
 		MeshRenderer->SetMesh(Resources::Get()->LoadRectangle());
 
 		auto Shader = Resources::Get()->Get<FShader>(L"Texture");
-		auto Texture = Index < 3
-			? GEngine->GetMultipleRenderTarget(EMultipleRenderTargetType::GeometryBuffer)->GetRenderTargetTexture(Index)
-			: GEngine->GetMultipleRenderTarget(EMultipleRenderTargetType::Lighting)->GetRenderTargetTexture(Index - 3);
+		shared_ptr<FTexture> Texture;
+		if (Index < 3)
+		{
+			Texture = GEngine->GetMultipleRenderTarget(EMultipleRenderTargetType::GeometryBuffer)->GetRenderTargetTexture(Index);
+		}
+		else if (Index < 5)
+		{
+			Texture = GEngine->GetMultipleRenderTarget(EMultipleRenderTargetType::Lighting)->GetRenderTargetTexture(Index - 3);
+		}
+		else
+		{
+			Texture = Resources::Get()->Get<FTexture>(L"UAVTexture");
+		}
 
 		auto Material = make_shared<FMaterial>();
 		Material->SetShader(Shader);
 		Material->SetTexture(0, Texture);
 
 		MeshRenderer->SetMaterial(Material);
-		SphereObject->AddComponent(MeshRenderer);
-		CurrentScene->AddGameObject(SphereObject);
+		UIObject->AddComponent(MeshRenderer);
+		CurrentScene->AddGameObject(UIObject);
 	}
 #pragma endregion
 
@@ -201,44 +233,6 @@ shared_ptr<Scene> SceneManager::LoadTestScene()
 		LightComponent->SetDiffuse(FVector3(1.f, 0.f, 0.f));
 		LightComponent->SetAmbient(FVector3(0.1f, 0.1f, 0.1f));
 		LightComponent->SetSpecular(FVector3(0.2f, 0.2f, 0.2f));
-
-		CurrentScene->AddGameObject(LightObject);
-	}
-#pragma endregion
-
-#pragma region Point Light
-	{
-		shared_ptr<GameObject> LightObject = make_shared<GameObject>();
-		LightObject->AddComponent(make_shared<Transform>());
-		LightObject->GetTransform()->SetLocalPosition(FVector3(0.f, 100.f, 150.f));
-		LightObject->AddComponent(make_shared<Light>());
-
-		shared_ptr<Light> LightComponent = LightObject->GetLight();
-		LightComponent->SetType(ELightType::Point);
-		LightComponent->SetDiffuse(FVector3(0.f, 0.5f, 0.f));
-		LightComponent->SetAmbient(FVector3(0.f, 0.3f, 0.f));
-		LightComponent->SetSpecular(FVector3(0.f, 0.3f, 0.f));
-		LightComponent->SetRange(200.f);
-
-		CurrentScene->AddGameObject(LightObject);
-	}
-#pragma endregion
-
-#pragma region Spot Light
-	{
-		shared_ptr<GameObject> LightObject = make_shared<GameObject>();
-		LightObject->AddComponent(make_shared<Transform>());
-		LightObject->GetTransform()->SetLocalPosition(FVector3(75.f, 0.f, 150.f));
-		LightObject->AddComponent(make_shared<Light>());
-
-		shared_ptr<Light> LightComponent = LightObject->GetLight();
-		LightComponent->SetDirection(FVector3(-1.f, 0.f, 0.f));
-		LightComponent->SetType(ELightType::Spot);
-		LightComponent->SetDiffuse(FVector3(0.f, 0.f, 0.5f));
-		LightComponent->SetAmbient(FVector3(0.f, 0.f, 0.1f));
-		LightComponent->SetSpecular(FVector3(0.f, 0.f, 0.1f));
-		LightComponent->SetRange(200.f);
-		LightComponent->SetAngle(3.14f / 2);
 
 		CurrentScene->AddGameObject(LightObject);
 	}

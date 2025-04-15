@@ -5,6 +5,8 @@
 
 FTexture::FTexture()
 	: Super(EObjectType::Texture)
+	, ShaderResourceDescriptorHeapStart()
+	, UnorderedAccessDescriptorHeapStart()
 {
 }
 
@@ -70,7 +72,7 @@ void FTexture::Load(const wstring& Path)
 		SubResources.data()
 	);
 
-	GEngine->GetCommandQueue()->FlushResourceCommandQueue();
+	GEngine->GetGraphicsCommandQueue()->FlushResourceCommandQueue();
 
 	D3D12_DESCRIPTOR_HEAP_DESC HeapDesc
 	{
@@ -101,19 +103,22 @@ void FTexture::Create(DXGI_FORMAT Format, uint32 Width, uint32 Height, const D3D
 	D3D12_RESOURCE_DESC ResourceDesc = CD3DX12_RESOURCE_DESC::Tex2D(Format, Width, Height);
 	ResourceDesc.Flags = ResourceFlags;
 
-	D3D12_CLEAR_VALUE ClearValue{};
+	D3D12_CLEAR_VALUE OptimizedClearValue{};
+	D3D12_CLEAR_VALUE* OptimizedClearValuePtr = nullptr;
 	D3D12_RESOURCE_STATES ResourceStates = D3D12_RESOURCE_STATE_COMMON;
 
 	if (ResourceFlags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
 	{
 		ResourceStates = D3D12_RESOURCE_STATE_DEPTH_WRITE;
-		ClearValue = CD3DX12_CLEAR_VALUE(DXGI_FORMAT_D32_FLOAT, 1.0f, 0);
+		OptimizedClearValue = CD3DX12_CLEAR_VALUE(DXGI_FORMAT_D32_FLOAT, 1.0f, 0);
+		OptimizedClearValuePtr = &OptimizedClearValue;
 	}
 	else if (ResourceFlags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET)
 	{
 		ResourceStates = D3D12_RESOURCE_STATE_COMMON;
 		float Color[] = { ClearColor.x, ClearColor.y, ClearColor.z, ClearColor.w };
-		ClearValue = CD3DX12_CLEAR_VALUE(Format, Color);
+		OptimizedClearValue = CD3DX12_CLEAR_VALUE(Format, Color);
+		OptimizedClearValuePtr = &OptimizedClearValue;
 	}
 
 	assert(SUCCEEDED(DEVICE->CreateCommittedResource(
@@ -121,7 +126,7 @@ void FTexture::Create(DXGI_FORMAT Format, uint32 Width, uint32 Height, const D3D
 		HeapFlags,
 		&ResourceDesc,
 		ResourceStates,
-		&ClearValue,
+		OptimizedClearValuePtr,
 		IID_PPV_ARGS(&Texture2D)
 	)));
 
@@ -172,6 +177,26 @@ void FTexture::Create(ComPtr<ID3D12Resource> InTexture2D)
 			DEVICE->CreateRenderTargetView(Texture2D.Get(), nullptr, RenderTargetDescriptorHandle);
 		}
 
+		if (ResourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS)
+		{
+			D3D12_DESCRIPTOR_HEAP_DESC DescriptorHeapDesc
+			{
+				.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
+				.NumDescriptors = 1,
+				.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
+				.NodeMask = 0
+			};
+			DEVICE->CreateDescriptorHeap(&DescriptorHeapDesc, IID_PPV_ARGS(&UnorderedAccessDescriptorHeap));
+			UnorderedAccessDescriptorHeapStart = UnorderedAccessDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+
+			D3D12_UNORDERED_ACCESS_VIEW_DESC UnorderedAccessViewDesc{};
+			{
+				UnorderedAccessViewDesc.Format = Image.GetMetadata().format;
+				UnorderedAccessViewDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+			};
+			DEVICE->CreateUnorderedAccessView(Texture2D.Get(), nullptr, &UnorderedAccessViewDesc, UnorderedAccessDescriptorHeapStart);
+		}
+
 		D3D12_DESCRIPTOR_HEAP_DESC HeapDesc{};
 		{
 			HeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
@@ -179,15 +204,15 @@ void FTexture::Create(ComPtr<ID3D12Resource> InTexture2D)
 			HeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 		};
 		DEVICE->CreateDescriptorHeap(&HeapDesc, IID_PPV_ARGS(&ShaderResourceDescriptorHeap));
-
 		ShaderResourceDescriptorHeapStart = ShaderResourceDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 
 		D3D12_SHADER_RESOURCE_VIEW_DESC ShaderResourceViewDesc{};
-		ShaderResourceViewDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-		ShaderResourceViewDesc.Format = Image.GetMetadata().format;
-		ShaderResourceViewDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-		ShaderResourceViewDesc.Texture2D.MipLevels = 1;
-
+		{
+			ShaderResourceViewDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+			ShaderResourceViewDesc.Format = Image.GetMetadata().format;
+			ShaderResourceViewDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+			ShaderResourceViewDesc.Texture2D.MipLevels = 1;
+		}
 		DEVICE->CreateShaderResourceView(Texture2D.Get(), &ShaderResourceViewDesc, ShaderResourceDescriptorHeapStart);
 	}
 }

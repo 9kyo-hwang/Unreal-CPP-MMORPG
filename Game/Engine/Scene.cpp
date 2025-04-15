@@ -105,7 +105,7 @@ void Scene::RenderFinal()
 	int8 BackBufferIndex = GEngine->GetSwapChain()->GetBackBufferIndex();
 	GEngine->GetMultipleRenderTarget(EMultipleRenderTargetType::SwapChain)->OMSetRenderTargets(1, BackBufferIndex);
 
-	Resources::Get()->Get<FMaterial>(L"Final")->PushData();
+	Resources::Get()->Get<FMaterial>(L"Final")->PushGraphicsData();
 	Resources::Get()->Get<FMesh>(L"Rectangle")->Render();
 }
 

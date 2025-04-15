@@ -14,10 +14,13 @@ Engine::Engine()
 	, ScissorRect()
 {
 	Device = make_shared<FDevice>();
-	CommandQueue = make_shared<FCommandQueue>();
+	GraphicsCommandQueue = make_shared<FGraphicsCommandQueue>();
+	ComputeCommandQueue = make_shared<FComputeCommandQueue>();
 	SwapChain = make_shared<FSwapChain>();
-	RootSignature = make_shared<FRootSignature>();
-	TableDescriptorHeap = make_shared<FTableDescriptorHeap>();
+	GraphicsRootSignature = make_shared<FGraphicsRootSignature>();
+	ComputeRootSignature = make_shared<FComputeRootSignature>();
+	GraphicsDescriptorTable = make_shared<FGraphicsDescriptorTable>();
+	ComputeDescriptorTable = make_shared<FComputeDescriptorTable>();
 }
 
 Engine::~Engine()
@@ -39,9 +42,11 @@ void Engine::Initialize(const FWindowInfo& InInfo)
 	ScissorRect = CD3DX12_RECT(0, 0, Info.Width, Info.Height);
 
 	Device->Initialize();
-	CommandQueue->Initialize(SwapChain);
-	SwapChain->Initialize(Info, Device->GetDXGI(), CommandQueue->GetD3DCommandQueue());
-	RootSignature->Initialize();
+	GraphicsCommandQueue->Initialize(SwapChain);
+	ComputeCommandQueue->Initialize();
+	SwapChain->Initialize(Info, Device->GetDXGI(), GraphicsCommandQueue->GetD3DCommandQueue());
+	GraphicsRootSignature->Initialize();
+	ComputeRootSignature->Initialize();
 
 	CreateConstantBuffer(EConstantBufferViewRegisters::b0, sizeof(FLightParameters), 1);	// 1개만 세팅하므로 버퍼 1개만
 	CreateConstantBuffer(EConstantBufferViewRegisters::b1, sizeof(FTransformParameters), 256);
@@ -49,7 +54,8 @@ void Engine::Initialize(const FWindowInfo& InInfo)
 
 	CreateMultipleRenderTargets();
 
-	TableDescriptorHeap->Initialize(256);
+	GraphicsDescriptorTable->Initialize(256);
+	ComputeDescriptorTable->Initialize();
 
 	InputManager::Get()->Initialize(Info.Window);
 	TimeManager::Get()->Initialize();
@@ -80,12 +86,12 @@ void Engine::Render()
 
 void Engine::RenderBegin()
 {
-	CommandQueue->RenderBegin(&Viewport, &ScissorRect);
+	GraphicsCommandQueue->RenderBegin(&Viewport, &ScissorRect);
 }
 
 void Engine::RenderEnd()
 {
-	CommandQueue->RenderEnd();
+	GraphicsCommandQueue->RenderEnd();
 }
 
 void Engine::ResizeWindow(const int32 Width, const int32 Height)

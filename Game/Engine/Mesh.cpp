@@ -22,9 +22,9 @@ void FMesh::Initialize(const vector<FVertex>& Vertices, const vector<uint32>& In
 // CommandQueue의 RenderBegin, RenderEnd 사이에 이러한 Render들이 호출될 예정(CommandList에 들어갔으므로)
 void FMesh::Render()
 {
-	COMMAND_LIST->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	COMMAND_LIST->IASetVertexBuffers(0, 1, &VertexBufferView);
-	COMMAND_LIST->IASetIndexBuffer(&IndexBufferView);
+	GRAPHICS_COMMAND_LIST->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	GRAPHICS_COMMAND_LIST->IASetVertexBuffers(0, 1, &VertexBufferView);
+	GRAPHICS_COMMAND_LIST->IASetIndexBuffer(&IndexBufferView);
 
 	// TODO: 작성한 서명을 실제로 사용하려면 이 부분에서 코드 작성
 	/**
@@ -35,10 +35,10 @@ void FMesh::Render()
 
 	// Material의 Update는 GameObject를 통해 이루어짐
 
-	GEngine->GetTableDescriptorHeap()->CommitTable();
+	GEngine->GetGraphicsDescriptorTable()->Commit();
 
-	//COMMAND_LIST->DrawInstanced(VertexCount, 1, 0, 0);  // 정점 정보로만 그리는 함수
-	COMMAND_LIST->DrawIndexedInstanced(IndexCount, 1, 0, 0, 0);
+	//GRAPHICS_COMMAND_LIST->DrawInstanced(VertexCount, 1, 0, 0);  // 정점 정보로만 그리는 함수
+	GRAPHICS_COMMAND_LIST->DrawIndexedInstanced(IndexCount, 1, 0, 0, 0);
 }
 
 void FMesh::CreateVertexBuffer(const vector<FVertex>& Vertices)

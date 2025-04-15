@@ -18,7 +18,8 @@ public:
 
 	void Initialize(EConstantBufferViewRegisters InRegister, uint32 Size, uint32 Count);
 	void Clear() { CurrentIndex = 0; }
-	void PushData(void* NewData, uint32 NewDataSize);
+	void PushGraphicsData(void* NewData, uint32 NewDataSize);
+	void PushComputeData(void* NewData, uint32 NewDataSize);
 	void SetStaticData(void* InData, uint32 InDataSize);	// 전역으로 사용될 데이터 세팅(b0 레지스터)
 
 	D3D12_GPU_VIRTUAL_ADDRESS GetGPUVirtualAddress(uint32 Index);

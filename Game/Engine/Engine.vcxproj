@@ -248,6 +248,7 @@
     <None Include="SimpleMath.inl" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="..\Resources\Shader\Compute.fx" />
     <FxCompile Include="..\Resources\Shader\Deferred.fx" />
     <FxCompile Include="..\Resources\Shader\Forward.fx" />
     <FxCompile Include="..\Resources\Shader\Lighting.fx" />

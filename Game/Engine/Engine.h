@@ -28,10 +28,13 @@ public:
 	FWindowInfo GetWindow() const { return Info; }
 
 	shared_ptr<FDevice> GetDevice() { return Device; }
-	shared_ptr<FCommandQueue> GetCommandQueue() { return CommandQueue; }
+	shared_ptr<FGraphicsCommandQueue> GetGraphicsCommandQueue() { return GraphicsCommandQueue; }
+	shared_ptr<FComputeCommandQueue> GetComputeCommandQueue() { return ComputeCommandQueue; }
 	shared_ptr<FSwapChain> GetSwapChain() { return SwapChain; }
-	shared_ptr<FRootSignature> GetRootSignature() { return RootSignature; }
-	shared_ptr<FTableDescriptorHeap> GetTableDescriptorHeap() { return TableDescriptorHeap; }
+	shared_ptr<FGraphicsRootSignature> GetGraphicsRootSignature() { return GraphicsRootSignature; }
+	shared_ptr<FComputeRootSignature> GetComputeRootSignature() { return ComputeRootSignature; }
+	shared_ptr<FGraphicsDescriptorTable> GetGraphicsDescriptorTable() { return GraphicsDescriptorTable; }
+	shared_ptr<FComputeDescriptorTable> GetComputeDescriptorTable() { return ComputeDescriptorTable; }
 	shared_ptr<FConstantBuffer> GetConstantBuffer(EConstantBufferType Type) { return ConstantBufferList[static_cast<uint8>(Type)]; }
 	shared_ptr<MultipleRenderTarget> GetMultipleRenderTarget(EMultipleRenderTargetType Type) { return MultipleRenderTargetArray[static_cast<uint8>(Type)]; }
 
@@ -46,10 +49,13 @@ private:
 	D3D12_RECT ScissorRect;
 
 	shared_ptr<FDevice> Device;
-	shared_ptr<FCommandQueue> CommandQueue;
+	shared_ptr<FGraphicsCommandQueue> GraphicsCommandQueue;
+	shared_ptr<FComputeCommandQueue> ComputeCommandQueue;
 	shared_ptr<FSwapChain> SwapChain;
-	shared_ptr<FRootSignature> RootSignature;
-	shared_ptr<FTableDescriptorHeap> TableDescriptorHeap;
+	shared_ptr<FGraphicsRootSignature> GraphicsRootSignature;
+	shared_ptr<FComputeRootSignature> ComputeRootSignature;
+	shared_ptr<FGraphicsDescriptorTable> GraphicsDescriptorTable;
+	shared_ptr<FComputeDescriptorTable> ComputeDescriptorTable;
 
 	vector<shared_ptr<FConstantBuffer>> ConstantBufferList;
 	array<shared_ptr<MultipleRenderTarget>, NumMultipleRenderTarget> MultipleRenderTargetArray;	// SwapChain, GBuffer

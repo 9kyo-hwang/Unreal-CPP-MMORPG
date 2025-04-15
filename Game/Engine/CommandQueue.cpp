@@ -5,12 +5,18 @@
 #include "SwapChain.h"
 #include "Texture.h"
 
-FCommandQueue::~FCommandQueue()
+FGraphicsCommandQueue::FGraphicsCommandQueue()
+	: FenceValue(0)
+	, FenceEvent(INVALID_HANDLE_VALUE)
+{
+}
+
+FGraphicsCommandQueue::~FGraphicsCommandQueue()
 {
 	::CloseHandle(FenceEvent);
 }
 
-void FCommandQueue::Initialize(shared_ptr<FSwapChain> InSwapChain)
+void FGraphicsCommandQueue::Initialize(shared_ptr<FSwapChain> InSwapChain)
 {
 	SwapChain = InSwapChain;
 
@@ -46,7 +52,7 @@ void FCommandQueue::Initialize(shared_ptr<FSwapChain> InSwapChain)
 	FenceEvent = ::CreateEvent(nullptr, false, false, nullptr);
 }
 
-void FCommandQueue::WaitSync()
+void FGraphicsCommandQueue::WaitSync()
 {
 	FenceValue++;
 	CommandQueue->Signal(Fence.Get(), FenceValue);
@@ -58,7 +64,7 @@ void FCommandQueue::WaitSync()
 	}
 }
 
-void FCommandQueue::RenderBegin(const D3D12_VIEWPORT* Viewport, const D3D12_RECT* Rect)
+void FGraphicsCommandQueue::RenderBegin(const D3D12_VIEWPORT* Viewport, const D3D12_RECT* Rect)
 {
 	CommandAllocator->Reset();
 	CommandList->Reset(CommandAllocator.Get(), nullptr);
@@ -71,18 +77,18 @@ void FCommandQueue::RenderBegin(const D3D12_VIEWPORT* Viewport, const D3D12_RECT
 		D3D12_RESOURCE_STATE_RENDER_TARGET	// 외주 결과물(After)
 	);
 
-	CommandList->SetGraphicsRootSignature(ROOT_SIGNATURE.Get());	// 루트 서명 추가
+	CommandList->SetGraphicsRootSignature(GRAPHICS_ROOT_SIGNATURE.Get());	// 루트 서명 추가
 
 	GEngine->GetConstantBuffer(EConstantBufferType::Transform)->Clear();	// 여러 개의 상수 버퍼가 생기면서
 	GEngine->GetConstantBuffer(EConstantBufferType::Material)->Clear();		// 각 타입 별 버퍼 모두 초기화
 
-	GEngine->GetTableDescriptorHeap()->Clear();  // TableDescriptorHeap도 초기화
+	GEngine->GetGraphicsDescriptorTable()->Clear();  // TableDescriptorHeap도 초기화
 
 	/**
 	 *	SetDescriptorHeaps는 프레임마다 단 한 번만 호출! 또한 힙은 최대 2개만 넣을 수 있음
-	 *	이를 호출해야 TableDescriptorHeap에서 COMMAND_LIST->SetGraphicsRootDescriptor()가 동작, 없으면 Crash
+	 *	이를 호출해야 TableDescriptorHeap에서 GRAPHICS_COMMAND_LIST->SetGraphicsRootDescriptor()가 동작, 없으면 Crash
 	 */
-	ID3D12DescriptorHeap* DescriptorHeap = GEngine->GetTableDescriptorHeap()->GetD3DDescriptorHeap().Get();
+	ID3D12DescriptorHeap* DescriptorHeap = GEngine->GetGraphicsDescriptorTable()->GetD3DDescriptorHeap().Get();
 	CommandList->SetDescriptorHeaps(1, &DescriptorHeap);
 
 	CommandList->ResourceBarrier(1, &Barrier);
@@ -94,7 +100,7 @@ void FCommandQueue::RenderBegin(const D3D12_VIEWPORT* Viewport, const D3D12_RECT
 	// NOTE: 원래 여기서 수행하던 ClearRenderTargetView/OMSetRenderTargets/ClearDepthStencilView는 Scene의 Render로 이관됨
 }
 
-void FCommandQueue::RenderEnd()
+void FGraphicsCommandQueue::RenderEnd()
 {
 	int8 BackBufferIndex = SwapChain->GetBackBufferIndex();
 	D3D12_RESOURCE_BARRIER Barrier = CD3DX12_RESOURCE_BARRIER::Transition(
@@ -116,7 +122,7 @@ void FCommandQueue::RenderEnd()
 	SwapChain->SwapIndex();
 }
 
-void FCommandQueue::FlushResourceCommandQueue()
+void FGraphicsCommandQueue::FlushResourceCommandQueue()
 {
 	ResourceCommandList->Close();
 
@@ -127,4 +133,59 @@ void FCommandQueue::FlushResourceCommandQueue()
 
 	ResourceCommandAllocator->Reset();
 	ResourceCommandList->Reset(ResourceCommandAllocator.Get(), nullptr);
+}
+
+FComputeCommandQueue::FComputeCommandQueue()
+	: FenceValue(0)
+	, FenceEvent(INVALID_HANDLE_VALUE)
+{
+}
+
+FComputeCommandQueue::~FComputeCommandQueue()
+{
+	::CloseHandle(FenceEvent);
+}
+
+void FComputeCommandQueue::Initialize()
+{
+	D3D12_COMMAND_LIST_TYPE Type = D3D12_COMMAND_LIST_TYPE_COMPUTE;
+	D3D12_COMMAND_QUEUE_DESC Desc
+	{
+		.Type = Type,
+		.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE,
+		.NodeMask = 0,
+	};
+	DEVICE->CreateCommandQueue(&Desc, IID_PPV_ARGS(&CommandQueue));
+	DEVICE->CreateCommandAllocator(Type, IID_PPV_ARGS(&CommandAllocator));
+	DEVICE->CreateCommandList(0, Type, CommandAllocator.Get(), nullptr, IID_PPV_ARGS(&CommandList));
+
+	DEVICE->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&Fence));
+	FenceEvent = ::CreateEvent(nullptr, false, false, nullptr);
+}
+
+void FComputeCommandQueue::WaitSync()
+{
+	FenceValue++;
+	CommandQueue->Signal(Fence.Get(), FenceValue);
+
+	if (Fence->GetCompletedValue() < FenceValue)
+	{
+		Fence->SetEventOnCompletion(FenceValue, FenceEvent);
+		::WaitForSingleObject(FenceEvent, INFINITE);
+	}
+}
+
+void FComputeCommandQueue::Flush()
+{
+	CommandList->Close();
+
+	ID3D12CommandList* CommandLists[ ] = { CommandList.Get() };
+	CommandQueue->ExecuteCommandLists(_countof(CommandLists), CommandLists);
+
+	WaitSync();
+
+	CommandAllocator->Reset();
+	CommandList->Reset(CommandAllocator.Get(), nullptr);
+
+	COMPUTE_COMMAND_LIST->SetComputeRootSignature(COMPUTE_ROOT_SIGNATURE.Get());
 }

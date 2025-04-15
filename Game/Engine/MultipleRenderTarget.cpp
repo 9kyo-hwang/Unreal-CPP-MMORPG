@@ -61,18 +61,18 @@ void MultipleRenderTarget::Create(EMultipleRenderTargetType InType, vector<FRend
 void MultipleRenderTarget::OMSetRenderTargets(uint32 NumDescriptors, uint32 DescriptorHeapOffset) const
 {
 	D3D12_CPU_DESCRIPTOR_HANDLE DescriptorHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(RenderTargetDescriptorHeapStart, DescriptorHeapOffset * RenderTargetDescriptorHeapSize);
-	COMMAND_LIST->OMSetRenderTargets(NumDescriptors, &DescriptorHandle, false, &DepthStencilDescriptorHeapStart);
+	GRAPHICS_COMMAND_LIST->OMSetRenderTargets(NumDescriptors, &DescriptorHandle, false, &DepthStencilDescriptorHeapStart);
 }
 
 void MultipleRenderTarget::OMSetRenderTargets() const
 {
-	COMMAND_LIST->OMSetRenderTargets(Num, &RenderTargetDescriptorHeapStart, true, &DepthStencilDescriptorHeapStart);
+	GRAPHICS_COMMAND_LIST->OMSetRenderTargets(Num, &RenderTargetDescriptorHeapStart, true, &DepthStencilDescriptorHeapStart);
 }
 
 void MultipleRenderTarget::ClearRenderTargetView(uint32 Index) const
 {
 	D3D12_CPU_DESCRIPTOR_HANDLE DescriptorHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(RenderTargetDescriptorHeapStart, Index * RenderTargetDescriptorHeapSize);
-	COMMAND_LIST->ClearRenderTargetView(DescriptorHandle, Data[Index].ClearColor, 0, nullptr);
+	GRAPHICS_COMMAND_LIST->ClearRenderTargetView(DescriptorHandle, Data[Index].ClearColor, 0, nullptr);
 }
 
 void MultipleRenderTarget::ClearRenderTargetView() const
@@ -82,18 +82,18 @@ void MultipleRenderTarget::ClearRenderTargetView() const
 	for (uint32 Index = 0; Index < Num; ++Index)
 	{
 		D3D12_CPU_DESCRIPTOR_HANDLE DescriptorHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(RenderTargetDescriptorHeapStart, Index * RenderTargetDescriptorHeapSize);
-		COMMAND_LIST->ClearRenderTargetView(DescriptorHandle, Data[Index].ClearColor, 0, nullptr);
+		GRAPHICS_COMMAND_LIST->ClearRenderTargetView(DescriptorHandle, Data[Index].ClearColor, 0, nullptr);
 	}
 
-	COMMAND_LIST->ClearDepthStencilView(DepthStencilDescriptorHeapStart, D3D12_CLEAR_FLAG_DEPTH, 1.f, 0, 0, nullptr);
+	GRAPHICS_COMMAND_LIST->ClearDepthStencilView(DepthStencilDescriptorHeapStart, D3D12_CLEAR_FLAG_DEPTH, 1.f, 0, 0, nullptr);
 }
 
 void MultipleRenderTarget::WaitRenderTargetToResource() const
 {
-	COMMAND_LIST->ResourceBarrier(Num, RenderTargetToResource);
+	GRAPHICS_COMMAND_LIST->ResourceBarrier(Num, RenderTargetToResource);
 }
 
 void MultipleRenderTarget::WaitResourceToRenderTarget() const
 {
-	COMMAND_LIST->ResourceBarrier(Num, ResourceToRenderTarget);
+	GRAPHICS_COMMAND_LIST->ResourceBarrier(Num, ResourceToRenderTarget);
 }

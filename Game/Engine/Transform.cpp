@@ -45,6 +45,6 @@ void Transform::PushData()
 		WorldMatrix* Camera::StaticViewMatrix* Camera::StaticProjectionMatrix
 	};
 	
-	// FConstantBuffer::PushData()에서 SetShaderResourceView()를 자동적으로 수행해주고 있음.
-	CONSTANT_BUFFER(EConstantBufferType::Transform)->PushData(&Parameters, sizeof(Parameters));
+	// FConstantBuffer::PushGraphicsData()에서 SetShaderResourceView()를 자동적으로 수행해주고 있음.
+	CONSTANT_BUFFER(EConstantBufferType::Transform)->PushGraphicsData(&Parameters, sizeof(Parameters));
 }
