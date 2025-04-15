@@ -111,7 +111,7 @@ void FTexture::Create(DXGI_FORMAT Format, uint32 Width, uint32 Height, const D3D
 	}
 	else if (ResourceFlags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET)
 	{
-		ResourceStates = D3D12_RESOURCE_STATE_RENDER_TARGET;
+		ResourceStates = D3D12_RESOURCE_STATE_COMMON;
 		float Color[] = { ClearColor.x, ClearColor.y, ClearColor.z, ClearColor.w };
 		ClearValue = CD3DX12_CLEAR_VALUE(Format, Color);
 	}
@@ -172,12 +172,11 @@ void FTexture::Create(ComPtr<ID3D12Resource> InTexture2D)
 			DEVICE->CreateRenderTargetView(Texture2D.Get(), nullptr, RenderTargetDescriptorHandle);
 		}
 
-		D3D12_DESCRIPTOR_HEAP_DESC HeapDesc
+		D3D12_DESCRIPTOR_HEAP_DESC HeapDesc{};
 		{
-			.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-			.NumDescriptors = 1,
-			.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
-			.NodeMask = 0,
+			HeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+			HeapDesc.NumDescriptors = 1;
+			HeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 		};
 		DEVICE->CreateDescriptorHeap(&HeapDesc, IID_PPV_ARGS(&ShaderResourceDescriptorHeap));
 

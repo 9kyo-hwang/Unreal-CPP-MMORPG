@@ -50,7 +50,8 @@ private:
 	uint32 CullingMask = 0;
 
 private:	// 카메라로 찍어야 할 객체들을 셰이더 타입에 따라 분리해서 관리
-	array<vector<shared_ptr<GameObject>>, 2> Shaders;	// [0]: Deferred, [1]: Forward
+	vector<shared_ptr<GameObject>> DeferredShaders;
+	vector<shared_ptr<GameObject>> ForwardShaders;
 
 public:
 	// TEMP

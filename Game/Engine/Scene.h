@@ -12,6 +12,8 @@ public:
 	void FinalUpdate();
 
 	void Render();
+	void RenderLights();
+	void RenderFinal();
 
 	void AddGameObject(shared_ptr<GameObject> GameObject);
 	void RemoveGameObject(shared_ptr<GameObject> GameObject);
@@ -22,7 +24,9 @@ private:
 	void PushLightData();
 
 private:
-	vector<shared_ptr<GameObject>> GameObjects;
-
 	// TODO: Layer 단계를 추가해 최적화
+
+	vector<shared_ptr<GameObject>> GameObjects;
+	vector<shared_ptr<class Camera>> Cameras;
+	vector<shared_ptr<class Light>> Lights;
 };

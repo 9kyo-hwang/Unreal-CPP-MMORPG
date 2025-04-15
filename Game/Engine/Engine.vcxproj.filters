@@ -234,5 +234,8 @@
     <FxCompile Include="..\Resources\Shader\Deferred.fx">
       <Filter>Shader</Filter>
     </FxCompile>
+    <FxCompile Include="..\Resources\Shader\Lighting.fx">
+      <Filter>Shader</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

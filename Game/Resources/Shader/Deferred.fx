@@ -3,74 +3,74 @@
 
 #include "Parameters.fx"
 
-struct VS_IN
+struct VSIn
 {
-    float3 pos : POSITION;
-    float2 uv : TEXCOORD;
-    float3 normal : NORMAL;
-    float3 tangent : TANGENT;
+    float3 Position : POSITION;
+    float2 UV : TEXCOORD;
+    float3 Normal : NORMAL;
+    float3 Tangent : TANGENT;
 };
 
-struct VS_OUT
+struct VSOut
 {
-    float4 pos : SV_Position;   // MS에서 지정한 규칙(System Value)
-    float2 uv : TEXCOORD;
-    float3 view_pos : POSITION;
-    float3 view_normal : NORMAL;
-    float3 view_tangent : TANGENT;
-    float3 view_binormal : BINORMAL;
+    float4 Position : SV_Position;   // MS에서 지정한 규칙(System Value)
+    float2 UV : TEXCOORD;
+    float3 ViewPosition : POSITION;
+    float3 ViewNormal : NORMAL;
+    float3 ViewTangent : TANGENT;
+    float3 ViewBinormal : BINORMAL;
 };
 
-VS_OUT VS_Main(VS_IN input)
+VSOut VSMain(VSIn Input)
 {
-    VS_OUT output = (VS_OUT)0;
+    VSOut Output = (VSOut)0;
 
     // 계산된 좌표값을 적용하도록 wvp_matrix를 최종적으로 곱해줌
 	// 1.f: 행렬을 곱할 때 좌표로 인식, 0.f: 방향성만 추출
-    output.pos = mul(float4(input.pos, 1.f), g_wvp_matrix); // projection 좌표계로 넘어감
-    output.uv = input.uv;
-    output.view_pos = mul(float4(input.pos, 1.f), g_wv_matrix).xyz; // view 좌표계가 필요
-    output.view_normal = normalize(mul(float4(input.normal, 0.f), g_wv_matrix).xyz);    // translation이 적용되지 않도록 0.f 설정
-    output.view_tangent = normalize(mul(float4(input.tangent, 0.f), g_wv_matrix).xyz);    // translation이 적용되지 않도록 0.f 설정
-    output.view_binormal = normalize(cross(output.view_tangent, output.view_normal));  // tangent, normal 벡터 외적 시 binormal 등장
+    Output.Position = mul(float4(Input.Position, 1.f), GWorldViewProjectionMatrix); // projection 좌표계로 넘어감
+    Output.UV = Input.UV;
+    Output.ViewPosition = mul(float4(Input.Position, 1.f), GWorldViewMatrix).xyz; // view 좌표계가 필요
+    Output.ViewNormal = normalize(mul(float4(Input.Normal, 0.f), GWorldViewMatrix).xyz);    // translation이 적용되지 않도록 0.f 설정
+    Output.ViewTangent = normalize(mul(float4(Input.Tangent, 0.f), GWorldViewMatrix).xyz);    // translation이 적용되지 않도록 0.f 설정
+    Output.ViewBinormal = normalize(cross(Output.ViewTangent, Output.ViewNormal));  // tangent, normal 벡터 외적 시 binormal 등장
 
-    return output;
+    return Output;
 }
 
-struct PS_OUT
+struct PSOut
 {
-    float4 position : SV_Target0;
-    float4 normal : SV_Target1;
-    float4 color : SV_Target2;
+    float4 Position : SV_Target0;
+    float4 Normal : SV_Target1;
+    float4 Color : SV_Target2;
 };
 
-PS_OUT PS_Main(VS_OUT input) : SV_Target0
+PSOut PSMain(VSOut Input)
 {
-    PS_OUT output = (PS_OUT) 0;
+    PSOut Output = (PSOut) 0;
 
-    float4 color = float4(1.f, 1.f, 1.f, 1.f);  // temp: 흰색으로 설정
-    if (g_tex_on_0 == 1)
+    float4 Color = float4(1.f, 1.f, 1.f, 1.f);  // temp: 흰색으로 설정
+    if (GUseTexture_0 == 1)
     {
-        color = g_tex_0.Sample(g_sam_0, input.uv);
+        Color = GTexture_0.Sample(GSampler_0, Input.UV);
     }
 
-    float3 view_normal = input.view_normal;
-	if (g_tex_on_1 == 1)
+    float3 ViewNormal = Input.ViewNormal;
+	if (GUseTexture_1 == 1)
 	{
         // RGB 0 ~ 255 -> 0 ~ 1 변환
-        float3 tangent_space_normal = g_tex_1.Sample(g_sam_0, input.uv).xyz;
+        float3 TangentSpaceNormal = GTexture_1.Sample(GSampler_0, Input.UV).xyz;
         // 0 ~ 1에서 -1 ~ 1 변환
-		tangent_space_normal = (tangent_space_normal - 0.5f) * 2.f;
+		TangentSpaceNormal = (TangentSpaceNormal - 0.5f) * 2.f;
 
-        float3x3 tbn_matrix = { input.view_tangent, input.view_binormal, input.view_normal };
-        view_normal = normalize(mul(tangent_space_normal, tbn_matrix));
+        float3x3 TBNMatrix = { Input.ViewTangent, Input.ViewBinormal, Input.ViewNormal };
+        ViewNormal = normalize(mul(TangentSpaceNormal, TBNMatrix));
     }
 
-    output.position = float4(input.view_pos.xyz, 0.f);  // 중간 데이터를 보관
-    output.normal = float4(view_normal.xyz, 0.f);   // 중간 데이터를 보관
-    output.color = color;
+    Output.Position = float4(Input.ViewPosition.xyz, 0.f);  // 중간 데이터를 보관
+    Output.Normal = float4(ViewNormal.xyz, 0.f);   // 중간 데이터를 보관
+    Output.Color = Color;
 
-    return output;
+    return Output;
 }
 
 #endif

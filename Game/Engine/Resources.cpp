@@ -1,12 +1,14 @@
 #include "pch.h"
 #include "Resources.h"
 
+#include "Engine.h"
 #include "Shader.h"
 #include "Texture.h"
 
 void Resources::Initialize()
 {
 	CreateDefaultShader();
+	CreateDefaultMaterial();
 }
 
 shared_ptr<FMesh> Resources::LoadRectangle()
@@ -453,5 +455,104 @@ void Resources::CreateDefaultShader()
 			{EShaderType::Forward, }
 		);
 		Add<FShader>(L"Forward", Shader);
+	}
+
+	// Texture
+	{
+		shared_ptr<FShader> Shader = make_shared<FShader>();
+		Shader->Initialize(
+			L"..\\Resources\\Shader\\Forward.fx",
+			{EShaderType::Forward, ERasterizeType::CullNone, EDepthStencilType::NoDepthNoWrite},
+			"VSTex", "PSTex"
+		);
+		Add<FShader>(L"Texture", Shader);
+	}
+
+	// Directional Light
+	{
+		shared_ptr<FShader> Shader = make_shared<FShader>();
+		Shader->Initialize(
+			L"..\\Resources\\Shader\\Lighting.fx",
+			{ EShaderType::Lighting, ERasterizeType::CullNone, EDepthStencilType::NoDepthNoWrite, EBlendType::OneToOneBlend },
+			"VSDirectionalLight", "PSDirectionalLight"
+		);
+		Add<FShader>(L"DirectionalLight", Shader);
+	}
+
+	// Point Light
+	{
+		// CullNone으로 세팅해줘야 빛의 범위가 매우 커지더라도 정상적으로 표시됨
+		shared_ptr<FShader> Shader = make_shared<FShader>();
+		Shader->Initialize(
+			L"..\\Resources\\Shader\\Lighting.fx",
+			{ EShaderType::Lighting, ERasterizeType::CullNone, EDepthStencilType::NoDepthNoWrite, EBlendType::OneToOneBlend },
+			"VSPointLight", "PSPointLight"
+		);
+		Add<FShader>(L"PointLight", Shader);
+	}
+
+	// Final
+	{
+		shared_ptr<FShader> Shader = make_shared<FShader>();
+		Shader->Initialize(
+			L"..\\Resources\\Shader\\Lighting.fx",
+			{ EShaderType::Lighting, ERasterizeType::CullBack, EDepthStencilType::NoDepthNoWrite },
+			"VSFinal", "PSFinal"
+		);
+		Add<FShader>(L"Final", Shader);
+	}
+}
+
+void Resources::CreateDefaultMaterial()
+{
+	// Skybox
+	{
+		auto Shader = Get()->Get<FShader>(L"Skybox");
+
+		shared_ptr<FMaterial> Material = make_shared<FMaterial>();
+		Material->SetShader(Shader);
+
+		Add<FMaterial>(L"Skybox", Material);
+	}
+
+	// Directional Light
+	{
+		auto Shader = Get()->Get<FShader>(L"DirectionalLight");
+
+		shared_ptr<FMaterial> Material = make_shared<FMaterial>();
+		Material->SetShader(Shader);
+		Material->SetTexture(0, Get()->Get<FTexture>(L"PositionTarget"));	// MRT 내부에서 Create된 상태
+		Material->SetTexture(1, Get()->Get<FTexture>(L"NormalTarget"));
+
+		Add<FMaterial>(L"DirectionalLight", Material);
+	}
+
+	// Point Light
+	{
+		const FWindowInfo& Info = GEngine->GetWindow();
+		FVector2 Resolution = { static_cast<float>(Info.Width), static_cast<float>(Info.Height) };
+
+		auto Shader = Get()->Get<FShader>(L"PointLight");
+
+		shared_ptr<FMaterial> Material = make_shared<FMaterial>();
+		Material->SetShader(Shader);
+		Material->SetTexture(0, Get()->Get<FTexture>(L"PositionTarget"));
+		Material->SetTexture(1, Get()->Get<FTexture>(L"NormalTarget"));
+		Material->SetParameter(0, Resolution);
+
+		Add<FMaterial>(L"PointLight", Material);
+	}
+
+	// Final
+	{
+		auto Shader = Get()->Get<FShader>(L"Final");
+
+		shared_ptr<FMaterial> Material = make_shared<FMaterial>();
+		Material->SetShader(Shader);
+		Material->SetTexture(0, Get()->Get<FTexture>(L"DiffuseTarget"));
+		Material->SetTexture(1, Get()->Get<FTexture>(L"DiffuseLightTarget"));
+		Material->SetTexture(2, Get()->Get<FTexture>(L"SpecularLightTarget"));
+
+		Add<FMaterial>(L"Final", Material);
 	}
 }

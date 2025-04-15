@@ -5,6 +5,7 @@
 
 FShader::FShader()
 	: Super(EObjectType::Shader)
+	, Info{}
 {
 }
 
@@ -12,12 +13,12 @@ FShader::~FShader()
 {
 }
 
-void FShader::Initialize(const wstring& Path, FShaderInfo InInfo)
+void FShader::Initialize(const wstring& Path, FShaderInfo InInfo, const string& VertexShaderInitter, const string& PixelShaderInitter)
 {
 	Info = InInfo;
 
-	CreateVertexShader(Path, "VS_Main", "vs_5_0");
-	CreatePixelShader(Path, "PS_Main", "ps_5_0");
+	CreateVertexShader(Path, VertexShaderInitter, "vs_5_0");
+	CreatePixelShader(Path, PixelShaderInitter, "ps_5_0");
 
 	D3D12_INPUT_ELEMENT_DESC Desc[]
 	{
@@ -32,16 +33,16 @@ void FShader::Initialize(const wstring& Path, FShaderInfo InInfo)
 	PipelineStateDesc.pRootSignature = ROOT_SIGNATURE.Get();
 
 	PipelineStateDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-	PipelineStateDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+	PipelineStateDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);	// 아래에서 Info.Blend 값에 따라 추가 설정
 	PipelineStateDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);	// Default로 변경(depth = true, stencil = false)
 	PipelineStateDesc.SampleMask = UINT_MAX;
-	PipelineStateDesc.PrimitiveTopologyType = InInfo.Topology;
+	PipelineStateDesc.PrimitiveTopologyType = InInfo.TopologyType;
 	PipelineStateDesc.NumRenderTargets = 1;
 	PipelineStateDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
 	PipelineStateDesc.SampleDesc.Count = 1;
 	PipelineStateDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;	// 변경되지 않음
 
-	switch (InInfo.Shader)
+	switch (InInfo.ShaderType)
 	{
 	case EShaderType::Deferred:
 		PipelineStateDesc.NumRenderTargets = NumRenderTargetGeometryBufferMember;
@@ -53,9 +54,14 @@ void FShader::Initialize(const wstring& Path, FShaderInfo InInfo)
 		PipelineStateDesc.NumRenderTargets = 1;
 		PipelineStateDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
 		break;
+	case EShaderType::Lighting:
+		PipelineStateDesc.NumRenderTargets = 2;
+		PipelineStateDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+		PipelineStateDesc.RTVFormats[1] = DXGI_FORMAT_R8G8B8A8_UNORM;
+		break;
 	}
 
-	switch (InInfo.Rasterize)
+	switch (InInfo.RasterizeType)
 	{
 	case ERasterizeType::CullNone:
 		PipelineStateDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
@@ -75,7 +81,7 @@ void FShader::Initialize(const wstring& Path, FShaderInfo InInfo)
 		break;
 	}
 
-	switch (InInfo.DepthStencil)
+	switch (InInfo.DepthStencilType)
 	{
 	case EDepthStencilType::Less:
 		PipelineStateDesc.DepthStencilState.DepthEnable = true;
@@ -92,6 +98,56 @@ void FShader::Initialize(const wstring& Path, FShaderInfo InInfo)
 	case EDepthStencilType::GreaterEqual:
 		PipelineStateDesc.DepthStencilState.DepthEnable = true;
 		PipelineStateDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_GREATER_EQUAL;
+		break;
+	case EDepthStencilType::NoDepthWrite:
+		PipelineStateDesc.DepthStencilState.DepthEnable = false;
+		PipelineStateDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
+		break;
+	case EDepthStencilType::NoDepthNoWrite:
+		PipelineStateDesc.DepthStencilState.DepthEnable = false;
+		PipelineStateDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
+		break;
+	case EDepthStencilType::LessNoWrite:
+		PipelineStateDesc.DepthStencilState.DepthEnable = true;
+		PipelineStateDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
+		PipelineStateDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
+		break;
+	}
+
+	/**
+	 *	typedef struct D3D12_BLEND_DESC
+	    {
+			BOOL AlphaToCoverageEnable;
+			BOOL IndependentBlendEnable;
+			D3D12_RENDER_TARGET_BLEND_DESC RenderTarget[ 8 ];
+	    } 	D3D12_BLEND_DESC;
+	 *	한 번에 넘길 수 있는 렌더 타겟은 총 8개
+	 *	IndependentBlendEnable == FALSE 이면 RenderTarget[0]만 사용하도록 제한
+	 *	위에서 기본값으로 설정했기 때문에 False, 즉 0번만 꺼내와서 세팅
+	 */
+	D3D12_RENDER_TARGET_BLEND_DESC& RenderTarget = PipelineStateDesc.BlendState.RenderTarget[0];
+
+	// SrcBlend:	Pixel Shader
+	// DestBlend:	Render Target
+	switch (InInfo.BlendType)
+	{
+	case EBlendType::Default:
+		RenderTarget.BlendEnable = false;
+		RenderTarget.LogicOpEnable = false;
+		RenderTarget.SrcBlend = D3D12_BLEND_ONE;	// (1, 1, 1, 1)
+		RenderTarget.DestBlend = D3D12_BLEND_ZERO;	// (0, 0, 0, 0)
+		break;
+	case EBlendType::AlphaBlend:
+		RenderTarget.BlendEnable = true;
+		RenderTarget.LogicOpEnable = false;
+		RenderTarget.SrcBlend = D3D12_BLEND_SRC_ALPHA;	// (A, A, A, A)
+		RenderTarget.DestBlend = D3D12_BLEND_INV_SRC_ALPHA;	// (1-A, 1-A, 1-A, 1-A)
+		break;
+	case EBlendType::OneToOneBlend:
+		RenderTarget.BlendEnable = true;
+		RenderTarget.LogicOpEnable = false;
+		RenderTarget.SrcBlend = D3D12_BLEND_ONE;
+		RenderTarget.DestBlend = D3D12_BLEND_ONE;
 		break;
 	}
 

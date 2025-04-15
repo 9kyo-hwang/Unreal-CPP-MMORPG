@@ -3,79 +3,79 @@
 #include "Parameters.fx"
 
 // Calculate in View Coordinate
-LightColor CalculateLightColor(int index, float3 normal, float3 position)
+LightColor CalculateLightColor(int Index, float3 Normal, float3 Position)
 {
-    LightColor color = (LightColor) 0.f;
-    float3 lightDirection;
+    LightColor Color = (LightColor) 0.f;
+    float3 LightDirection;
 
     // diffuseRatio: 입사각에 따른 빛의 영향력이 감소함을 나타냄. cos(theta)의 역할
     // distanceRatio: Point/Spot 빛은 범위를 벗어나면 빛을 아예 못받으므로, 이를 나타내기 위해 사용
-    float diffuseRatio, distanceRatio = 1.f;
+    float DiffuseRatio, DistanceRatio = 1.f;
 
-    if (g_light[index].lightType == 0)  // Directional
+    if (GLight[Index].LightType == 0)  // Directional
     {
 		//  view 좌표계 기준으로 계산하기 위해 변환
-        lightDirection = normalize(mul(float4(g_light[index].direction.xyz, 0.f), g_view_matrix).xyz);
-        diffuseRatio = saturate(dot(-lightDirection, normal));  // |N||L|cos(theta)
+        LightDirection = normalize(mul(float4(GLight[Index].Direction.xyz, 0.f), GViewMatrix).xyz);
+        DiffuseRatio = saturate(dot(-LightDirection, Normal));  // |N||L|cos(theta)
     }
-	else if (g_light[index].lightType == 1)  // Point
+	else if (GLight[Index].LightType == 1)  // Point
 	{
-        float3 lightPosition = mul(float4(g_light[index].position.xyz, 1.f), g_view_matrix).xyz;
-        lightDirection = normalize(position - lightPosition);
-        diffuseRatio = saturate(dot(-lightDirection, normal));
+        float3 LightPosition = mul(float4(GLight[Index].Position.xyz, 1.f), GViewMatrix).xyz;
+        LightDirection = normalize(Position - LightPosition);
+        DiffuseRatio = saturate(dot(-LightDirection, Normal));
 
-        float dist = distance(position, lightPosition);
-        if (g_light[index].range == 0.f)
+        float Distance = distance(Position, LightPosition);
+        if (GLight[Index].Range == 0.f)
         {
-            distanceRatio = 0.f;
+            DistanceRatio = 0.f;
         }
 		else
 		{
-            distanceRatio = saturate(1.f - pow(dist / g_light[index].range, 2));
+            DistanceRatio = saturate(1.f - pow(Distance / GLight[Index].Range, 2));
         }
     }
 	else  // Spot
 	{
-        float3 lightPosition = mul(float4(g_light[index].position.xyz, 1.f), g_view_matrix).xyz;
-        lightDirection = normalize(position - lightPosition);
-        diffuseRatio = saturate(dot(-lightDirection, normal));
+        float3 LightPosition = mul(float4(GLight[Index].Position.xyz, 1.f), GViewMatrix).xyz;
+        LightDirection = normalize(Position - LightPosition);
+        DiffuseRatio = saturate(dot(-LightDirection, Normal));
 
-        if (g_light[index].range == 0.f)
+        if (GLight[Index].Range == 0.f)
         {
-            distanceRatio = 0.f;
+            DistanceRatio = 0.f;
         }
 		else
 		{
-            float halfAngle = g_light[index].angle / 2;
-            float3 lightVector = position - lightPosition;
-            float3 centerLightDirection = normalize(mul(float4(g_light[index].direction.xyz, 0.f), g_view_matrix).xyz);
+            float HalfAngle = GLight[Index].Angle / 2;
+            float3 LightVector = Position - LightPosition;
+            float3 CenterLightDirection = normalize(mul(float4(GLight[Index].Direction.xyz, 0.f), GViewMatrix).xyz);
 
-            float centerDistance = dot(lightVector, centerLightDirection);
-            distanceRatio = saturate(1.f - centerDistance / g_light[index].range);
+            float CenterDistance = dot(LightVector, CenterLightDirection);
+            DistanceRatio = saturate(1.f - CenterDistance / GLight[Index].Range);
 
-            float lightAngle = acos(dot(normalize(lightVector), centerLightDirection));
+            float LightAngle = acos(dot(normalize(LightVector), CenterLightDirection));
 
-            bool outOfRange = centerDistance < 0.f || centerDistance > g_light[index].range;
-            bool outOfAngle = lightAngle > halfAngle;
-            distanceRatio = outOfRange || outOfAngle
+            bool OutOfRange = CenterDistance < 0.f || CenterDistance > GLight[Index].Range;
+            bool OutOfAngle = LightAngle > HalfAngle;
+            DistanceRatio = OutOfRange || OutOfAngle
 			? 0.f
-			: saturate(1.f - pow(centerDistance / g_light[index].range, 2));
+			: saturate(1.f - pow(CenterDistance / GLight[Index].Range, 2));
         }
     }
 
-    float3 reflectionDirection = normalize(lightDirection + 2 * (saturate(dot(-lightDirection, normal)) * normal));
+    float3 ReflectionDirection = normalize(LightDirection + 2 * (saturate(dot(-LightDirection, Normal)) * Normal));
 
     // 원래는 물체 -> 카메라 벡터가 필요한데, View 좌표계이므로 카메라 좌표가 (0, 0, 0)임
 	// 즉 normalize(position - (0, 0, 0))가 곧 카메라 벡터의 역방향이므로 이를 -해서 사용하면 됨
-	float3 eyeDirection = normalize(position);
-    float specularRatio = saturate(dot(-eyeDirection, reflectionDirection));
-    specularRatio = pow(specularRatio, 2);  // 일종의 보정 작업(영역을 더 엄격히 제한하기 위해)
+	float3 EyeDirection = normalize(Position);
+    float SpecularRatio = saturate(dot(-EyeDirection, ReflectionDirection));
+    SpecularRatio = pow(SpecularRatio, 2);  // 일종의 보정 작업(영역을 더 엄격히 제한하기 위해)
 
-    color.diffuse = g_light[index].color.diffuse * diffuseRatio * diffuseRatio;
-    color.ambient = g_light[index].color.ambient * distanceRatio;
-    color.specular = g_light[index].color.specular * specularRatio * distanceRatio;
+    Color.Diffuse = GLight[Index].Color.Diffuse * DiffuseRatio * DiffuseRatio;
+    Color.Ambient = GLight[Index].Color.Ambient * DistanceRatio;
+    Color.Specular = GLight[Index].Color.Specular * SpecularRatio * DistanceRatio;
 
-    return color;
+    return Color;
 }
 
 #endif

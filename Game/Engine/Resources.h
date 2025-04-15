@@ -36,6 +36,7 @@ public:
 
 private:
 	void CreateDefaultShader();
+	void CreateDefaultMaterial();
 
 private:
 	using ResourceNameMap = std::unordered_map<wstring, shared_ptr<Object>>;

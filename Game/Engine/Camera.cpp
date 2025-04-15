@@ -52,19 +52,20 @@ void Camera::FinalUpdate()
 void Camera::SortGameObject()
 {
 	auto ActiveScene = SceneManager::Get()->GetActiveScene();
-	const auto& GameObjects = ActiveScene->GetGameObjects();
+	auto& GameObjects = ActiveScene->GetGameObjects();
 
-	Shaders[0].clear(); Shaders[1].clear();
+	DeferredShaders.clear();
+	ForwardShaders.clear();
 
 	for (auto& GameObject : GameObjects)
 	{
+		if ( IsLayerCulled(GameObject->GetLayer()) )
+		{
+			continue;
+		}
+
 		if (auto MeshRenderer = GameObject->GetMeshRenderer())
 		{
-			if (IsLayerCulled(GameObject->GetLayer()))
-			{
-				continue;
-			}
-
 			if (GameObject->GetCheckFrustum())
 			{
 				auto Transform = GameObject->GetTransform();
@@ -74,8 +75,17 @@ void Camera::SortGameObject()
 				}
 			}
 
-			EShaderType ShaderType = MeshRenderer->GetMaterial()->GetShader()->GetShaderType();
-			Shaders[static_cast<uint8>(ShaderType)].emplace_back(GameObject);
+			switch (MeshRenderer->GetMaterial()->GetShader()->GetShaderType())
+			{
+			case EShaderType::Deferred:
+				DeferredShaders.push_back(GameObject);
+				break;
+			case EShaderType::Forward:
+				ForwardShaders.push_back(GameObject);
+				break;
+			case EShaderType::Lighting:
+				break;
+			}
 		}
 	}
 }
@@ -85,7 +95,7 @@ void Camera::RenderDeferred()
 	StaticViewMatrix = ViewMatrix;
 	StaticProjectionMatrix = ProjectionMatrix;
 
-	for (auto& GameObject : Shaders[static_cast<uint8>(EShaderType::Deferred)])
+	for (auto& GameObject : DeferredShaders)
 	{
 		GameObject->GetMeshRenderer()->Render();
 	}
@@ -96,7 +106,7 @@ void Camera::RenderForward()
 	StaticViewMatrix = ViewMatrix;
 	StaticProjectionMatrix = ProjectionMatrix;
 
-	for (auto& GameObject : Shaders[static_cast<uint8>(EShaderType::Forward)])
+	for (auto& GameObject : ForwardShaders)
 	{
 		GameObject->GetMeshRenderer()->Render();
 	}

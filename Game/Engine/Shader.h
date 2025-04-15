@@ -6,6 +6,7 @@ enum class EShaderType : uint8 // 해당 셰이더를 어떤 방식으로 그려
 {
 	Deferred,
 	Forward,
+	Lighting,
 };
 
 enum class ERasterizeType : uint8
@@ -22,14 +23,27 @@ enum class EDepthStencilType : uint8
 	LessEqual,
 	Greater,
 	GreaterEqual,
+
+	NoDepthWrite,	// 깊이 테스트 X & 기록 O
+	NoDepthNoWrite,	// 깊이 테스트 & 기록 X
+	LessNoWrite,	// 깊이 테스트 O & 기록 X
+};
+
+enum class EBlendType
+{
+	Default,
+	AlphaBlend,
+	OneToOneBlend,
+	END
 };
 
 struct FShaderInfo
 {
-	EShaderType Shader = EShaderType::Forward;
-	ERasterizeType Rasterize = ERasterizeType::CullBack;
-	EDepthStencilType DepthStencil = EDepthStencilType::Less;  // Skybox는 1에 위치해도 그려야하므로
-	D3D12_PRIMITIVE_TOPOLOGY_TYPE Topology = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	EShaderType ShaderType = EShaderType::Forward;
+	ERasterizeType RasterizeType = ERasterizeType::CullBack;
+	EDepthStencilType DepthStencilType = EDepthStencilType::Less;  // Skybox는 1에 위치해도 그려야하므로
+	EBlendType BlendType = EBlendType::Default;
+	D3D12_PRIMITIVE_TOPOLOGY_TYPE TopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 };
 
 class FShader : public Object
@@ -41,10 +55,10 @@ public:
 	~FShader() override;
 
 	// 외부의 파일로 관리하게 될 예정, 그것들을 로드
-	void Initialize(const wstring& Path, FShaderInfo InInfo = {});
+	void Initialize(const wstring& Path, FShaderInfo InInfo = {}, const string& VertexShaderInitter = "VSMain", const string& PixelShaderInitter = "PSMain");
 	void Update();
 
-	EShaderType GetShaderType() const { return Info.Shader; }
+	EShaderType GetShaderType() const { return Info.ShaderType; }
 
 private:
 	void CreateShader(const wstring& Path, const string& Name, const string& Version, ComPtr<ID3DBlob>& Blob, D3D12_SHADER_BYTECODE& ShaderBytecode);

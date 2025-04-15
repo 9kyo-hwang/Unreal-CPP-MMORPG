@@ -79,14 +79,14 @@ shared_ptr<Scene> SceneManager::LoadTestScene()
 #pragma region Camera
 	{
 		shared_ptr<GameObject> CameraObject = make_shared<GameObject>();
-		CameraObject->SetName(L"Perspective Camera");
+		CameraObject->SetName(L"Main Camera");
 
 		CameraObject->AddComponent(make_shared<Transform>());
 		CameraObject->AddComponent(make_shared<Camera>());
 		CameraObject->AddComponent(make_shared<CameraMovementComponent>());
 		CameraObject->GetTransform()->SetLocalPosition(FVector3(0.f, 0.f, 0.f));
 
-		uint8 Layer = SceneManager::Get()->NameToLayer(L"UI");
+		uint8 Layer = Get()->NameToLayer(L"UI");
 		CameraObject->GetCamera()->EnableLayerCulling(Layer, true);	// UI는 그리지 않도록
 
 		CurrentScene->AddGameObject(CameraObject);
@@ -100,11 +100,10 @@ shared_ptr<Scene> SceneManager::LoadTestScene()
 
 		CameraObject->AddComponent(make_shared<Transform>());
 		CameraObject->AddComponent(make_shared<Camera>());	// Near: 1, Far: 1000, Fov: None, 800 x 600
-
 		CameraObject->GetTransform()->SetLocalPosition(FVector3(0.f, 0.f, 0.f));
 
 		auto Camera = CameraObject->GetCamera();
-		uint8 Layer = SceneManager::Get()->NameToLayer(L"UI");
+		uint8 Layer = Get()->NameToLayer(L"UI");
 
 		Camera->SetProjection(ECameraProjectionType::Orthographic);
 		Camera->CullAllLayers();
@@ -121,61 +120,51 @@ shared_ptr<Scene> SceneManager::LoadTestScene()
 		SkyboxObject->SetCheckFrustum(false);	// Skybox는 예외적으로 Frustum 범위 밖에 있더라도 그려져야 함
 
 		shared_ptr<FMeshRenderer> MeshRenderer = make_shared<FMeshRenderer>();
-		{
-			shared_ptr<FMesh> Skybox = Resources::Get()->LoadSphere();
-			MeshRenderer->SetMesh(Skybox);
-		}
-		{
-			shared_ptr<FShader> Shader = Resources::Get()->Get<FShader>(L"Skybox");
-			shared_ptr<FTexture> Texture = Resources::Get()->Load<FTexture>(L"Sky02", L"..\\Resources\\Texture\\Sky02.jpeg");
+		MeshRenderer->SetMesh(Resources::Get()->LoadSphere());
 
-			shared_ptr<FMaterial> Material = make_shared<FMaterial>();
-			Material->SetShader(Shader);
-			Material->SetTexture(0, Texture);
+		shared_ptr<FShader> Shader = Resources::Get()->Get<FShader>(L"Skybox");
+		shared_ptr<FTexture> Texture = Resources::Get()->Load<FTexture>(L"Sky02", L"..\\Resources\\Texture\\Sky02.jpeg");
 
-			MeshRenderer->SetMaterial(Material);
-		}
+		shared_ptr<FMaterial> Material = make_shared<FMaterial>();
+		Material->SetShader(Shader);
+		Material->SetTexture(0, Texture);
 
+		MeshRenderer->SetMaterial(Material);
 		SkyboxObject->AddComponent(MeshRenderer);
 		CurrentScene->AddGameObject(SkyboxObject);
 	}
 #pragma endregion
 
-#pragma region Cube
+#pragma region Object
 	{
-		shared_ptr<GameObject> CubeObject = make_shared<GameObject>();
-		CubeObject->AddComponent(make_shared<Transform>());
-		CubeObject->GetTransform()->SetLocalScale(FVector3(100.f, 100.f, 100.f));
-		CubeObject->GetTransform()->SetLocalPosition(FVector3(0.f, 0.f, 150.f));
+		shared_ptr<GameObject> Object = make_shared<GameObject>();
+		Object->AddComponent(make_shared<Transform>());
+		Object->GetTransform()->SetLocalScale(FVector3(100.f, 100.f, 100.f));
+		Object->GetTransform()->SetLocalPosition(FVector3(0.f, 0.f, 150.f));
 
 		shared_ptr<FMeshRenderer> MeshRenderer = make_shared<FMeshRenderer>();
-		{
-			shared_ptr<FMesh> Sphere = Resources::Get()->LoadCube();
-			MeshRenderer->SetMesh(Sphere);
-		}
-		{
-			shared_ptr<FShader> Shader = Resources::Get()->Get<FShader>(L"Deferred");	// Deferred로 변경
-			shared_ptr<FTexture> Texture = Resources::Get()->Load<FTexture>(L"Wood", L"..\\Resources\\Texture\\Wood.jpg");
-			shared_ptr<FTexture> NormalTexture =  Resources::Get()->Load<FTexture>(L"Wood_Normal", L"..\\Resources\\Texture\\Wood_Normal.jpg");
+		MeshRenderer->SetMesh(Resources::Get()->LoadSphere());
 
-			shared_ptr<FMaterial> Material = make_shared<FMaterial>();
-			Material->SetShader(Shader);
-			Material->SetTexture(0, Texture);
-			Material->SetTexture(1, NormalTexture);
+		shared_ptr<FShader> Shader = Resources::Get()->Get<FShader>(L"Deferred");	// Deferred로 변경
+		shared_ptr<FTexture> Texture = Resources::Get()->Load<FTexture>(L"Wood", L"..\\Resources\\Texture\\Wood.jpg");
+		shared_ptr<FTexture> NormalTexture = Resources::Get()->Load<FTexture>(L"Wood_Normal", L"..\\Resources\\Texture\\Wood_Normal.jpg");
 
-			MeshRenderer->SetMaterial(Material);
-		}
+		shared_ptr<FMaterial> Material = make_shared<FMaterial>();
+		Material->SetShader(Shader);
+		Material->SetTexture(0, Texture);
+		Material->SetTexture(1, NormalTexture);
 
-		CubeObject->AddComponent(MeshRenderer);
-		CurrentScene->AddGameObject(CubeObject);
+		MeshRenderer->SetMaterial(Material);
+		Object->AddComponent(MeshRenderer);
+		CurrentScene->AddGameObject(Object);
 	}
 #pragma endregion
 
 #pragma region UI Test
-	for (int32 Index = 0; Index < 3; ++Index)
+	for (int32 Index = 0; Index < 5; ++Index)
 	{
 		shared_ptr<GameObject> SphereObject = make_shared<GameObject>();
-		SphereObject->SetLayer(SceneManager::Get()->NameToLayer(L"UI"));	// UI, 즉 1번으로 세팅
+		SphereObject->SetLayer(Get()->NameToLayer(L"UI"));	// UI, 즉 1번으로 세팅
 		SphereObject->AddComponent(make_shared<Transform>());
 
 		auto Transform = SphereObject->GetTransform();
@@ -183,19 +172,18 @@ shared_ptr<Scene> SceneManager::LoadTestScene()
 		Transform->SetLocalPosition(FVector3(-350.f + (Index * 160), 250.f, 500.f));
 
 		shared_ptr<FMeshRenderer> MeshRenderer = make_shared<FMeshRenderer>();
-		{
-			MeshRenderer->SetMesh(Resources::Get()->LoadRectangle());
-		}
-		{
-			auto Shader = Resources::Get()->Get<FShader>(L"Forward");
-			auto Texture = GEngine->GetMultipleRenderTarget(EMultipleRenderTargetType::GeometryBuffer)->GetRenderTargetTexture(Index);	// Position, Normal, Color
+		MeshRenderer->SetMesh(Resources::Get()->LoadRectangle());
 
-			auto Material = make_shared<FMaterial>();
-			Material->SetShader(Shader);
-			Material->SetTexture(0, Texture);
-			MeshRenderer->SetMaterial(Material);
-		}
+		auto Shader = Resources::Get()->Get<FShader>(L"Texture");
+		auto Texture = Index < 3
+			? GEngine->GetMultipleRenderTarget(EMultipleRenderTargetType::GeometryBuffer)->GetRenderTargetTexture(Index)
+			: GEngine->GetMultipleRenderTarget(EMultipleRenderTargetType::Lighting)->GetRenderTargetTexture(Index - 3);
 
+		auto Material = make_shared<FMaterial>();
+		Material->SetShader(Shader);
+		Material->SetTexture(0, Texture);
+
+		MeshRenderer->SetMaterial(Material);
 		SphereObject->AddComponent(MeshRenderer);
 		CurrentScene->AddGameObject(SphereObject);
 	}
@@ -205,15 +193,52 @@ shared_ptr<Scene> SceneManager::LoadTestScene()
 	{
 		shared_ptr<GameObject> LightObject = make_shared<GameObject>();
 		LightObject->AddComponent(make_shared<Transform>());
-
 		LightObject->AddComponent(make_shared<Light>());
 
 		shared_ptr<Light> LightComponent = LightObject->GetLight();
-		LightComponent->SetDirection(FVector3(1.f, 0.f, 1.f));
+		LightComponent->SetDirection(FVector3(0.f, 0.f, 1.f));
 		LightComponent->SetType(ELightType::Directional);
-		LightComponent->SetDiffuse(FVector3(0.5f, 0.5f, 0.5f));
+		LightComponent->SetDiffuse(FVector3(1.f, 0.f, 0.f));
 		LightComponent->SetAmbient(FVector3(0.1f, 0.1f, 0.1f));
-		LightComponent->SetSpecular(FVector3(0.3f, 0.3f, 0.3f));
+		LightComponent->SetSpecular(FVector3(0.2f, 0.2f, 0.2f));
+
+		CurrentScene->AddGameObject(LightObject);
+	}
+#pragma endregion
+
+#pragma region Point Light
+	{
+		shared_ptr<GameObject> LightObject = make_shared<GameObject>();
+		LightObject->AddComponent(make_shared<Transform>());
+		LightObject->GetTransform()->SetLocalPosition(FVector3(0.f, 100.f, 150.f));
+		LightObject->AddComponent(make_shared<Light>());
+
+		shared_ptr<Light> LightComponent = LightObject->GetLight();
+		LightComponent->SetType(ELightType::Point);
+		LightComponent->SetDiffuse(FVector3(0.f, 0.5f, 0.f));
+		LightComponent->SetAmbient(FVector3(0.f, 0.3f, 0.f));
+		LightComponent->SetSpecular(FVector3(0.f, 0.3f, 0.f));
+		LightComponent->SetRange(200.f);
+
+		CurrentScene->AddGameObject(LightObject);
+	}
+#pragma endregion
+
+#pragma region Spot Light
+	{
+		shared_ptr<GameObject> LightObject = make_shared<GameObject>();
+		LightObject->AddComponent(make_shared<Transform>());
+		LightObject->GetTransform()->SetLocalPosition(FVector3(75.f, 0.f, 150.f));
+		LightObject->AddComponent(make_shared<Light>());
+
+		shared_ptr<Light> LightComponent = LightObject->GetLight();
+		LightComponent->SetDirection(FVector3(-1.f, 0.f, 0.f));
+		LightComponent->SetType(ELightType::Spot);
+		LightComponent->SetDiffuse(FVector3(0.f, 0.f, 0.5f));
+		LightComponent->SetAmbient(FVector3(0.f, 0.f, 0.1f));
+		LightComponent->SetSpecular(FVector3(0.f, 0.f, 0.1f));
+		LightComponent->SetRange(200.f);
+		LightComponent->SetAngle(3.14f / 2);
 
 		CurrentScene->AddGameObject(LightObject);
 	}

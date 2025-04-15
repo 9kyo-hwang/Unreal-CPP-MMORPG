@@ -8,19 +8,22 @@ class FTexture;
  *	.hlsli 파일의 cbuffer register(b1)에서 사용하게 될 구조체
  */
 
-constexpr uint8 MaterialIntCount = 5;
-constexpr uint8 MaterialFloatCount = 5;
-constexpr uint8 MaterialTextureCount = 5;
+constexpr uint8 NumMaterialInt = 4;
+constexpr uint8 NumMaterialFloat = 4;
+constexpr uint8 NumMaterialTexture = 4;
+constexpr uint8 NumMaterialVector2 = 4;
 
 struct FMaterialParameters
 {
 	void Set(uint8 Index, int32 Value) { IntParameters[Index] = Value; }
 	void Set(uint8 Index, float Value) { FloatParameters[Index] = Value; }
+	void Set(uint8 Index, FVector2 Value) { Vector2Parameters[Index] = Value; }
 	void SetUseTexture(uint8 Index, int32 Use) { UsedTextureParameters[Index] = Use; }
 
-	array<int32, MaterialIntCount> IntParameters;
-	array<float, MaterialFloatCount> FloatParameters;
-	array<int32, MaterialTextureCount> UsedTextureParameters;
+	array<int32, NumMaterialInt> IntParameters;
+	array<float, NumMaterialFloat> FloatParameters;
+	array<int32, NumMaterialTexture> UsedTextureParameters;
+	array<FVector2, NumMaterialVector2> Vector2Parameters;
 };
 
 class FMaterial : public Object
@@ -34,19 +37,20 @@ public:
 	shared_ptr<FShader> GetShader() { return Shader; }
 
 	void SetShader(shared_ptr<FShader> InShader) { Shader = InShader; }
-	void SetMaterialParameters(uint8 Index, int32 Value) { MaterialParameters.Set(Index, Value); }
-	void SetMaterialParameters(uint8 Index, float Value) { MaterialParameters.Set(Index, Value); }
+	void SetParameter(uint8 Index, int32 Value) { Parameters.Set(Index, Value); }
+	void SetParameter(uint8 Index, float Value) { Parameters.Set(Index, Value); }
+	void SetParameter(uint8 Index, FVector2 Value) { Parameters.Set(Index, Value); }
 	void SetTexture(uint8 Index, shared_ptr<FTexture> Texture)
 	{
 		Textures[Index] = Texture;
-		MaterialParameters.SetUseTexture(Index, Texture ? 1 : 0);
+		Parameters.SetUseTexture(Index, Texture ? 1 : 0);
 	}
 
 	void PushData();
 
 private:
 	shared_ptr<FShader> Shader;
-	FMaterialParameters MaterialParameters{};
-	array<shared_ptr<FTexture>, MaterialTextureCount> Textures;
+	FMaterialParameters Parameters{};
+	array<shared_ptr<FTexture>, NumMaterialTexture> Textures;
 };
 

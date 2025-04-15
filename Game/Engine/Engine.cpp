@@ -128,8 +128,6 @@ void Engine::CreateMultipleRenderTargets()
 
 	// SwapChain
 	{
-		EMultipleRenderTargetType Type = EMultipleRenderTargetType::SwapChain;
-
 		vector<FRenderTarget> RenderTargets(NumSwapChainBuffer);
 		for (uint32 Index = 0; Index < NumSwapChainBuffer; ++Index)
 		{
@@ -141,16 +139,14 @@ void Engine::CreateMultipleRenderTargets()
 			RenderTargets[Index].Target = Resources::Get()->CreateTexture(Name, Resource);
 		}
 
-		MultipleRenderTargetArray[static_cast<uint8>( Type )] = make_shared<MultipleRenderTarget>();
-		MultipleRenderTargetArray[static_cast< uint8 >( Type )]->Create(Type, RenderTargets, DepthStencilTexture);
+		EMultipleRenderTargetType Type = EMultipleRenderTargetType::SwapChain;
+		MultipleRenderTargetArray[static_cast<uint8>(Type)] = make_shared<MultipleRenderTarget>();
+		MultipleRenderTargetArray[static_cast<uint8>(Type)]->Create(Type, RenderTargets, DepthStencilTexture);
 	}
 
 	// Deferred
 	{
-		EMultipleRenderTargetType Type = EMultipleRenderTargetType::GeometryBuffer;
-
 		vector<FRenderTarget> RenderTargets(NumRenderTargetGeometryBufferMember);
-
 		RenderTargets[0].Target = Resources::Get()->CreateTexture(
 			L"PositionTarget",
 			DXGI_FORMAT_R32G32B32A32_FLOAT,
@@ -175,6 +171,31 @@ void Engine::CreateMultipleRenderTargets()
 			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET
 		);
 
+		EMultipleRenderTargetType Type = EMultipleRenderTargetType::GeometryBuffer;
+		MultipleRenderTargetArray[static_cast<uint8>(Type)] = make_shared<MultipleRenderTarget>();
+		MultipleRenderTargetArray[static_cast<uint8>(Type)]->Create(Type, RenderTargets, DepthStencilTexture);
+	}
+
+	// Lighting
+	{
+		vector<FRenderTarget> RenderTargets(NumRenderTargetLightingMember);
+		RenderTargets[0].Target = Resources::Get()->CreateTexture(
+			L"DiffuseLightTarget",
+			DXGI_FORMAT_R8G8B8A8_UNORM,
+			Info.Width, Info.Height,
+			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET
+		);
+
+		RenderTargets[1].Target = Resources::Get()->CreateTexture(
+			L"SpecularLightTarget",
+			DXGI_FORMAT_R8G8B8A8_UNORM,
+			Info.Width, Info.Height,
+			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET
+		);
+
+		EMultipleRenderTargetType Type = EMultipleRenderTargetType::Lighting;
 		MultipleRenderTargetArray[static_cast<uint8>(Type)] = make_shared<MultipleRenderTarget>();
 		MultipleRenderTargetArray[static_cast<uint8>(Type)]->Create(Type, RenderTargets, DepthStencilTexture);
 	}

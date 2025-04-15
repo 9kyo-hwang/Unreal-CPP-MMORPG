@@ -6,6 +6,7 @@
 #include "Engine.h"
 #include "GameObject.h"
 #include "Light.h"
+#include "Resources.h"
 
 void Scene::Awake()
 {
@@ -54,38 +55,93 @@ void Scene::Render()
 
 	// TODO: CommandQueue에서 수행하던 ClearRenderTargetView를 이곳에서 수행
 	int8 BackBufferIndex = GEngine->GetSwapChain()->GetBackBufferIndex();
+
+	// ClearRenderTargetView로 인해 STATE_COMMON -> STATE_RENDER_TARGET
 	GEngine->GetMultipleRenderTarget(EMultipleRenderTargetType::SwapChain)->ClearRenderTargetView(BackBufferIndex);
 	GEngine->GetMultipleRenderTarget(EMultipleRenderTargetType::GeometryBuffer)->ClearRenderTargetView();
+	GEngine->GetMultipleRenderTarget(EMultipleRenderTargetType::Lighting)->ClearRenderTargetView();
 
-	for (const auto& GameObject : GameObjects)
+	GEngine->GetMultipleRenderTarget(EMultipleRenderTargetType::GeometryBuffer)->OMSetRenderTargets();	// Deferred OMSet
+
+	/**
+	 *	메인 카메라에 대해서 우선적으로 연산 수행
+	 *	Sort - Deferred - Light - Final - Forward
+	 *	그리고 나머지 카메라에 대해 Sort - Forward 2단계만 수행
+	 */
+	auto MainCamera = Cameras[0];	// 0번 카메라를 메인 카메라로 가정
+	MainCamera->SortGameObject();
+	MainCamera->RenderDeferred();
+
+	GEngine->GetMultipleRenderTarget(EMultipleRenderTargetType::GeometryBuffer)->WaitRenderTargetToResource();
+	RenderLights();
+	GEngine->GetMultipleRenderTarget(EMultipleRenderTargetType::GeometryBuffer)->WaitRenderTargetToResource();
+
+	RenderFinal();
+	MainCamera->RenderForward();
+
+	for (auto& CameraComponent : Cameras)
 	{
-		if (const auto& Camera = GameObject->GetCamera())
-		{
-			/**
-			 *	1. Camera에 표시할 게임 오브젝트들을 정렬
-			 *	2. Deferred 셰이더들에 대한 OMSetRenderTargets 수행
-			 *	3. Light에 대한 OMSet 수행
-			 *	4. SwapChain에 대한 OMSet 수행
-			 */
+		if (CameraComponent == MainCamera) continue;
 
-			Camera->SortGameObject();
-
-			GEngine->GetMultipleRenderTarget(EMultipleRenderTargetType::GeometryBuffer)->OMSetRenderTargets();
-			Camera->RenderDeferred();
-
-			GEngine->GetMultipleRenderTarget(EMultipleRenderTargetType::SwapChain)->OMSetRenderTargets(1, BackBufferIndex);
-			Camera->RenderForward();
-		}
+		CameraComponent->SortGameObject();
+		CameraComponent->RenderForward();
 	}
+}
+
+void Scene::RenderLights()
+{
+	GEngine->GetMultipleRenderTarget(EMultipleRenderTargetType::Lighting)->OMSetRenderTargets();
+
+	for (auto& LightComponent : Lights)
+	{
+		LightComponent->Render();
+	}
+}
+
+void Scene::RenderFinal()
+{
+	// 모든 정보를 가지고 취합시키는 단계 -> BackBuffer 세팅, Final 데이터를 통해 Render
+
+	int8 BackBufferIndex = GEngine->GetSwapChain()->GetBackBufferIndex();
+	GEngine->GetMultipleRenderTarget(EMultipleRenderTargetType::SwapChain)->OMSetRenderTargets(1, BackBufferIndex);
+
+	Resources::Get()->Get<FMaterial>(L"Final")->PushData();
+	Resources::Get()->Get<FMesh>(L"Rectangle")->Render();
 }
 
 void Scene::AddGameObject(shared_ptr<GameObject> GameObject)
 {
+	if (auto Camera = GameObject->GetCamera())
+	{
+		Cameras.push_back(Camera);
+	}
+	else if (auto Light = GameObject->GetLight())
+	{
+		Lights.push_back(Light);
+	}
+
 	GameObjects.push_back(GameObject);
 }
 
 void Scene::RemoveGameObject(shared_ptr<GameObject> GameObject)
 {
+	if (auto Camera = GameObject->GetCamera())
+	{
+		if (auto Iterator = ranges::find(Cameras, Camera);
+			Iterator != Cameras.end())
+		{
+			Cameras.erase(Iterator);
+		}
+	}
+	else if (auto Light = GameObject->GetLight())
+	{
+		if ( auto Iterator = ranges::find(Lights, Light);
+			Iterator != Lights.end() )
+		{
+			Lights.erase(Iterator);
+		}
+	}
+
 	if (auto Iterator = ranges::find(GameObjects, GameObject);
 		Iterator != GameObjects.end())
 	{
@@ -96,12 +152,12 @@ void Scene::RemoveGameObject(shared_ptr<GameObject> GameObject)
 void Scene::PushLightData()
 {
 	FLightParameters Parameters{};
-	for (auto& GameObject : GameObjects)
+	for (auto& LightComponent : Lights)
 	{
-		if ( const auto& LightComponent = GameObject->GetLight() )
-		{
-			Parameters.Lights[Parameters.LightCount++] = LightComponent->GetInfo();
-		}
+		// TODO:
+
+		LightComponent->SetIndex(Parameters.LightCount);	// Light를 Render할 때 Index를 통해 구분하기 위함
+		Parameters.Lights[Parameters.LightCount++] = LightComponent->GetInfo();
 	}
 
 	CONSTANT_BUFFER(EConstantBufferType::Global)->SetStaticData(&Parameters, sizeof(Parameters));

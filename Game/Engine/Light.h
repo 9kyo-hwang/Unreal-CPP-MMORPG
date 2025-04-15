@@ -43,6 +43,7 @@ public:
 	~Light() override;
 
 	void FinalUpdate() override;
+	void Render();
 
 public:
 	const FLightInfo& GetInfo() const { return Info; }
@@ -52,11 +53,17 @@ public:
 	void SetSpecular(const FVector3& NewSpecular) { Info.Color.Specular = NewSpecular; }
 
 	void SetDirection(const FVector3& NewDirection) { Info.Direction = NewDirection; }
-	void SetType(ELightType NewType) { Info.Type = static_cast<int32>(NewType); }
+	void SetType(ELightType NewType);
 	void SetRange(float NewRange) { Info.Range = NewRange; }
 	void SetAngle(float NewAngle) { Info.Angle = NewAngle; }
 
+	void SetIndex(int8 InIndex) { Index = InIndex; }
+
 private:
 	FLightInfo Info;
+
+	int8 Index;
+	shared_ptr<class FMesh> VolumeMesh;	// 빛이 영향을 미치는 영역
+	shared_ptr<class FMaterial> Material;	// 셰이더에 인자를 넘기기 위해 사용
 };
 
