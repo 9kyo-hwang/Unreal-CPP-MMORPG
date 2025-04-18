@@ -5,6 +5,7 @@
 #include "GameObject.h"
 #include "Material.h"
 #include "MeshRenderer.h"
+#include "ParticleSystemComponent.h"
 #include "Scene.h"
 #include "SceneManager.h"
 #include "Shader.h"
@@ -18,16 +19,15 @@ Camera::Camera()
 	, Projection(ECameraProjectionType::Perspective)
 	, Near(1.f)
 	, Far(1000.f)
-	, Fov(XM_PI / 4.f)	// 45도
+	, Fov(XM_PI / 4.f) // 45도
 	, Scale(1.f)
 	, ViewMatrix()
 	, ProjectionMatrix()
+	, CullingMask(0)
 {
 }
 
-Camera::~Camera()
-{
-}
+Camera::~Camera() = default;
 
 void Camera::FinalUpdate()
 {
@@ -56,25 +56,33 @@ void Camera::SortGameObject()
 
 	DeferredShaders.clear();
 	ForwardShaders.clear();
+	ParticleShaders.clear();
 
 	for (auto& GameObject : GameObjects)
 	{
+		auto MeshRenderer = GameObject->GetMeshRenderer();
+		auto ParticleSystemComponent = GameObject->GetParticleSystemComponent();
+		if (MeshRenderer == nullptr && ParticleSystemComponent == nullptr)
+		{
+			continue;
+		}
+
 		if ( IsLayerCulled(GameObject->GetLayer()) )
 		{
 			continue;
 		}
 
-		if (auto MeshRenderer = GameObject->GetMeshRenderer())
+		if (GameObject->GetCheckFrustum())
 		{
-			if (GameObject->GetCheckFrustum())
+			auto Transform = GameObject->GetTransform();
+			if (!Frustum.ContainsSphere(Transform->GetWorldPosition(), Transform->GetFrustumBound()))
 			{
-				auto Transform = GameObject->GetTransform();
-				if (!Frustum.ContainsSphere(Transform->GetWorldPosition(), Transform->GetFrustumBound()))
-				{
-					continue;
-				}
+				continue;
 			}
+		}
 
+		if (MeshRenderer)
+		{
 			switch (MeshRenderer->GetMaterial()->GetShader()->GetShaderType())
 			{
 			case EShaderType::Deferred:
@@ -83,9 +91,11 @@ void Camera::SortGameObject()
 			case EShaderType::Forward:
 				ForwardShaders.push_back(GameObject);
 				break;
-			case EShaderType::Lighting:
-				break;
 			}
+		}
+		else if (ParticleSystemComponent)
+		{
+			ParticleShaders.push_back(GameObject);
 		}
 	}
 }
@@ -97,7 +107,10 @@ void Camera::RenderDeferred()
 
 	for (auto& GameObject : DeferredShaders)
 	{
-		GameObject->GetMeshRenderer()->Render();
+		if (auto MeshRenderer = GameObject->GetMeshRenderer())
+		{
+			MeshRenderer->Render();
+		}
 	}
 }
 
@@ -108,6 +121,17 @@ void Camera::RenderForward()
 
 	for (auto& GameObject : ForwardShaders)
 	{
-		GameObject->GetMeshRenderer()->Render();
+		if ( auto MeshRenderer = GameObject->GetMeshRenderer() )
+		{
+			MeshRenderer->Render();
+		}
+	}
+
+	for(auto& ParticleObject : ParticleShaders)
+	{
+		if (auto ParticleSystemComponent = ParticleObject->GetParticleSystemComponent() )
+		{
+			ParticleSystemComponent->Render();
+		}
 	}
 }

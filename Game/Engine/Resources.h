@@ -3,6 +3,7 @@
 #include "Material.h"
 #include "Mesh.h"
 #include "Object.h"
+#include "Texture.h"
 
 class Resources
 {
@@ -25,6 +26,7 @@ public:
 	EObjectType GetObjectType() const;
 
 public:
+	shared_ptr<FMesh> LoadPoint();
 	shared_ptr<FMesh> LoadRectangle();
 	shared_ptr<FMesh> LoadCube();
 	shared_ptr<FMesh> LoadSphere();

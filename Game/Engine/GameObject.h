@@ -2,6 +2,7 @@
 #include "Component.h"
 #include "Object.h"
 
+class UParticleSystemComponent;
 class Light;
 class Camera;
 class FMeshRenderer;
@@ -31,6 +32,7 @@ public:
 	shared_ptr<FMeshRenderer> GetMeshRenderer() const;
 	shared_ptr<Camera> GetCamera() const;
 	shared_ptr<Light> GetLight() const;
+	shared_ptr<UParticleSystemComponent> GetParticleSystemComponent() const;
 
 	bool GetCheckFrustum() const { return bCheckFrustum; }
 	void SetCheckFrustum(bool Value) { bCheckFrustum = Value; }

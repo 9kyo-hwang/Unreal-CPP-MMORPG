@@ -71,10 +71,10 @@ void Scene::Render()
 	auto MainCamera = Cameras[0];	// 0번 카메라를 메인 카메라로 가정
 	MainCamera->SortGameObject();
 	MainCamera->RenderDeferred();
+	GEngine->GetMultipleRenderTarget(EMultipleRenderTargetType::GeometryBuffer)->WaitForUseAsAResource();
 
-	GEngine->GetMultipleRenderTarget(EMultipleRenderTargetType::GeometryBuffer)->WaitRenderTargetToResource();
 	RenderLights();
-	GEngine->GetMultipleRenderTarget(EMultipleRenderTargetType::GeometryBuffer)->WaitRenderTargetToResource();
+	GEngine->GetMultipleRenderTarget(EMultipleRenderTargetType::Lighting)->WaitForUseAsAResource();
 
 	RenderFinal();
 	MainCamera->RenderForward();
@@ -111,13 +111,13 @@ void Scene::RenderFinal()
 
 void Scene::AddGameObject(shared_ptr<GameObject> GameObject)
 {
-	if (auto Camera = GameObject->GetCamera())
+	if (auto CameraComponent = GameObject->GetCamera())
 	{
-		Cameras.push_back(Camera);
+		Cameras.push_back(CameraComponent);
 	}
-	else if (auto Light = GameObject->GetLight())
+	else if (auto LightComponent = GameObject->GetLight())
 	{
-		Lights.push_back(Light);
+		Lights.push_back(LightComponent);
 	}
 
 	GameObjects.push_back(GameObject);
@@ -125,18 +125,18 @@ void Scene::AddGameObject(shared_ptr<GameObject> GameObject)
 
 void Scene::RemoveGameObject(shared_ptr<GameObject> GameObject)
 {
-	if (auto Camera = GameObject->GetCamera())
+	if (auto CameraComponent = GameObject->GetCamera())
 	{
-		if (auto Iterator = ranges::find(Cameras, Camera);
+		if (auto Iterator = ranges::find(Cameras, CameraComponent);
 			Iterator != Cameras.end())
 		{
 			Cameras.erase(Iterator);
 		}
 	}
-	else if (auto Light = GameObject->GetLight())
+	else if (auto LightComponent = GameObject->GetLight())
 	{
-		if ( auto Iterator = ranges::find(Lights, Light);
-			Iterator != Lights.end() )
+		if (auto Iterator = ranges::find(Lights, LightComponent);
+			Iterator != Lights.end())
 		{
 			Lights.erase(Iterator);
 		}
@@ -154,11 +154,9 @@ void Scene::PushLightData()
 	FLightParameters Parameters{};
 	for (auto& LightComponent : Lights)
 	{
-		// TODO:
-
 		LightComponent->SetIndex(Parameters.LightCount);	// Light를 Render할 때 Index를 통해 구분하기 위함
 		Parameters.Lights[Parameters.LightCount++] = LightComponent->GetInfo();
 	}
 
-	CONSTANT_BUFFER(EConstantBufferType::Global)->SetStaticData(&Parameters, sizeof(Parameters));
+	CONSTANT_BUFFER(EConstantBufferType::Global)->SetGlobalGraphicsData(&Parameters, sizeof(Parameters));
 }

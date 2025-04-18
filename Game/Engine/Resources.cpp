@@ -11,6 +11,32 @@ void Resources::Initialize()
 	CreateDefaultMaterial();
 }
 
+shared_ptr<FMesh> Resources::LoadPoint()
+{
+	if (shared_ptr<FMesh> Point = Get<FMesh>(L"Point"))
+	{
+		return Point;
+	}
+
+	vector<FVertex> Vertices{
+		FVertex
+		(
+			FVector3(0, 0, 0),
+			FVector2(0.5f, 0.5f),
+			FVector3(0.f, 0.f, -1.f),
+			FVector3(1.f, 0.f, 0.f)
+		)
+	};
+
+	vector<uint32> Indices{0};
+
+	shared_ptr<FMesh> Point = make_shared<FMesh>();
+	Point->Initialize(Vertices, Indices);
+	Add<FMesh>(L"Point", Point);
+
+	return Point;
+}
+
 shared_ptr<FMesh> Resources::LoadRectangle()
 {
 	if (shared_ptr<FMesh> Rectangle = Get<FMesh>(L"Rectangle"))
@@ -508,6 +534,27 @@ void Resources::CreateDefaultShader()
 		Shader->CreateComputeShader(L"..\\Resources\\Shader\\Compute.fx", "CSMain", "cs_5_0");
 		Add<FShader>(L"ComputeShader", Shader);
 	}
+
+	//// Particle
+	//{
+	//	shared_ptr<FShader> Shader = make_shared<FShader>();
+	//	Shader->CreateGraphicsShader(
+	//		L"..\\Resources\\Shader\\Particle.fx",
+	//		{EShaderType::Particle, ERasterizeType::CullBack, EDepthStencilType::LessNoWrite, EBlendType::AlphaBlend, D3D_PRIMITIVE_TOPOLOGY_POINTLIST},
+	//		"VSMain", "PSMain", "GSMain"
+	//		);
+	//	Add<FShader>(L"Particle", Shader);
+	//}
+
+	//// Compute Particle
+	//{
+	//	shared_ptr<FShader> Shader = make_shared<FShader>();
+	//	Shader->CreateComputeShader(
+	//		L"..\\Resources\\Shader\\Particle.fx",
+	//		"CSMain", "cs_5_0"
+	//		);
+	//	Add<FShader>(L"ComputeParticle", Shader);
+	//}
 }
 
 void Resources::CreateDefaultMaterial()
@@ -570,4 +617,21 @@ void Resources::CreateDefaultMaterial()
 		Material->SetShader(Shader);
 		Add<FMaterial>(L"ComputeShader", Material);
 	}
+
+	//// Particle
+	//{
+	//	shared_ptr<FShader> Shader = Get()->Get<FShader>(L"Particle");
+	//	shared_ptr<FMaterial> Material = make_shared<FMaterial>();
+	//	Material->SetShader(Shader);
+	//	Add<FMaterial>(L"Particle", Material);
+	//}
+
+	//// ComputeParticle
+	//{
+	//	shared_ptr<FShader> Shader = Get()->Get<FShader>(L"ComputeParticle");
+	//	shared_ptr<FMaterial> Material = make_shared<FMaterial>();
+	//	Material->SetShader(Shader);
+
+	//	Add<FMaterial>(L"ComputeParticle", Material);
+	//}
 }

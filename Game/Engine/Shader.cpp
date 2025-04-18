@@ -11,17 +11,20 @@ FShader::FShader()
 {
 }
 
-FShader::~FShader()
-{
-}
+FShader::~FShader() = default;
 
-void FShader::CreateGraphicsShader(const wstring& Path, FShaderInfo InInfo, const string& VertexShaderInitter, const string& PixelShaderInitter)
+void FShader::CreateGraphicsShader(const wstring& Path, FShaderInfo InInfo, const string& VertexShaderInitter, const string& PixelShaderInitter, const string& GeometryShaderInitter)
 {
 	Info = InInfo;
 
 	CreateVertexShader(Path, VertexShaderInitter, "vs_5_0");
 	CreatePixelShader(Path, PixelShaderInitter, "ps_5_0");
 
+	if(!GeometryShaderInitter.empty())
+	{
+		CreateGeometryShader(Path, GeometryShaderInitter, "gs_5_0");
+	}
+	
 	D3D12_INPUT_ELEMENT_DESC Desc[]
 	{
 		// AlignedByteOffset: 0부터 시작하는 값의 오프셋 값. POSITION이 float3이라 COLOR가 12부터 시작, COLOR가 float4라 TEXCOORD가 12 + 16 = 28부터 시작
@@ -38,7 +41,7 @@ void FShader::CreateGraphicsShader(const wstring& Path, FShaderInfo InInfo, cons
 	GraphicsPipelineStateDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);	// 아래에서 Info.Blend 값에 따라 추가 설정
 	GraphicsPipelineStateDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);	// Default로 변경(depth = true, stencil = false)
 	GraphicsPipelineStateDesc.SampleMask = UINT_MAX;
-	GraphicsPipelineStateDesc.PrimitiveTopologyType = InInfo.TopologyType;
+	GraphicsPipelineStateDesc.PrimitiveTopologyType = GetTopologyType(InInfo.Topology);
 	GraphicsPipelineStateDesc.NumRenderTargets = 1;
 	GraphicsPipelineStateDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
 	GraphicsPipelineStateDesc.SampleDesc.Count = 1;
@@ -60,6 +63,10 @@ void FShader::CreateGraphicsShader(const wstring& Path, FShaderInfo InInfo, cons
 		GraphicsPipelineStateDesc.NumRenderTargets = 2;
 		GraphicsPipelineStateDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
 		GraphicsPipelineStateDesc.RTVFormats[1] = DXGI_FORMAT_R8G8B8A8_UNORM;
+		break;
+	case EShaderType::Particle:
+		GraphicsPipelineStateDesc.NumRenderTargets = 1;
+		GraphicsPipelineStateDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
 		break;
 	}
 
@@ -101,7 +108,7 @@ void FShader::CreateGraphicsShader(const wstring& Path, FShaderInfo InInfo, cons
 		GraphicsPipelineStateDesc.DepthStencilState.DepthEnable = true;
 		GraphicsPipelineStateDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_GREATER_EQUAL;
 		break;
-	case EDepthStencilType::NoDepthWrite:
+	case EDepthStencilType::NoDepth:
 		GraphicsPipelineStateDesc.DepthStencilState.DepthEnable = false;
 		GraphicsPipelineStateDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
 		break;
@@ -153,7 +160,7 @@ void FShader::CreateGraphicsShader(const wstring& Path, FShaderInfo InInfo, cons
 		break;
 	}
 
-	DEVICE->CreateGraphicsPipelineState(&GraphicsPipelineStateDesc, IID_PPV_ARGS(&PipelineState));
+	assert(SUCCEEDED(DEVICE->CreateGraphicsPipelineState(&GraphicsPipelineStateDesc, IID_PPV_ARGS(&PipelineState))));
 }
 
 void FShader::CreateComputeShader(const wstring& Path, const string& Name, const string& Version)
@@ -175,6 +182,7 @@ void FShader::Update()
 	else
 	{
 		// .fx 파일을 어떻게 읽고 사용할 지 정의한 PipelineState을 사용하겠다 선언
+		GRAPHICS_COMMAND_LIST->IASetPrimitiveTopology(Info.Topology);
 		GRAPHICS_COMMAND_LIST->SetPipelineState(PipelineState.Get());
 	}
 }
@@ -203,4 +211,63 @@ void FShader::CreateVertexShader(const wstring& Path, const string& Name, const 
 void FShader::CreatePixelShader(const wstring& Path, const string& Name, const string& Version)
 {
 	Create(Path, Name, Version, PixelShaderBlob, GraphicsPipelineStateDesc.PS);
+}
+
+void FShader::CreateGeometryShader(const wstring& Path, const string& Name, const string& Version)
+{
+	Create(Path, Name, Version, GeometryShaderBlob, GraphicsPipelineStateDesc.GS);
+}
+
+D3D12_PRIMITIVE_TOPOLOGY_TYPE FShader::GetTopologyType(D3D_PRIMITIVE_TOPOLOGY Topology)
+{
+	switch (Topology)
+	{
+	case D3D_PRIMITIVE_TOPOLOGY_POINTLIST:
+		return D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
+	case D3D_PRIMITIVE_TOPOLOGY_LINELIST:
+	case D3D_PRIMITIVE_TOPOLOGY_LINESTRIP:
+	case D3D_PRIMITIVE_TOPOLOGY_LINELIST_ADJ:
+	case D3D_PRIMITIVE_TOPOLOGY_LINESTRIP_ADJ:
+	case D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST_ADJ:
+	case D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP_ADJ:
+		return D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE;
+	case D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST:
+	case D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP:
+		return D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	case D3D_PRIMITIVE_TOPOLOGY_1_CONTROL_POINT_PATCHLIST:
+	case D3D_PRIMITIVE_TOPOLOGY_2_CONTROL_POINT_PATCHLIST:
+	case D3D_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST:
+	case D3D_PRIMITIVE_TOPOLOGY_4_CONTROL_POINT_PATCHLIST:
+	case D3D_PRIMITIVE_TOPOLOGY_5_CONTROL_POINT_PATCHLIST:
+	case D3D_PRIMITIVE_TOPOLOGY_6_CONTROL_POINT_PATCHLIST:
+	case D3D_PRIMITIVE_TOPOLOGY_7_CONTROL_POINT_PATCHLIST:
+	case D3D_PRIMITIVE_TOPOLOGY_8_CONTROL_POINT_PATCHLIST:
+	case D3D_PRIMITIVE_TOPOLOGY_9_CONTROL_POINT_PATCHLIST:
+	case D3D_PRIMITIVE_TOPOLOGY_10_CONTROL_POINT_PATCHLIST:
+	case D3D_PRIMITIVE_TOPOLOGY_11_CONTROL_POINT_PATCHLIST:
+	case D3D_PRIMITIVE_TOPOLOGY_12_CONTROL_POINT_PATCHLIST:
+	case D3D_PRIMITIVE_TOPOLOGY_13_CONTROL_POINT_PATCHLIST:
+	case D3D_PRIMITIVE_TOPOLOGY_14_CONTROL_POINT_PATCHLIST:
+	case D3D_PRIMITIVE_TOPOLOGY_15_CONTROL_POINT_PATCHLIST:
+	case D3D_PRIMITIVE_TOPOLOGY_16_CONTROL_POINT_PATCHLIST:
+	case D3D_PRIMITIVE_TOPOLOGY_17_CONTROL_POINT_PATCHLIST:
+	case D3D_PRIMITIVE_TOPOLOGY_18_CONTROL_POINT_PATCHLIST:
+	case D3D_PRIMITIVE_TOPOLOGY_19_CONTROL_POINT_PATCHLIST:
+	case D3D_PRIMITIVE_TOPOLOGY_20_CONTROL_POINT_PATCHLIST:
+	case D3D_PRIMITIVE_TOPOLOGY_21_CONTROL_POINT_PATCHLIST:
+	case D3D_PRIMITIVE_TOPOLOGY_22_CONTROL_POINT_PATCHLIST:
+	case D3D_PRIMITIVE_TOPOLOGY_23_CONTROL_POINT_PATCHLIST:
+	case D3D_PRIMITIVE_TOPOLOGY_24_CONTROL_POINT_PATCHLIST:
+	case D3D_PRIMITIVE_TOPOLOGY_25_CONTROL_POINT_PATCHLIST:
+	case D3D_PRIMITIVE_TOPOLOGY_26_CONTROL_POINT_PATCHLIST:
+	case D3D_PRIMITIVE_TOPOLOGY_27_CONTROL_POINT_PATCHLIST:
+	case D3D_PRIMITIVE_TOPOLOGY_28_CONTROL_POINT_PATCHLIST:
+	case D3D_PRIMITIVE_TOPOLOGY_29_CONTROL_POINT_PATCHLIST:
+	case D3D_PRIMITIVE_TOPOLOGY_30_CONTROL_POINT_PATCHLIST:
+	case D3D_PRIMITIVE_TOPOLOGY_31_CONTROL_POINT_PATCHLIST:
+	case D3D_PRIMITIVE_TOPOLOGY_32_CONTROL_POINT_PATCHLIST:
+		return D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH;
+	default:
+		return D3D12_PRIMITIVE_TOPOLOGY_TYPE_UNDEFINED;
+	}
 }

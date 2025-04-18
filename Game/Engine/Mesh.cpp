@@ -6,12 +6,14 @@
 
 FMesh::FMesh()
 	: Super(EObjectType::Mesh)
+	, VertexBufferDescriptor()
+	, NumVertices(0)
+	, IndexBufferDescriptor()
+	, NumIndices(0)
 {
 }
 
-FMesh::~FMesh()
-{
-}
+FMesh::~FMesh() = default;
 
 void FMesh::Initialize(const vector<FVertex>& Vertices, const vector<uint32>& Indices)
 {
@@ -20,11 +22,10 @@ void FMesh::Initialize(const vector<FVertex>& Vertices, const vector<uint32>& In
 }
 
 // CommandQueue의 RenderBegin, RenderEnd 사이에 이러한 Render들이 호출될 예정(CommandList에 들어갔으므로)
-void FMesh::Render()
+void FMesh::Render(uint32 InstanceCount)
 {
-	GRAPHICS_COMMAND_LIST->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	GRAPHICS_COMMAND_LIST->IASetVertexBuffers(0, 1, &VertexBufferView);
-	GRAPHICS_COMMAND_LIST->IASetIndexBuffer(&IndexBufferView);
+	GRAPHICS_COMMAND_LIST->IASetVertexBuffers(0, 1, &VertexBufferDescriptor);
+	GRAPHICS_COMMAND_LIST->IASetIndexBuffer(&IndexBufferDescriptor);
 
 	// TODO: 작성한 서명을 실제로 사용하려면 이 부분에서 코드 작성
 	/**
@@ -38,13 +39,13 @@ void FMesh::Render()
 	GEngine->GetGraphicsDescriptorTable()->Commit();
 
 	//GRAPHICS_COMMAND_LIST->DrawInstanced(VertexCount, 1, 0, 0);  // 정점 정보로만 그리는 함수
-	GRAPHICS_COMMAND_LIST->DrawIndexedInstanced(IndexCount, 1, 0, 0, 0);
+	GRAPHICS_COMMAND_LIST->DrawIndexedInstanced(NumIndices, InstanceCount, 0, 0, 0);
 }
 
 void FMesh::CreateVertexBuffer(const vector<FVertex>& Vertices)
 {
-	VertexCount = static_cast<uint32>(Vertices.size());
-	uint32 BufferSize = VertexCount * sizeof(FVertex);
+	NumVertices = static_cast<uint32>(Vertices.size());
+	uint32 MallocSize = NumVertices * sizeof(FVertex);
 
 	/**
 	 * 원래는 Buffer를 Default, Upload 2개를 만들어서 사용
@@ -53,53 +54,53 @@ void FMesh::CreateVertexBuffer(const vector<FVertex>& Vertices)
 	 * 여기서는 편리하게 작업하기 위해 Upload 하나로 관리
 	 */
 	D3D12_HEAP_PROPERTIES HeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-	D3D12_RESOURCE_DESC Desc = CD3DX12_RESOURCE_DESC::Buffer(BufferSize);
+	D3D12_RESOURCE_DESC Desc = CD3DX12_RESOURCE_DESC::Buffer(MallocSize);
 
-	DEVICE->CreateCommittedResource(	// 복사해줄 정점 정보를 저장하기 위한 GPU쪽 공간 할당
+	assert(SUCCEEDED(DEVICE->CreateCommittedResource(	// 복사해줄 정점 정보를 저장하기 위한 GPU쪽 공간 할당
 		&HeapProperties,
 		D3D12_HEAP_FLAG_NONE,
 		&Desc,
 		D3D12_RESOURCE_STATE_GENERIC_READ,
 		nullptr,
 		IID_PPV_ARGS(&VertexBuffer)
-	);
+	)));
 
 	// 정점 정보를 GPU, 즉 VertexBuffer에 복사
 	void* VertexData = nullptr;
 	CD3DX12_RANGE ReadRange(0, 0);
 	VertexBuffer->Map(0, &ReadRange, &VertexData);
-	::memcpy(VertexData, &Vertices[0], BufferSize);
+	::memcpy(VertexData, &Vertices[0], MallocSize);
 	VertexBuffer->Unmap(0, nullptr);
 
-	VertexBufferView.BufferLocation = VertexBuffer->GetGPUVirtualAddress();
-	VertexBufferView.StrideInBytes = sizeof(FVertex);  // 정점 1개 크기
-	VertexBufferView.SizeInBytes = BufferSize;  // 버퍼 크기
+	VertexBufferDescriptor.BufferLocation = VertexBuffer->GetGPUVirtualAddress();
+	VertexBufferDescriptor.StrideInBytes = sizeof(FVertex);  // 정점 1개 크기
+	VertexBufferDescriptor.SizeInBytes = MallocSize;  // 버퍼 크기
 }
 
 void FMesh::CreateIndexBuffer(const vector<uint32>& Indices)
 {
-	IndexCount = static_cast<uint32>(Indices.size());
-	uint32 BufferSize = IndexCount * sizeof(uint32);
+	NumIndices = static_cast<uint32>(Indices.size());
+	uint32 MallocSize = NumIndices * sizeof(uint32);
 
 	D3D12_HEAP_PROPERTIES HeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-	D3D12_RESOURCE_DESC Desc = CD3DX12_RESOURCE_DESC::Buffer(BufferSize);
+	D3D12_RESOURCE_DESC Desc = CD3DX12_RESOURCE_DESC::Buffer(MallocSize);
 
-	DEVICE->CreateCommittedResource(	// 복사해줄 정점 정보를 저장하기 위한 GPU쪽 공간 할당
+	assert(SUCCEEDED(DEVICE->CreateCommittedResource(	// 복사해줄 정점 정보를 저장하기 위한 GPU쪽 공간 할당
 		&HeapProperties,
 		D3D12_HEAP_FLAG_NONE,
 		&Desc,
 		D3D12_RESOURCE_STATE_GENERIC_READ,
 		nullptr,
 		IID_PPV_ARGS(&IndexBuffer)
-	);
+	)));
 
 	void* IndexData = nullptr;
 	CD3DX12_RANGE ReadRange(0, 0);
 	IndexBuffer->Map(0, &ReadRange, &IndexData);
-	::memcpy(IndexData, &Indices[0], BufferSize);
+	::memcpy(IndexData, &Indices[0], MallocSize);
 	IndexBuffer->Unmap(0, nullptr);
 
-	IndexBufferView.BufferLocation = IndexBuffer->GetGPUVirtualAddress();
-	IndexBufferView.Format = DXGI_FORMAT_R32_UINT;
-	IndexBufferView.SizeInBytes = BufferSize;
+	IndexBufferDescriptor.BufferLocation = IndexBuffer->GetGPUVirtualAddress();
+	IndexBufferDescriptor.Format = DXGI_FORMAT_R32_UINT;
+	IndexBufferDescriptor.SizeInBytes = MallocSize;
 }

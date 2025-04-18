@@ -30,38 +30,30 @@ void FTexture::Load(const wstring& Path)
 		::LoadFromWICFile(Path.c_str(), WIC_FLAGS_NONE, nullptr, Image);
 	}
 
-	if ( FAILED(::CreateTexture(DEVICE.Get(), Image.GetMetadata(), &Texture2D)) )
-	{
-		assert(nullptr && "FTexture::CreateTexture() - CreateTexture Failed");
-	}
+	assert(SUCCEEDED(::CreateTexture(DEVICE.Get(), Image.GetMetadata(), &Texture2D)));
 
 	vector<D3D12_SUBRESOURCE_DATA> SubResources;
-	if ( FAILED(::PrepareUpload(DEVICE.Get(),
+	assert(SUCCEEDED(::PrepareUpload(
+		DEVICE.Get(),
 		Image.GetImages(),
 		Image.GetImageCount(),
 		Image.GetMetadata(),
-		SubResources))
-		)
-	{
-		assert(nullptr && "FTexture::CreateTexture() - PrepareUpload Failed");
-	}
+		SubResources
+		)));
 
 	const uint64 BufferSize = ::GetRequiredIntermediateSize(Texture2D.Get(), 0, static_cast< uint32 >( SubResources.size() ));
 	D3D12_HEAP_PROPERTIES HeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 	D3D12_RESOURCE_DESC Desc = CD3DX12_RESOURCE_DESC::Buffer(BufferSize);
 
 	ComPtr<ID3D12Resource> TextureUploadHeap;
-	if ( FAILED(::DEVICE->CreateCommittedResource(
+	assert(SUCCEEDED(::DEVICE->CreateCommittedResource(
 		&HeapProperties,
 		D3D12_HEAP_FLAG_NONE,
 		&Desc,
 		D3D12_RESOURCE_STATE_GENERIC_READ,
 		nullptr,
-		IID_PPV_ARGS(TextureUploadHeap.GetAddressOf())))
-		)
-	{
-		assert(nullptr && "FTexture::CreateTexture() - CreateCommittedResource Failed");
-	}
+		IID_PPV_ARGS(TextureUploadHeap.GetAddressOf()
+			))));
 
 	::UpdateSubresources(
 		RESOURCE_COMMAND_LIST.Get(),
@@ -72,7 +64,7 @@ void FTexture::Load(const wstring& Path)
 		SubResources.data()
 	);
 
-	GEngine->GetGraphicsCommandQueue()->FlushResourceCommandQueue();
+	GEngine->GetGraphicsCommandQueue()->FlushResources();
 
 	D3D12_DESCRIPTOR_HEAP_DESC HeapDesc
 	{
@@ -80,9 +72,7 @@ void FTexture::Load(const wstring& Path)
 		.NumDescriptors = 1,
 		.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
 	};
-
 	DEVICE->CreateDescriptorHeap(&HeapDesc, IID_PPV_ARGS(&ShaderResourceDescriptorHeap));
-
 	ShaderResourceDescriptorHeapStart = ShaderResourceDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC ViewDesc
@@ -92,7 +82,6 @@ void FTexture::Load(const wstring& Path)
 		.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
 	};
 	ViewDesc.Texture2D.MipLevels = 1;
-	
 	DEVICE->CreateShaderResourceView(Texture2D.Get(), &ViewDesc, ShaderResourceDescriptorHeapStart);
 }
 

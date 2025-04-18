@@ -193,6 +193,7 @@
     <ClInclude Include="MeshRenderer.h" />
     <ClInclude Include="MonoBehaviour.h" />
     <ClInclude Include="Object.h" />
+    <ClInclude Include="ParticleSystemComponent.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="MultipleRenderTarget.h" />
     <ClInclude Include="Resources.h" />
@@ -201,6 +202,7 @@
     <ClInclude Include="SceneManager.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="SimpleMath.h" />
+    <ClInclude Include="StructuredBuffer.h" />
     <ClInclude Include="SwapChain.h" />
     <ClInclude Include="TableDescriptorHeap.h" />
     <ClInclude Include="Texture.h" />
@@ -225,6 +227,7 @@
     <ClCompile Include="MeshRenderer.cpp" />
     <ClCompile Include="MonoBehaviour.cpp" />
     <ClCompile Include="Object.cpp" />
+    <ClCompile Include="ParticleSystemComponent.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -238,6 +241,7 @@
     <ClCompile Include="SceneManager.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="SimpleMath.cpp" />
+    <ClCompile Include="StructuredBuffer.cpp" />
     <ClCompile Include="SwapChain.cpp" />
     <ClCompile Include="TableDescriptorHeap.cpp" />
     <ClCompile Include="Texture.cpp" />
@@ -253,6 +257,7 @@
     <FxCompile Include="..\Resources\Shader\Forward.fx" />
     <FxCompile Include="..\Resources\Shader\Lighting.fx" />
     <FxCompile Include="..\Resources\Shader\Parameters.fx" />
+    <FxCompile Include="..\Resources\Shader\Particle.fx" />
     <FxCompile Include="..\Resources\Shader\Skybox.fx" />
     <FxCompile Include="..\Resources\Shader\Utils.fx" />
   </ItemGroup>

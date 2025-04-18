@@ -47,11 +47,12 @@ private:
 	 * 예) UI는 레이어 1번으로 설정, [1][1][1][1][1][1][0][1]: UI만 Culling하지 않을 것. 즉 이 카메라에서는 UI만 보여줄 것. Orthographic.
 	 */
 	// 
-	uint32 CullingMask = 0;
+	uint32 CullingMask;
 
 private:	// 카메라로 찍어야 할 객체들을 셰이더 타입에 따라 분리해서 관리
 	vector<shared_ptr<GameObject>> DeferredShaders;
 	vector<shared_ptr<GameObject>> ForwardShaders;
+	vector<shared_ptr<GameObject>> ParticleShaders;
 
 public:
 	// TEMP

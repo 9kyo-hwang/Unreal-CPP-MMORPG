@@ -21,6 +21,9 @@ struct FRenderTarget
 class MultipleRenderTarget
 {
 public:
+	MultipleRenderTarget();
+	~MultipleRenderTarget();
+	
 	void Create(EMultipleRenderTargetType InType, vector<FRenderTarget>& RenderTargets, shared_ptr<FTexture> InDepthStencilTexture);
 
 	void OMSetRenderTargets(uint32 NumDescriptors, uint32 DescriptorHeapOffset) const;
@@ -32,8 +35,8 @@ public:
 	shared_ptr<FTexture> GetRenderTargetTexture(uint32 Index) { return Data[Index].Target; }
 	shared_ptr<FTexture> GetDepthStencilTexture() { return DepthStencilTexture; }
 
-	void WaitRenderTargetToResource() const;
-	void WaitResourceToRenderTarget() const;
+	void WaitForUseAsAResource() const;
+	void WaitForUseAsRenderTarget() const;
 
 private:
 	EMultipleRenderTargetType Type;
@@ -43,12 +46,12 @@ private:
 	ComPtr<ID3D12DescriptorHeap> RenderTargetDescriptorHeap;
 
 private:
-	uint32 RenderTargetDescriptorHeapSize;
+	uint32 RenderTargetDescriptorIncrementSize;
 	D3D12_CPU_DESCRIPTOR_HANDLE RenderTargetDescriptorHeapStart;
 	D3D12_CPU_DESCRIPTOR_HANDLE DepthStencilDescriptorHeapStart;
 
 private:
-	D3D12_RESOURCE_BARRIER RenderTargetToResource[8];
-	D3D12_RESOURCE_BARRIER ResourceToRenderTarget[8];
+	D3D12_RESOURCE_BARRIER RenderTargetToResourceBarriers[8];
+	D3D12_RESOURCE_BARRIER ResourceToRenderTargetBarriers[8];
 };
 

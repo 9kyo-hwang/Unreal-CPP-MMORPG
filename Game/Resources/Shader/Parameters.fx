@@ -58,6 +58,11 @@ cbuffer MATERIAL_PARAMETERS : register(b2)
     float2 GVector2_1;
     float2 GVector2_2;
     float2 GVector2_3;
+
+    float4 GVector4_0;
+    float4 GVector4_1;
+    float4 GVector4_2;
+    float4 GVector4_3;
 };
 
 Texture2D GTexture_0 : register(t0);

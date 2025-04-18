@@ -78,4 +78,9 @@ LightColor CalculateLightColor(int Index, float3 Normal, float3 Position)
     return Color;
 }
 
+float Rand(float2 UV)
+{
+    return frac(sin(dot(UV, float2(12.9898, 78.233))) * 43758.5453);
+}
+
 #endif

@@ -27,8 +27,5 @@ void FDevice::Initialize()
 	 *	riid: 디바이스 COM ID
 	 *	ppDevice: 생성된 장치가 매개변수에 설정
 	 */
-	if (FAILED(::D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&Device))))
-	{
-		assert(nullptr && "FDevice::Initialize() - D3D12CreateDevice() Failed");
-	}
+	assert(SUCCEEDED(::D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&Device))));
 }

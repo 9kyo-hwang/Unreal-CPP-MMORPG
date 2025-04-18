@@ -1,9 +1,18 @@
 #include "pch.h"
 #include "SwapChain.h"
 
+FSwapChain::FSwapChain()
+	: BackBufferIndex(0)
+{
+}
+
+FSwapChain::~FSwapChain()
+{
+}
+
 void FSwapChain::Initialize(const FWindowInfo& Info, ComPtr<IDXGIFactory> DXGI, ComPtr<ID3D12CommandQueue> CommandQueue)
 {
-	CreateSwapChain(Info, DXGI, CommandQueue);
+	Create(Info, DXGI, CommandQueue);
 }
 
 void FSwapChain::Present() const
@@ -18,7 +27,7 @@ void FSwapChain::SwapIndex()
 	BackBufferIndex = (BackBufferIndex + 1) % NumSwapChainBuffer;
 }
 
-void FSwapChain::CreateSwapChain(const FWindowInfo& Info, ComPtr<IDXGIFactory> DXGI, ComPtr<ID3D12CommandQueue> CommandQueue)
+void FSwapChain::Create(const FWindowInfo& Info, ComPtr<IDXGIFactory> DXGI, ComPtr<ID3D12CommandQueue> CommandQueue)
 {
 	SwapChain.Reset();	// 혹시 Init 함수가 2번 호출될 것을 대비해 Clear
 

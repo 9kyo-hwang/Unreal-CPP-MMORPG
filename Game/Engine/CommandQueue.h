@@ -15,7 +15,7 @@ public:
 	void RenderEnd();
 
 	// ResourceCommandQueue에 있는 모든 작업을 다 처리하는 함수
-	void FlushResourceCommandQueue();
+	void FlushResources();
 
 	ComPtr<ID3D12CommandQueue> GetD3DCommandQueue() { return CommandQueue; }
 	ComPtr<ID3D12GraphicsCommandList> GetD3DCommandList() { return CommandList; }

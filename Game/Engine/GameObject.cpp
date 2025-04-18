@@ -5,6 +5,7 @@
 #include "Light.h"
 #include "MeshRenderer.h"
 #include "MonoBehaviour.h"
+#include "ParticleSystemComponent.h"
 #include "Transform.h"
 
 GameObject::GameObject()
@@ -133,4 +134,9 @@ shared_ptr<Camera> GameObject::GetCamera() const
 shared_ptr<Light> GameObject::GetLight() const
 {
 	return static_pointer_cast< Light >( GetComponent(EComponentType::Light) );
+}
+
+shared_ptr<UParticleSystemComponent> GameObject::GetParticleSystemComponent() const
+{
+	return static_pointer_cast<UParticleSystemComponent>(GetComponent(EComponentType::ParticleSystem));
 }

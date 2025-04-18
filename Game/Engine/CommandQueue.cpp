@@ -21,23 +21,22 @@ void FGraphicsCommandQueue::Initialize(shared_ptr<FSwapChain> InSwapChain)
 	SwapChain = InSwapChain;
 
 	// GPU가 직접 실행하는 커맨드 목록
-	constexpr D3D12_COMMAND_LIST_TYPE Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-
-	D3D12_COMMAND_QUEUE_DESC Desc
+	D3D12_COMMAND_LIST_TYPE CommandListType = D3D12_COMMAND_LIST_TYPE_DIRECT;
+	D3D12_COMMAND_QUEUE_DESC CommandQueueDesc
 	{
-		.Type = Type,
+		.Type = CommandListType,
 		.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE,
 	};
 
-	DEVICE->CreateCommandQueue(&Desc, IID_PPV_ARGS(&CommandQueue));
-	DEVICE->CreateCommandAllocator(Type, IID_PPV_ARGS(&CommandAllocator));
 	/*
 	 *	GPU가 하나인 시스템에서는 0
 	 *	DIRECT or BUNDLE
 	 *	Allocator
 	 *	초기 상태(그리기 명령은 nullptr 지정)
 	 */
-	DEVICE->CreateCommandList(0, Type, CommandAllocator.Get(), nullptr, IID_PPV_ARGS(&CommandList));
+	DEVICE->CreateCommandQueue(&CommandQueueDesc, IID_PPV_ARGS(&CommandQueue));
+	DEVICE->CreateCommandAllocator(CommandListType, IID_PPV_ARGS(&CommandAllocator));
+	DEVICE->CreateCommandList(0, CommandListType, CommandAllocator.Get(), nullptr, IID_PPV_ARGS(&CommandList));
 
 	/*
 	 *	상태 2가지: Close / Open
@@ -45,9 +44,8 @@ void FGraphicsCommandQueue::Initialize(shared_ptr<FSwapChain> InSwapChain)
 	 */
 	CommandList->Close();
 
-	DEVICE->CreateCommandAllocator(Type, IID_PPV_ARGS(&ResourceCommandAllocator));
-	DEVICE->CreateCommandList(0, Type, ResourceCommandAllocator.Get(), nullptr, IID_PPV_ARGS(&ResourceCommandList));
-
+	DEVICE->CreateCommandAllocator(CommandListType, IID_PPV_ARGS(&ResourceCommandAllocator));
+	DEVICE->CreateCommandList(0, CommandListType, ResourceCommandAllocator.Get(), nullptr, IID_PPV_ARGS(&ResourceCommandList));
 	DEVICE->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&Fence));
 	FenceEvent = ::CreateEvent(nullptr, false, false, nullptr);
 }
@@ -81,7 +79,6 @@ void FGraphicsCommandQueue::RenderBegin(const D3D12_VIEWPORT* Viewport, const D3
 
 	GEngine->GetConstantBuffer(EConstantBufferType::Transform)->Clear();	// 여러 개의 상수 버퍼가 생기면서
 	GEngine->GetConstantBuffer(EConstantBufferType::Material)->Clear();		// 각 타입 별 버퍼 모두 초기화
-
 	GEngine->GetGraphicsDescriptorTable()->Clear();  // TableDescriptorHeap도 초기화
 
 	/**
@@ -122,7 +119,7 @@ void FGraphicsCommandQueue::RenderEnd()
 	SwapChain->SwapIndex();
 }
 
-void FGraphicsCommandQueue::FlushResourceCommandQueue()
+void FGraphicsCommandQueue::FlushResources()
 {
 	ResourceCommandList->Close();
 

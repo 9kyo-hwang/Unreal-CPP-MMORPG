@@ -12,7 +12,7 @@ public:
 	~FMesh() override;
 
 	void Initialize(const vector<FVertex>& Vertices, const vector<uint32>& Indices);
-	void Render();
+	void Render(uint32 InstanceCount = 1);
 
 private:
 	void CreateVertexBuffer(const vector<FVertex>& Vertices);
@@ -20,10 +20,10 @@ private:
 
 private:
 	ComPtr<ID3D12Resource> VertexBuffer;
-	D3D12_VERTEX_BUFFER_VIEW VertexBufferView{};  // Resource 사용은 View를 통해 이루어짐
-	uint32 VertexCount = 0;
+	D3D12_VERTEX_BUFFER_VIEW VertexBufferDescriptor;  // Resource 사용은 View를 통해 이루어짐
+	uint32 NumVertices;
 
 	ComPtr<ID3D12Resource> IndexBuffer;
-	D3D12_INDEX_BUFFER_VIEW IndexBufferView{};
-	uint32 IndexCount = 0;
+	D3D12_INDEX_BUFFER_VIEW IndexBufferDescriptor;
+	uint32 NumIndices;
 };

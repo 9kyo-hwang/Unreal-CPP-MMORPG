@@ -4,10 +4,13 @@
 class FGraphicsDescriptorTable
 {
 public:
-	void Initialize(uint32 Count);
+	FGraphicsDescriptorTable();
+	~FGraphicsDescriptorTable();
+	
+	void Initialize(uint32 GroupCount);
 	void Clear();
-	void SetConstantBufferView(D3D12_CPU_DESCRIPTOR_HANDLE Src, EConstantBufferViewRegisters Register);
-	void SetShaderResourceView(D3D12_CPU_DESCRIPTOR_HANDLE Src, EShaderResourceViewRegisters Register);
+	void SetDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE Src, EConstantBufferViewRegisters Register);
+	void SetDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE Src, EShaderResourceViewRegisters Register);
 	void Commit();
 
 	ComPtr<ID3D12DescriptorHeap> GetD3DDescriptorHeap() { return Data; }
@@ -15,16 +18,16 @@ public:
 	D3D12_CPU_DESCRIPTOR_HANDLE GetCPUHandle(EShaderResourceViewRegisters Register);
 
 private:
-	D3D12_CPU_DESCRIPTOR_HANDLE GetCPUHandle(uint8 RegisterNumber);
+	D3D12_CPU_DESCRIPTOR_HANDLE GetCPUHandle(uint8 Register);
 
 private:
 	ComPtr<ID3D12DescriptorHeap> Data;
-	uint64 ViewSize = 0;
+	uint64 IncrementSize;
 
 	// 일종의 이중 배열처럼, [View0, View1, ...] [View0, View1, ...] ... 와 같이 관리
-	uint64 GroupSize = 0;	// == View 크기 * 그룹 내 View 개수
-	uint64 GroupCount = 0;
-	uint32 CurrentGroupIndex = 0;
+	uint64 Size;	// == View 크기 * 그룹 내 View 개수
+	uint64 Count;
+	uint32 Top;
 };
 
 class FComputeDescriptorTable

@@ -7,6 +7,7 @@ enum class EShaderType : uint8 // 해당 셰이더를 어떤 방식으로 그려
 	Deferred,
 	Forward,
 	Lighting,
+	Particle,
 	Compute,
 };
 
@@ -25,7 +26,7 @@ enum class EDepthStencilType : uint8
 	Greater,
 	GreaterEqual,
 
-	NoDepthWrite,	// 깊이 테스트 X & 기록 O
+	NoDepth,	// 깊이 테스트 X & 기록 O
 	NoDepthNoWrite,	// 깊이 테스트 & 기록 X
 	LessNoWrite,	// 깊이 테스트 O & 기록 X
 };
@@ -44,28 +45,32 @@ struct FShaderInfo
 	ERasterizeType RasterizeType = ERasterizeType::CullBack;
 	EDepthStencilType DepthStencilType = EDepthStencilType::Less;  // Skybox는 1에 위치해도 그려야하므로
 	EBlendType BlendType = EBlendType::Default;
-	D3D12_PRIMITIVE_TOPOLOGY_TYPE TopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	D3D12_PRIMITIVE_TOPOLOGY Topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 };
 
 class FShader : public Object
 {
 	using Super = Object;
-
+	
 public:
 	FShader();
 	~FShader() override;
 
 	// 외부의 파일로 관리하게 될 예정, 그것들을 로드
-	void CreateGraphicsShader(const wstring& Path, FShaderInfo InInfo = {}, const string& VertexShaderInitter = "VSMain", const string& PixelShaderInitter = "PSMain");
+	void CreateGraphicsShader(const wstring& Path, FShaderInfo InInfo = {}, const string& VertexShaderInitter = "VSMain", const string& PixelShaderInitter = "PSMain", const string& GeometryShaderInitter = "");
 	void CreateComputeShader(const wstring& Path, const string& Name, const string& Version);
+	
 	void Update();
 
 	EShaderType GetShaderType() const { return Info.ShaderType; }
+
+	static D3D12_PRIMITIVE_TOPOLOGY_TYPE GetTopologyType(D3D_PRIMITIVE_TOPOLOGY Topology);
 
 private:
 	void Create(const wstring& Path, const string& Name, const string& Version, ComPtr<ID3DBlob>& Blob, D3D12_SHADER_BYTECODE& ShaderBytecode);
 	void CreateVertexShader(const wstring& Path, const string& Name, const string& Version);
 	void CreatePixelShader(const wstring& Path, const string& Name, const string& Version);
+	void CreateGeometryShader(const wstring& Path, const string& Name, const string& Version);
 
 private:
 	FShaderInfo Info;
@@ -74,6 +79,7 @@ private:
 private:
 	ComPtr<ID3DBlob> VertexShaderBlob;
 	ComPtr<ID3DBlob> PixelShaderBlob;
+	ComPtr<ID3DBlob> GeometryShaderBlob;
 	ComPtr<ID3DBlob> ErrorBlob;
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC GraphicsPipelineStateDesc;
 

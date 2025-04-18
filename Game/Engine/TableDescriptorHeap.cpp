@@ -3,29 +3,38 @@
 
 #include "Engine.h"
 
-void FGraphicsDescriptorTable::Initialize(uint32 Count)
+FGraphicsDescriptorTable::FGraphicsDescriptorTable()
+	: IncrementSize(0)
+	, Size(0)
+	, Count(0)
+	, Top(0)
 {
-	GroupCount = Count;
+}
+
+FGraphicsDescriptorTable::~FGraphicsDescriptorTable() = default;
+
+void FGraphicsDescriptorTable::Initialize(uint32 GroupCount)
+{
+	Count = GroupCount;
 
 	D3D12_DESCRIPTOR_HEAP_DESC Desc
 	{
 		.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-		.NumDescriptors = Count * (NumCBVSRVRegister - 1),	// 그룹 개수 * 각 그룹 별 View(Register) 개수, b0는 전역으로 사용하기 때문에 -1
+		.NumDescriptors = GroupCount * (NumCBVSRVRegister - 1),	// 그룹 개수 * 각 그룹 별 View(Register) 개수, b0는 전역으로 사용하기 때문에 -1
 		.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,	// ShaderVisible로 해줘야 GPU DRAM에 상주, 사용 가능
 	};
+	assert(SUCCEEDED(DEVICE->CreateDescriptorHeap(&Desc, IID_PPV_ARGS(&Data))));
 
-	DEVICE->CreateDescriptorHeap(&Desc, IID_PPV_ARGS(&Data));
-
-	ViewSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-	GroupSize = ViewSize * ( NumCBVSRVRegister - 1 );
+	IncrementSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	Size = IncrementSize * ( NumCBVSRVRegister - 1 );
 }
 
 void FGraphicsDescriptorTable::Clear()
 {
-	CurrentGroupIndex = 0;
+	Top = 0;
 }
 
-void FGraphicsDescriptorTable::SetConstantBufferView(D3D12_CPU_DESCRIPTOR_HANDLE Src, EConstantBufferViewRegisters Register)
+void FGraphicsDescriptorTable::SetDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE Src, EConstantBufferViewRegisters Register)
 {
 	D3D12_CPU_DESCRIPTOR_HANDLE Dest = GetCPUHandle(Register);
 
@@ -36,7 +45,7 @@ void FGraphicsDescriptorTable::SetConstantBufferView(D3D12_CPU_DESCRIPTOR_HANDLE
 	DEVICE->CopyDescriptors(1, &Dest, &DestRange, 1, &Src, &SrcRange, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 }
 
-void FGraphicsDescriptorTable::SetShaderResourceView(D3D12_CPU_DESCRIPTOR_HANDLE Src, EShaderResourceViewRegisters Register)
+void FGraphicsDescriptorTable::SetDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE Src, EShaderResourceViewRegisters Register)
 {
 	D3D12_CPU_DESCRIPTOR_HANDLE Dest = GetCPUHandle(Register);
 
@@ -49,10 +58,10 @@ void FGraphicsDescriptorTable::SetShaderResourceView(D3D12_CPU_DESCRIPTOR_HANDLE
 void FGraphicsDescriptorTable::Commit()
 {
 	D3D12_GPU_DESCRIPTOR_HANDLE Handle = Data->GetGPUDescriptorHandleForHeapStart();
-	Handle.ptr += CurrentGroupIndex * GroupSize;
+	Handle.ptr += Top * Size;
 	GRAPHICS_COMMAND_LIST->SetGraphicsRootDescriptorTable(1, Handle);	// 현재 사용 중인 그룹을 올림
 
-	CurrentGroupIndex++;
+	Top++;
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE FGraphicsDescriptorTable::GetCPUHandle(EConstantBufferViewRegisters Register)
@@ -65,13 +74,13 @@ D3D12_CPU_DESCRIPTOR_HANDLE FGraphicsDescriptorTable::GetCPUHandle(EShaderResour
 	return GetCPUHandle(static_cast<uint8>(Register));
 }
 
-D3D12_CPU_DESCRIPTOR_HANDLE FGraphicsDescriptorTable::GetCPUHandle(uint8 RegisterNumber)
+D3D12_CPU_DESCRIPTOR_HANDLE FGraphicsDescriptorTable::GetCPUHandle(uint8 Register)
 {
-	assert(RegisterNumber > 0);	// b0는 이제 들어오지 않음
+	assert(Register > 0);	// b0는 이제 들어오지 않음
 
 	D3D12_CPU_DESCRIPTOR_HANDLE Handle = Data->GetCPUDescriptorHandleForHeapStart();
-	Handle.ptr += CurrentGroupIndex * GroupSize;	// 적절한 그룹 찾기
-	Handle.ptr += (RegisterNumber - 1) * ViewSize;	// 해당 그룹 내 적절한 레지스터(View) 찾기
+	Handle.ptr += Top * Size;	// 적절한 그룹 찾기
+	Handle.ptr += (Register - 1) * IncrementSize;	// 해당 그룹 내 적절한 레지스터(View) 찾기
 	return Handle;
 }
 
@@ -80,9 +89,7 @@ FComputeDescriptorTable::FComputeDescriptorTable()
 {
 }
 
-FComputeDescriptorTable::~FComputeDescriptorTable()
-{
-}
+FComputeDescriptorTable::~FComputeDescriptorTable()	= default;
 
 void FComputeDescriptorTable::Initialize()
 {
@@ -123,10 +130,10 @@ void FComputeDescriptorTable::SetDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE SrcHandl
 
 void FComputeDescriptorTable::Commit()
 {
-	ID3D12DescriptorHeap* DescriptorHeapPtr = DescriptorHeap.Get();
-	COMPUTE_COMMAND_LIST->SetDescriptorHeaps(1, &DescriptorHeapPtr);
+	ID3D12DescriptorHeap* DescriptorHeaps = DescriptorHeap.Get();
+	COMPUTE_COMMAND_LIST->SetDescriptorHeaps(1, &DescriptorHeaps);
 
-	D3D12_GPU_DESCRIPTOR_HANDLE Handle = DescriptorHeapPtr->GetGPUDescriptorHandleForHeapStart();
+	D3D12_GPU_DESCRIPTOR_HANDLE Handle = DescriptorHeaps->GetGPUDescriptorHandleForHeapStart();
 	COMPUTE_COMMAND_LIST->SetComputeRootDescriptorTable(0, Handle);
 }
 
@@ -147,7 +154,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE FComputeDescriptorTable::GetCPUHandle(EUnorderedAcce
 
 D3D12_CPU_DESCRIPTOR_HANDLE FComputeDescriptorTable::GetCPUHandle(uint8 Register)
 {
-	D3D12_CPU_DESCRIPTOR_HANDLE Handle = DescriptorHeap->GetCPUDescriptorHandleForHeapStart();
-	Handle.ptr += Register * IncrementSize;
-	return Handle;
+	D3D12_CPU_DESCRIPTOR_HANDLE HeapStart = DescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+	HeapStart.ptr += Register * IncrementSize;
+	return HeapStart;
 }

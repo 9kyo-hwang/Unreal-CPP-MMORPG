@@ -1,6 +1,6 @@
 #pragma once
 
-// GPU¿ÍÀÇ Åë½ÅÀ» ¼öÇà
+// GPUì™€ì˜ í†µì‹ ì„ ìˆ˜í–‰
 class FDevice
 {
 public:
@@ -11,7 +11,7 @@ public:
 
 private:
 	ComPtr<ID3D12Debug> DebugContainer;
-	ComPtr<IDXGIFactory> DXGI;		// È­¸é °ü·Ã ±â´É
-	ComPtr<ID3D12Device> Device;	// °´Ã¼ »ı¼º
+	ComPtr<IDXGIFactory> DXGI;			// í™”ë©´ ê´€ë ¨ ê¸°ëŠ¥
+	ComPtr<ID3D12Device> Device;		// ê°ì²´ ìƒì„±
 };
 

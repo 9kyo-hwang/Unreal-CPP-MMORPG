@@ -7,6 +7,7 @@
 
 FMaterial::FMaterial()
 	: Super(EObjectType::Material)
+	, Parameters()
 {
 }
 
@@ -23,7 +24,7 @@ void FMaterial::PushGraphicsData()
 		if (Textures[Index])
 		{
 			EShaderResourceViewRegisters Register = static_cast< EShaderResourceViewRegisters >( static_cast< int8 >( EShaderResourceViewRegisters::t0 ) + Index );
-			GEngine->GetGraphicsDescriptorTable()->SetShaderResourceView(Textures[Index]->GetShaderResourceDescriptorHandle(), Register);
+			GEngine->GetGraphicsDescriptorTable()->SetDescriptor(Textures[Index]->GetShaderResourceDescriptorHandle(), Register);
 		}
 	}
 

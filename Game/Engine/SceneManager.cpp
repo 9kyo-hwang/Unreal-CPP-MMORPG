@@ -9,6 +9,7 @@
 #include "Material.h"
 #include "Mesh.h"
 #include "MeshRenderer.h"
+#include "ParticleSystemComponent.h"
 #include "Resources.h"
 #include "Scene.h"
 #include "Shader.h"
@@ -91,7 +92,7 @@ shared_ptr<Scene> SceneManager::LoadTestScene()
 		Material->SetParameter(0, 1);
 		GEngine->GetComputeDescriptorTable()->SetDescriptor(Texture->GetUnorderedAccessDescriptorHandle(), EUnorderedAccessViewRegisters::u0);
 
-		Material->Dispatch(1, 1024, 1);	// 쓰레드 그룹: (1, 1024, 1)
+		Material->Dispatch(1, 256, 1);	// 쓰레드 그룹: (1, 1024, 1)
 	}
 #pragma endregion
 
@@ -124,12 +125,12 @@ shared_ptr<Scene> SceneManager::LoadTestScene()
 		CameraObject->AddComponent(make_shared<Camera>());	// Near: 1, Far: 1000, Fov: None, 800 x 600
 		CameraObject->GetTransform()->SetLocalPosition(FVector3(0.f, 0.f, 0.f));
 
-		auto Camera = CameraObject->GetCamera();
+		auto CameraComponent = CameraObject->GetCamera();
 		uint8 Layer = Get()->NameToLayer(L"UI");
 
-		Camera->SetProjection(ECameraProjectionType::Orthographic);
-		Camera->CullAllLayers();
-		Camera->EnableLayerCulling(Layer, false);	// UI만 그리도록
+		CameraComponent->SetProjection(ECameraProjectionType::Orthographic);
+		CameraComponent->CullAllLayers();
+		CameraComponent->EnableLayerCulling(Layer, false);	// UI만 그리도록
 
 		CurrentScene->AddGameObject(CameraObject);
 	}
@@ -237,6 +238,17 @@ shared_ptr<Scene> SceneManager::LoadTestScene()
 		CurrentScene->AddGameObject(LightObject);
 	}
 #pragma endregion
+
+//#pragma region Particle System
+//	{
+//		shared_ptr<GameObject> ParticleObject = make_shared<GameObject>();
+//		ParticleObject->AddComponent(make_shared<Transform>());
+//		ParticleObject->AddComponent(make_shared<UParticleSystemComponent>());
+//		ParticleObject->SetCheckFrustum(false);
+//		ParticleObject->GetTransform()->SetLocalPosition(FVector3(0.f, 0.f, 100.f));
+//		CurrentScene->AddGameObject(ParticleObject);
+//	}
+//#pragma endregion
 
 	return CurrentScene;
 }

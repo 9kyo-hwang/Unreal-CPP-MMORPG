@@ -31,8 +31,6 @@ void Light::Render()
 
 	switch (static_cast<ELightType>(Info.Type))
 	{
-	case ELightType::Directional:
-		break;
 	case ELightType::Point:
 	case ELightType::Spot:
 		float Scale = 2 * Info.Range;	// 기본값이 0.5이기 때문에 2배

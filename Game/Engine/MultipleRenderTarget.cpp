@@ -4,6 +4,19 @@
 #include "Engine.h"
 #include "Texture.h"
 
+MultipleRenderTarget::MultipleRenderTarget()
+	: Type()
+	, Num(0)
+	, RenderTargetDescriptorIncrementSize(0)
+	, RenderTargetDescriptorHeapStart()
+	, DepthStencilDescriptorHeapStart()
+	, RenderTargetToResourceBarriers{}
+	, ResourceToRenderTargetBarriers{}
+{
+}
+
+MultipleRenderTarget::~MultipleRenderTarget() = default;
+
 void MultipleRenderTarget::Create(EMultipleRenderTargetType InType, vector<FRenderTarget>& RenderTargets,
                                   shared_ptr<FTexture> InDepthStencilTexture)
 {
@@ -20,17 +33,16 @@ void MultipleRenderTarget::Create(EMultipleRenderTargetType InType, vector<FRend
 		.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
 		.NodeMask = 0,
 	};
-
 	DEVICE->CreateDescriptorHeap(&Desc, IID_PPV_ARGS(&RenderTargetDescriptorHeap));
 
-	RenderTargetDescriptorHeapSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	RenderTargetDescriptorIncrementSize = DEVICE->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 	RenderTargetDescriptorHeapStart = RenderTargetDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 	DepthStencilDescriptorHeapStart = DepthStencilTexture->GetDepthStencilDescriptorHeap()->GetCPUDescriptorHandleForHeapStart();
 
 	for (uint32 Index = 0; Index < Num; ++Index)
 	{
 		uint32 DestSize = 1;
-		D3D12_CPU_DESCRIPTOR_HANDLE DestHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(RenderTargetDescriptorHeapStart, Index * RenderTargetDescriptorHeapSize);
+		D3D12_CPU_DESCRIPTOR_HANDLE DestHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(RenderTargetDescriptorHeapStart, Index * RenderTargetDescriptorIncrementSize);
 
 		uint32 SrcSize = 1;
 		ComPtr<ID3D12DescriptorHeap> SrcRenderTargetDescriptorHeapStart = Data[Index].Target->GetRenderTargetDescriptorHeap();
@@ -44,13 +56,13 @@ void MultipleRenderTarget::Create(EMultipleRenderTargetType InType, vector<FRend
 	// GeometryBuffer와 Lighting에서 사용할 예정
 	for (uint32 Index = 0; Index < Num; ++Index)
 	{
-		RenderTargetToResource[Index] = CD3DX12_RESOURCE_BARRIER::Transition(
+		RenderTargetToResourceBarriers[Index] = CD3DX12_RESOURCE_BARRIER::Transition(
 			Data[Index].Target->GetTexture2D().Get(),
 			D3D12_RESOURCE_STATE_RENDER_TARGET, 
 			D3D12_RESOURCE_STATE_COMMON
 		);
 
-		ResourceToRenderTarget[Index] = CD3DX12_RESOURCE_BARRIER::Transition(
+		ResourceToRenderTargetBarriers[Index] = CD3DX12_RESOURCE_BARRIER::Transition(
 			Data[Index].Target->GetTexture2D().Get(),
 			D3D12_RESOURCE_STATE_COMMON,
 			D3D12_RESOURCE_STATE_RENDER_TARGET
@@ -60,7 +72,7 @@ void MultipleRenderTarget::Create(EMultipleRenderTargetType InType, vector<FRend
 
 void MultipleRenderTarget::OMSetRenderTargets(uint32 NumDescriptors, uint32 DescriptorHeapOffset) const
 {
-	D3D12_CPU_DESCRIPTOR_HANDLE DescriptorHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(RenderTargetDescriptorHeapStart, DescriptorHeapOffset * RenderTargetDescriptorHeapSize);
+	D3D12_CPU_DESCRIPTOR_HANDLE DescriptorHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(RenderTargetDescriptorHeapStart, DescriptorHeapOffset * RenderTargetDescriptorIncrementSize);
 	GRAPHICS_COMMAND_LIST->OMSetRenderTargets(NumDescriptors, &DescriptorHandle, false, &DepthStencilDescriptorHeapStart);
 }
 
@@ -71,29 +83,30 @@ void MultipleRenderTarget::OMSetRenderTargets() const
 
 void MultipleRenderTarget::ClearRenderTargetView(uint32 Index) const
 {
-	D3D12_CPU_DESCRIPTOR_HANDLE DescriptorHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(RenderTargetDescriptorHeapStart, Index * RenderTargetDescriptorHeapSize);
+	D3D12_CPU_DESCRIPTOR_HANDLE DescriptorHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(RenderTargetDescriptorHeapStart, Index * RenderTargetDescriptorIncrementSize);
 	GRAPHICS_COMMAND_LIST->ClearRenderTargetView(DescriptorHandle, Data[Index].ClearColor, 0, nullptr);
+	GRAPHICS_COMMAND_LIST->ClearDepthStencilView(DepthStencilDescriptorHeapStart, D3D12_CLEAR_FLAG_DEPTH, 1.f, 0, 0, nullptr);
 }
 
 void MultipleRenderTarget::ClearRenderTargetView() const
 {
-	WaitResourceToRenderTarget();
+	WaitForUseAsRenderTarget();
 
 	for (uint32 Index = 0; Index < Num; ++Index)
 	{
-		D3D12_CPU_DESCRIPTOR_HANDLE DescriptorHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(RenderTargetDescriptorHeapStart, Index * RenderTargetDescriptorHeapSize);
+		D3D12_CPU_DESCRIPTOR_HANDLE DescriptorHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(RenderTargetDescriptorHeapStart, Index * RenderTargetDescriptorIncrementSize);
 		GRAPHICS_COMMAND_LIST->ClearRenderTargetView(DescriptorHandle, Data[Index].ClearColor, 0, nullptr);
 	}
 
 	GRAPHICS_COMMAND_LIST->ClearDepthStencilView(DepthStencilDescriptorHeapStart, D3D12_CLEAR_FLAG_DEPTH, 1.f, 0, 0, nullptr);
 }
 
-void MultipleRenderTarget::WaitRenderTargetToResource() const
+void MultipleRenderTarget::WaitForUseAsAResource() const
 {
-	GRAPHICS_COMMAND_LIST->ResourceBarrier(Num, RenderTargetToResource);
+	GRAPHICS_COMMAND_LIST->ResourceBarrier(Num, RenderTargetToResourceBarriers);
 }
 
-void MultipleRenderTarget::WaitResourceToRenderTarget() const
+void MultipleRenderTarget::WaitForUseAsRenderTarget() const
 {
-	GRAPHICS_COMMAND_LIST->ResourceBarrier(Num, ResourceToRenderTarget);
+	GRAPHICS_COMMAND_LIST->ResourceBarrier(Num, ResourceToRenderTargetBarriers);
 }

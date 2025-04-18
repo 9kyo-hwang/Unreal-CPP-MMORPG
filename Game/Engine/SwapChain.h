@@ -4,6 +4,9 @@
 class FSwapChain
 {
 public:
+	FSwapChain();
+	~FSwapChain();
+	
 	void Initialize(const FWindowInfo& Info, ComPtr<IDXGIFactory> DXGI, ComPtr<ID3D12CommandQueue> CommandQueue);
 	void Present() const;
 	void SwapIndex();
@@ -12,10 +15,10 @@ public:
 	uint32 GetBackBufferIndex() const { return BackBufferIndex; }
 
 private:
-	void CreateSwapChain(const FWindowInfo& Info, ComPtr<IDXGIFactory> DXGI, ComPtr<ID3D12CommandQueue> CommandQueue);
+	void Create(const FWindowInfo& Info, ComPtr<IDXGIFactory> DXGI, ComPtr<ID3D12CommandQueue> CommandQueue);
 
 private:
 	ComPtr<IDXGISwapChain> SwapChain;
-	uint32 BackBufferIndex = 0;
+	uint32 BackBufferIndex;
 };
 

@@ -10,9 +10,7 @@ Transform::Transform()
 {
 }
 
-Transform::~Transform()
-{
-}
+Transform::~Transform() = default;
 
 void Transform::FinalUpdate()
 {
