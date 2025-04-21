@@ -9,11 +9,16 @@ struct VSIn
     float2 UV : TEXCOORD;
     float3 Normal : NORMAL;
     float3 Tangent : TANGENT;
+    
+    row_major matrix WorldMatrix : W;
+    row_major matrix WorldViewMatrix : WV;
+    row_major matrix WorldViewProjectionMatrix : WVP;
+    uint InstanceID : SV_InstanceID;
 };
 
 struct VSOut
 {
-    float4 Position : SV_Position;   // MS¿¡¼­ ÁöÁ¤ÇÑ ±ÔÄ¢(System Value)
+    float4 Position : SV_Position;   // MSï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¢(System Value)
     float2 UV : TEXCOORD;
     float3 ViewPosition : POSITION;
     float3 ViewNormal : NORMAL;
@@ -25,14 +30,26 @@ VSOut VSMain(VSIn Input)
 {
     VSOut Output = (VSOut)0;
 
-    // °è»êµÈ ÁÂÇ¥°ªÀ» Àû¿ëÇÏµµ·Ï wvp_matrix¸¦ ÃÖÁ¾ÀûÀ¸·Î °öÇØÁÜ
-	// 1.f: Çà·ÄÀ» °öÇÒ ¶§ ÁÂÇ¥·Î ÀÎ½Ä, 0.f: ¹æÇâ¼º¸¸ ÃßÃâ
-    Output.Position = mul(float4(Input.Position, 1.f), GWorldViewProjectionMatrix); // projection ÁÂÇ¥°è·Î ³Ñ¾î°¨
-    Output.UV = Input.UV;
-    Output.ViewPosition = mul(float4(Input.Position, 1.f), GWorldViewMatrix).xyz; // view ÁÂÇ¥°è°¡ ÇÊ¿ä
-    Output.ViewNormal = normalize(mul(float4(Input.Normal, 0.f), GWorldViewMatrix).xyz);    // translationÀÌ Àû¿ëµÇÁö ¾Êµµ·Ï 0.f ¼³Á¤
-    Output.ViewTangent = normalize(mul(float4(Input.Tangent, 0.f), GWorldViewMatrix).xyz);    // translationÀÌ Àû¿ëµÇÁö ¾Êµµ·Ï 0.f ¼³Á¤
-    Output.ViewBinormal = normalize(cross(Output.ViewTangent, Output.ViewNormal));  // tangent, normal º¤ÅÍ ¿ÜÀû ½Ã binormal µîÀå
+    // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç¥ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ wvp_matrixï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	// 1.f: ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Ç¥ï¿½ï¿½ ï¿½Î½ï¿½, 0.f: ï¿½ï¿½ï¿½â¼ºï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	if(GInt_0 == 0)
+	{
+	    Output.Position = mul(float4(Input.Position, 1.f), GWorldViewProjectionMatrix); // projection ï¿½ï¿½Ç¥ï¿½ï¿½ï¿½ ï¿½Ñ¾î°¨
+        Output.UV = Input.UV;
+        Output.ViewPosition = mul(float4(Input.Position, 1.f), GWorldViewMatrix).xyz; // view ï¿½ï¿½Ç¥ï¿½è°¡ ï¿½Ê¿ï¿½
+        Output.ViewNormal = normalize(mul(float4(Input.Normal, 0.f), GWorldViewMatrix).xyz);    // translationï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½ï¿½ï¿½ 0.f ï¿½ï¿½ï¿½ï¿½
+        Output.ViewTangent = normalize(mul(float4(Input.Tangent, 0.f), GWorldViewMatrix).xyz);    // translationï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½ï¿½ï¿½ 0.f ï¿½ï¿½ï¿½ï¿½
+        Output.ViewBinormal = normalize(cross(Output.ViewTangent, Output.ViewNormal));  // tangent, normal ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ binormal ï¿½ï¿½ï¿½ï¿½
+	}
+    else
+    {
+        Output.Position = mul(float4(Input.Position, 1.f), Input.WorldViewProjectionMatrix); // projection ï¿½ï¿½Ç¥ï¿½ï¿½ï¿½ ï¿½Ñ¾î°¨
+        Output.UV = Input.UV;
+        Output.ViewPosition = mul(float4(Input.Position, 1.f), Input.WorldViewMatrix).xyz; // view ï¿½ï¿½Ç¥ï¿½è°¡ ï¿½Ê¿ï¿½
+        Output.ViewNormal = normalize(mul(float4(Input.Normal, 0.f), Input.WorldViewMatrix).xyz);    // translationï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½ï¿½ï¿½ 0.f ï¿½ï¿½ï¿½ï¿½
+        Output.ViewTangent = normalize(mul(float4(Input.Tangent, 0.f), Input.WorldViewMatrix).xyz);    // translationï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½ï¿½ï¿½ 0.f ï¿½ï¿½ï¿½ï¿½
+        Output.ViewBinormal = normalize(cross(Output.ViewTangent, Output.ViewNormal));  // tangent, normal ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ binormal ï¿½ï¿½ï¿½ï¿½
+    }
 
     return Output;
 }
@@ -48,7 +65,7 @@ PSOut PSMain(VSOut Input)
 {
     PSOut Output = (PSOut) 0;
 
-    float4 Color = float4(1.f, 1.f, 1.f, 1.f);  // temp: Èò»öÀ¸·Î ¼³Á¤
+    float4 Color = float4(1.f, 1.f, 1.f, 1.f);  // temp: ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     if (GUseTexture_0 == 1)
     {
         Color = GTexture_0.Sample(GSampler_0, Input.UV);
@@ -57,17 +74,17 @@ PSOut PSMain(VSOut Input)
     float3 ViewNormal = Input.ViewNormal;
 	if (GUseTexture_1 == 1)
 	{
-        // RGB 0 ~ 255 -> 0 ~ 1 º¯È¯
+        // RGB 0 ~ 255 -> 0 ~ 1 ï¿½ï¿½È¯
         float3 TangentSpaceNormal = GTexture_1.Sample(GSampler_0, Input.UV).xyz;
-        // 0 ~ 1¿¡¼­ -1 ~ 1 º¯È¯
+        // 0 ~ 1ï¿½ï¿½ï¿½ï¿½ -1 ~ 1 ï¿½ï¿½È¯
 		TangentSpaceNormal = (TangentSpaceNormal - 0.5f) * 2.f;
 
         float3x3 TBNMatrix = { Input.ViewTangent, Input.ViewBinormal, Input.ViewNormal };
         ViewNormal = normalize(mul(TangentSpaceNormal, TBNMatrix));
     }
 
-    Output.Position = float4(Input.ViewPosition.xyz, 0.f);  // Áß°£ µ¥ÀÌÅÍ¸¦ º¸°ü
-    Output.Normal = float4(ViewNormal.xyz, 0.f);   // Áß°£ µ¥ÀÌÅÍ¸¦ º¸°ü
+    Output.Position = float4(Input.ViewPosition.xyz, 0.f);  // ï¿½ß°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½
+    Output.Normal = float4(ViewNormal.xyz, 0.f);   // ï¿½ß°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½
     Output.Color = Color;
 
     return Output;

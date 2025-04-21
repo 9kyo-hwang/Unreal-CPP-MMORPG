@@ -3,16 +3,16 @@
 
 void TimeManager::Initialize()
 {
-	::QueryPerformanceFrequency(reinterpret_cast<LARGE_INTEGER*>(&Frequency));
-	::QueryPerformanceCounter(reinterpret_cast<LARGE_INTEGER*>(&PrevCount));
+	::QueryPerformanceFrequency(ReinterpretCast<LARGE_INTEGER>(&Frequency));
+	::QueryPerformanceCounter(ReinterpretCast<LARGE_INTEGER>(&PrevCount));
 }
 
 void TimeManager::Update()
 {
 	uint64 CurrentCount;
-	::QueryPerformanceCounter(reinterpret_cast<LARGE_INTEGER*>(&CurrentCount));
+	::QueryPerformanceCounter(ReinterpretCast<LARGE_INTEGER>(&CurrentCount));
 
-	DeltaTime = ( CurrentCount - PrevCount ) / static_cast<float>(Frequency);
+	DeltaTime = ( CurrentCount - PrevCount ) / StaticCast<float>(Frequency);
 	PrevCount = CurrentCount;
 
 	FrameCount++;
@@ -20,7 +20,7 @@ void TimeManager::Update()
 
 	if (FrameTime > 1.f)
 	{
-		FPS = static_cast<uint32>(FrameCount / FrameTime);
+		FPS = StaticCast<uint32>(FrameCount / FrameTime);
 		FrameTime = 0.f;
 		FrameCount = 0;
 	}

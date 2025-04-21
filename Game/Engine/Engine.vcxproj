@@ -175,22 +175,24 @@
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Camera.h" />
-    <ClInclude Include="CameraMovement.h" />
+    <ClInclude Include="Aliases.h" />
+    <ClInclude Include="CameraComponent.h" />
+    <ClInclude Include="CameraMovementComponent.h" />
+    <ClInclude Include="InstanceBuffer.h" />
     <ClInclude Include="Frustum.h" />
-    <ClInclude Include="GameObject.h" />
+    <ClInclude Include="Actor.h" />
     <ClInclude Include="CommandQueue.h" />
-    <ClInclude Include="Component.h" />
+    <ClInclude Include="ActorComponent.h" />
     <ClInclude Include="ConstantBuffer.h" />
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="Device.h" />
     <ClInclude Include="Engine.h" />
     <ClInclude Include="EnginePCH.h" />
     <ClInclude Include="InputManager.h" />
-    <ClInclude Include="Light.h" />
+    <ClInclude Include="LightComponent.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="Mesh.h" />
-    <ClInclude Include="MeshRenderer.h" />
+    <ClInclude Include="MeshComponent.h" />
     <ClInclude Include="MonoBehaviour.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="ParticleSystemComponent.h" />
@@ -198,7 +200,7 @@
     <ClInclude Include="MultipleRenderTarget.h" />
     <ClInclude Include="Resources.h" />
     <ClInclude Include="RootSignature.h" />
-    <ClInclude Include="Scene.h" />
+    <ClInclude Include="Level.h" />
     <ClInclude Include="SceneManager.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="SimpleMath.h" />
@@ -207,24 +209,26 @@
     <ClInclude Include="TableDescriptorHeap.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TimeManager.h" />
-    <ClInclude Include="Transform.h" />
+    <ClInclude Include="SceneComponent.h" />
+    <ClInclude Include="InstanceManager.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="CameraMovement.cpp" />
+    <ClCompile Include="CameraComponent.cpp" />
+    <ClCompile Include="CameraMovementComponent.cpp" />
+    <ClCompile Include="InstanceBuffer.cpp" />
     <ClCompile Include="Frustum.cpp" />
-    <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="Actor.cpp" />
     <ClCompile Include="CommandQueue.cpp" />
-    <ClCompile Include="Component.cpp" />
+    <ClCompile Include="ActorComponent.cpp" />
     <ClCompile Include="ConstantBuffer.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="EnginePCH.cpp" />
     <ClCompile Include="InputManager.cpp" />
-    <ClCompile Include="Light.cpp" />
+    <ClCompile Include="LightComponent.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="Mesh.cpp" />
-    <ClCompile Include="MeshRenderer.cpp" />
+    <ClCompile Include="MeshComponent.cpp" />
     <ClCompile Include="MonoBehaviour.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="ParticleSystemComponent.cpp" />
@@ -237,7 +241,7 @@
     <ClCompile Include="MultipleRenderTarget.cpp" />
     <ClCompile Include="Resources.cpp" />
     <ClCompile Include="RootSignature.cpp" />
-    <ClCompile Include="Scene.cpp" />
+    <ClCompile Include="Level.cpp" />
     <ClCompile Include="SceneManager.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="SimpleMath.cpp" />
@@ -246,7 +250,8 @@
     <ClCompile Include="TableDescriptorHeap.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TimeManager.cpp" />
-    <ClCompile Include="Transform.cpp" />
+    <ClCompile Include="SceneComponent.cpp" />
+    <ClCompile Include="InstanceManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="SimpleMath.inl" />

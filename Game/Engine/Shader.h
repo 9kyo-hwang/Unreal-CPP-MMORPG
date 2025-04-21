@@ -48,9 +48,9 @@ struct FShaderInfo
 	D3D12_PRIMITIVE_TOPOLOGY Topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 };
 
-class FShader : public Object
+class FShader : public UObject
 {
-	using Super = Object;
+	using Super = UObject;
 	
 public:
 	FShader();

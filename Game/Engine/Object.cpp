@@ -1,11 +1,11 @@
 #include "pch.h"
 #include "Object.h"
 
-Object::Object(EObjectType InType)
-	: Type(InType)
+UObject::UObject(EObjectType InType)
+	: ObjectType(InType)
 {
+	static uint32 IDGenerator = 1;
+	ID = IDGenerator++;
 }
 
-Object::~Object()
-{
-}
+UObject::~UObject() = default;

@@ -8,18 +8,18 @@ public:
 	FGraphicsCommandQueue();
 	~FGraphicsCommandQueue();
 
-	void Initialize(shared_ptr<FSwapChain> InSwapChain);
+	void Initialize(ComPtr<ID3D12Device> Device, TSharedPtr<FSwapChain> InSwapChain);
 	void WaitSync();
 
-	void RenderBegin(const D3D12_VIEWPORT* Viewport, const D3D12_RECT* Rect);
-	void RenderEnd();
+	void PreRender(const D3D12_VIEWPORT* Viewport, const D3D12_RECT* Rect);
+	void PostRender();
 
 	// ResourceCommandQueue에 있는 모든 작업을 다 처리하는 함수
 	void FlushResources();
 
-	ComPtr<ID3D12CommandQueue> GetD3DCommandQueue() { return CommandQueue; }
-	ComPtr<ID3D12GraphicsCommandList> GetD3DCommandList() { return CommandList; }
-	ComPtr<ID3D12GraphicsCommandList> GetD3DResourceCommandList() { return ResourceCommandList; }
+	ComPtr<ID3D12CommandQueue> GetCommandQueue() { return CommandQueue; }
+	ComPtr<ID3D12GraphicsCommandList> GetCommandList() { return CommandList; }
+	ComPtr<ID3D12GraphicsCommandList> GetResourceCommandList() { return ResourceCommandList; }
 
 private:
 	ComPtr<ID3D12CommandQueue> CommandQueue;
@@ -34,7 +34,7 @@ private:
 	uint32 FenceValue;
 	HANDLE FenceEvent;
 
-	shared_ptr<FSwapChain> SwapChain;
+	TSharedPtr<FSwapChain> SwapChain;
 };
 
 class FComputeCommandQueue
@@ -43,12 +43,12 @@ public:
 	FComputeCommandQueue();
 	~FComputeCommandQueue();
 
-	void Initialize();
+	void Initialize(ComPtr<ID3D12Device> Device);
 	void WaitSync();
 	void Flush();
 
-	ComPtr<ID3D12CommandQueue> GetD3DCommandQueue() { return CommandQueue; }
-	ComPtr<ID3D12GraphicsCommandList> GetD3DCommandList() { return CommandList; }
+	ComPtr<ID3D12CommandQueue> GetCommandQueue() { return CommandQueue; }
+	ComPtr<ID3D12GraphicsCommandList> GetCommandList() { return CommandList; }
 
 private:
 	ComPtr<ID3D12CommandQueue> CommandQueue;

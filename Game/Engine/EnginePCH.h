@@ -4,6 +4,7 @@
 
 #define _HAS_STD_BYTE 0  // std::byte와 windows의 byte 정의가 겹치는 문제를 해결하기 위함
 
+#include "Aliases.h"
 #include <windows.h>
 #include <tchar.h>
 #include <memory>
@@ -70,7 +71,7 @@ enum class EConstantBufferViewRegisters : uint8
 enum class EShaderResourceViewRegisters : uint8
 {
 	// TableDescriptorHeap 구조 상 데이터들이 연속해서 등장해야 하기 때문에 겹치지 않는 번호로 세팅
-	t0 = static_cast<uint32>(EConstantBufferViewRegisters::END),
+	t0 = ConstexprCast<uint32>(EConstantBufferViewRegisters::END),
 	t1,
 	t2,
 	t3,
@@ -86,7 +87,7 @@ enum class EShaderResourceViewRegisters : uint8
 
 enum class EUnorderedAccessViewRegisters : uint8
 {
-	u0 = static_cast<uint8>(EShaderResourceViewRegisters::END),
+	u0 = ConstexprCast<uint8>(EShaderResourceViewRegisters::END),
 	u1,
 	u2,
 	u3,
@@ -96,9 +97,9 @@ enum class EUnorderedAccessViewRegisters : uint8
 };
 
 constexpr uint8 NumSwapChainBuffer = 2;
-constexpr uint8 NumCBVRegister = static_cast<uint8>(EConstantBufferViewRegisters::END);
-constexpr uint8 NumSRVRegister = static_cast<uint8>(EShaderResourceViewRegisters::END) - NumCBVRegister;
-constexpr uint8 NumUAVRegister = static_cast<uint8>(EUnorderedAccessViewRegisters::END) - NumSRVRegister - NumCBVRegister;
+constexpr uint8 NumCBVRegister = ConstexprCast<uint8>(EConstantBufferViewRegisters::END);
+constexpr uint8 NumSRVRegister = ConstexprCast<uint8>(EShaderResourceViewRegisters::END) - NumCBVRegister;
+constexpr uint8 NumUAVRegister = ConstexprCast<uint8>(EUnorderedAccessViewRegisters::END) - NumSRVRegister - NumCBVRegister;
 constexpr uint8 NumCBVSRVRegister = NumCBVRegister + NumSRVRegister;
 constexpr uint8 NumTotalRegister = NumCBVRegister + NumSRVRegister + NumUAVRegister;
 
@@ -112,7 +113,8 @@ struct FWindowInfo
 
 struct FVertex
 {
-	FVertex() {}
+	FVertex() = default;
+
 	FVertex(FVector3 InPosition, FVector2 InUV, FVector3 InNormal, FVector3 InTangent)
 		: Position(InPosition)
 		, UV(InUV)
@@ -134,8 +136,8 @@ struct FTransformParameters
 	FMatrix WorldMatrix;
 	FMatrix ViewMatrix;
 	FMatrix ProjectionMatrix;
-	FMatrix WVMatrix;
-	FMatrix WVPMatrix;
+	FMatrix WorldViewMatrix;
+	FMatrix WorldViewProjectionMatrix;
 };
 
 #define GENERATED_SINGLETON(type)	\
@@ -149,12 +151,12 @@ private:							\
 	type() {}						\
 	~type() {}						\
 
-#define DEVICE					GEngine->GetDevice()->GetD3DDevice()
-#define GRAPHICS_COMMAND_LIST	GEngine->GetGraphicsCommandQueue()->GetD3DCommandList()
-#define RESOURCE_COMMAND_LIST	GEngine->GetGraphicsCommandQueue()->GetD3DResourceCommandList()
-#define COMPUTE_COMMAND_LIST	GEngine->GetComputeCommandQueue()->GetD3DCommandList()
-#define GRAPHICS_ROOT_SIGNATURE	GEngine->GetGraphicsRootSignature()->GetD3DRootSignature()
-#define COMPUTE_ROOT_SIGNATURE	GEngine->GetComputeRootSignature()->GetD3DRootSignature()
+#define DEVICE					GEngine->GetDevice()->GetDevice()
+#define GRAPHICS_COMMAND_LIST	GEngine->GetGraphicsCommandQueue()->GetCommandList()
+#define RESOURCE_COMMAND_LIST	GEngine->GetGraphicsCommandQueue()->GetResourceCommandList()
+#define COMPUTE_COMMAND_LIST	GEngine->GetComputeCommandQueue()->GetCommandList()
+#define GRAPHICS_ROOT_SIGNATURE	GEngine->GetGraphicsRootSignature()->GetRootSignature()
+#define COMPUTE_ROOT_SIGNATURE	GEngine->GetComputeRootSignature()->GetRootSignature()
 #define CONSTANT_BUFFER(Type)	GEngine->GetConstantBuffer(Type)
 
-extern unique_ptr<class Engine> GEngine;  // 전역에서 사용 가능한 Engine 클래스
+extern TUniquePtr<class Engine> GEngine;  // 전역에서 사용 가능한 Engine 클래스

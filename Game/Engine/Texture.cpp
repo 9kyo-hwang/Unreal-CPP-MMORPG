@@ -5,8 +5,8 @@
 
 FTexture::FTexture()
 	: Super(EObjectType::Texture)
-	, ShaderResourceDescriptorHeapStart()
-	, UnorderedAccessDescriptorHeapStart()
+	, SRVHeapStart()
+	, UAVHeapStart()
 {
 }
 
@@ -41,7 +41,7 @@ void FTexture::Load(const wstring& Path)
 		SubResources
 		)));
 
-	const uint64 BufferSize = ::GetRequiredIntermediateSize(Texture2D.Get(), 0, static_cast< uint32 >( SubResources.size() ));
+	const uint64 BufferSize = ::GetRequiredIntermediateSize(Texture2D.Get(), 0, StaticCast< uint32 >( SubResources.size() ));
 	D3D12_HEAP_PROPERTIES HeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 	D3D12_RESOURCE_DESC Desc = CD3DX12_RESOURCE_DESC::Buffer(BufferSize);
 
@@ -60,7 +60,7 @@ void FTexture::Load(const wstring& Path)
 		Texture2D.Get(),
 		TextureUploadHeap.Get(),
 		0, 0,
-		static_cast< uint32 >( SubResources.size() ),
+		StaticCast< uint32 >( SubResources.size() ),
 		SubResources.data()
 	);
 
@@ -72,8 +72,8 @@ void FTexture::Load(const wstring& Path)
 		.NumDescriptors = 1,
 		.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
 	};
-	DEVICE->CreateDescriptorHeap(&HeapDesc, IID_PPV_ARGS(&ShaderResourceDescriptorHeap));
-	ShaderResourceDescriptorHeapStart = ShaderResourceDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+	DEVICE->CreateDescriptorHeap(&HeapDesc, IID_PPV_ARGS(&SRVHeap));
+	SRVHeapStart = SRVHeap->GetCPUDescriptorHandleForHeapStart();
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC ViewDesc
 	{
@@ -82,7 +82,7 @@ void FTexture::Load(const wstring& Path)
 		.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
 	};
 	ViewDesc.Texture2D.MipLevels = 1;
-	DEVICE->CreateShaderResourceView(Texture2D.Get(), &ViewDesc, ShaderResourceDescriptorHeapStart);
+	DEVICE->CreateShaderResourceView(Texture2D.Get(), &ViewDesc, SRVHeapStart);
 }
 
 void FTexture::Create(DXGI_FORMAT Format, uint32 Width, uint32 Height, const D3D12_HEAP_PROPERTIES& HeapProperties,
@@ -142,10 +142,10 @@ void FTexture::Create(ComPtr<ID3D12Resource> InTexture2D)
 			.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
 			.NodeMask = 0,
 		};
-		DEVICE->CreateDescriptorHeap(&HeapDesc, IID_PPV_ARGS(&DepthStencilDescriptorHeap));
+		DEVICE->CreateDescriptorHeap(&HeapDesc, IID_PPV_ARGS(&DSVHeap));
 
 		// 기존 DepthStencilBuffer 클래스에서 수행하던 작업을 여기서 수행
-		D3D12_CPU_DESCRIPTOR_HANDLE DepthStencilDescriptorHandle = DepthStencilDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+		D3D12_CPU_DESCRIPTOR_HANDLE DepthStencilDescriptorHandle = DSVHeap->GetCPUDescriptorHandleForHeapStart();
 		DEVICE->CreateDepthStencilView(Texture2D.Get(), nullptr, DepthStencilDescriptorHandle);
 	}
 	else
@@ -160,9 +160,9 @@ void FTexture::Create(ComPtr<ID3D12Resource> InTexture2D)
 				.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
 				.NodeMask = 0,
 			};
-			DEVICE->CreateDescriptorHeap(&HeapDesc, IID_PPV_ARGS(&RenderTargetDescriptorHeap));
+			DEVICE->CreateDescriptorHeap(&HeapDesc, IID_PPV_ARGS(&RTVHeap));
 
-			D3D12_CPU_DESCRIPTOR_HANDLE RenderTargetDescriptorHandle = RenderTargetDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+			D3D12_CPU_DESCRIPTOR_HANDLE RenderTargetDescriptorHandle = RTVHeap->GetCPUDescriptorHandleForHeapStart();
 			DEVICE->CreateRenderTargetView(Texture2D.Get(), nullptr, RenderTargetDescriptorHandle);
 		}
 
@@ -175,15 +175,15 @@ void FTexture::Create(ComPtr<ID3D12Resource> InTexture2D)
 				.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
 				.NodeMask = 0
 			};
-			DEVICE->CreateDescriptorHeap(&DescriptorHeapDesc, IID_PPV_ARGS(&UnorderedAccessDescriptorHeap));
-			UnorderedAccessDescriptorHeapStart = UnorderedAccessDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+			DEVICE->CreateDescriptorHeap(&DescriptorHeapDesc, IID_PPV_ARGS(&UAVHeap));
+			UAVHeapStart = UAVHeap->GetCPUDescriptorHandleForHeapStart();
 
 			D3D12_UNORDERED_ACCESS_VIEW_DESC UnorderedAccessViewDesc{};
 			{
 				UnorderedAccessViewDesc.Format = Image.GetMetadata().format;
 				UnorderedAccessViewDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
 			};
-			DEVICE->CreateUnorderedAccessView(Texture2D.Get(), nullptr, &UnorderedAccessViewDesc, UnorderedAccessDescriptorHeapStart);
+			DEVICE->CreateUnorderedAccessView(Texture2D.Get(), nullptr, &UnorderedAccessViewDesc, UAVHeapStart);
 		}
 
 		D3D12_DESCRIPTOR_HEAP_DESC HeapDesc{};
@@ -192,8 +192,8 @@ void FTexture::Create(ComPtr<ID3D12Resource> InTexture2D)
 			HeapDesc.NumDescriptors = 1;
 			HeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 		};
-		DEVICE->CreateDescriptorHeap(&HeapDesc, IID_PPV_ARGS(&ShaderResourceDescriptorHeap));
-		ShaderResourceDescriptorHeapStart = ShaderResourceDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+		DEVICE->CreateDescriptorHeap(&HeapDesc, IID_PPV_ARGS(&SRVHeap));
+		SRVHeapStart = SRVHeap->GetCPUDescriptorHandleForHeapStart();
 
 		D3D12_SHADER_RESOURCE_VIEW_DESC ShaderResourceViewDesc{};
 		{
@@ -202,6 +202,6 @@ void FTexture::Create(ComPtr<ID3D12Resource> InTexture2D)
 			ShaderResourceViewDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 			ShaderResourceViewDesc.Texture2D.MipLevels = 1;
 		}
-		DEVICE->CreateShaderResourceView(Texture2D.Get(), &ShaderResourceViewDesc, ShaderResourceDescriptorHeapStart);
+		DEVICE->CreateShaderResourceView(Texture2D.Get(), &ShaderResourceViewDesc, SRVHeapStart);
 	}
 }

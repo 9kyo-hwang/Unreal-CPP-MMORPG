@@ -16,12 +16,14 @@ constexpr uint8 NumMaterialVector4 = 4;
 
 struct FMaterialParameters
 {
+public:
 	void Set(uint8 Index, int32 Value) { IntParameters[Index] = Value; }
 	void Set(uint8 Index, float Value) { FloatParameters[Index] = Value; }
 	void Set(uint8 Index, FVector2 Value) { Vector2Parameters[Index] = Value; }
 	void Set(uint8 Index, FVector4 Value) { Vector4Parameters[Index] = Value; }
 	void SetUseTexture(uint8 Index, int32 Use) { UsedTextureParameters[Index] = Use; }
 
+private:
 	array<int32, NumMaterialInt> IntParameters;
 	array<float, NumMaterialFloat> FloatParameters;
 	array<int32, NumMaterialTexture> UsedTextureParameters;
@@ -29,22 +31,24 @@ struct FMaterialParameters
 	array<FVector4, NumMaterialVector4> Vector4Parameters;
 };
 
-class FMaterial : public Object
+class FMaterial : public UObject
 {
-	using Super = Object;
+	using Super = UObject;
 
 public:
 	FMaterial();
 	~FMaterial() override;
 
-	shared_ptr<FShader> GetShader() { return Shader; }
-
-	void SetShader(shared_ptr<FShader> InShader) { Shader = InShader; }
+	TSharedPtr<FMaterial> Clone() const;
+	
+	TSharedPtr<FShader> GetShader() { return Shader; }
+	void SetShader(TSharedPtr<FShader> InShader) { Shader = InShader; }
+	
 	void SetParameter(uint8 Index, int32 Value) { Parameters.Set(Index, Value); }
 	void SetParameter(uint8 Index, float Value) { Parameters.Set(Index, Value); }
 	void SetParameter(uint8 Index, FVector2 Value) { Parameters.Set(Index, Value); }
 	void SetParameter(uint8 Index,FVector4 Value) { Parameters.Set(Index, Value); }
-	void SetTexture(uint8 Index, shared_ptr<FTexture> Texture)
+	void SetTexture(uint8 Index, TSharedPtr<FTexture> Texture)
 	{
 		Textures[Index] = Texture;
 		Parameters.SetUseTexture(Index, Texture ? 1 : 0);
@@ -55,8 +59,8 @@ public:
 	void Dispatch(uint32 X, uint32 Y, uint32 Z);
 
 private:
-	shared_ptr<FShader> Shader;
+	TSharedPtr<FShader> Shader;
 	FMaterialParameters Parameters;
-	array<shared_ptr<FTexture>, NumMaterialTexture> Textures;
+	array<TSharedPtr<FTexture>, NumMaterialTexture> Textures;
 };
 

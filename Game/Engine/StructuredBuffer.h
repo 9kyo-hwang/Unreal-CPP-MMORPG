@@ -12,8 +12,8 @@ public:
     void PushComputeData(EShaderResourceViewRegisters Register);
     void PushComputeData(EUnorderedAccessViewRegisters Register);
 
-    ComPtr<ID3D12DescriptorHeap> GetShaderResourceDescriptorHeap() { return ShaderResourceDescriptorHeap; }
-    ComPtr<ID3D12DescriptorHeap> GetUnorderedAccessDescriptorHeap() { return UnorderedAccessDescriptorHeap; }
+    ComPtr<ID3D12DescriptorHeap> GetSRVHeap() { return SRVHeap; }
+    ComPtr<ID3D12DescriptorHeap> GetUAVHeap() { return UAVHeap; }
 
     D3D12_RESOURCE_STATES GetResourceState() const { return ResourceState; }
     void SetResourceState(D3D12_RESOURCE_STATES InResourceState) { ResourceState = InResourceState; }
@@ -21,17 +21,17 @@ public:
 
 private:
     void CreateStructuredBuffer();
-    void CreateShaderResourceDescriptor();
-    void CreateUnorderedAccessDescriptor();
+    void CreateSRV();
+    void CreateUAV();
     
     ComPtr<ID3D12Resource> Data;
-    ComPtr<ID3D12DescriptorHeap> ShaderResourceDescriptorHeap;
-    ComPtr<ID3D12DescriptorHeap> UnorderedAccessDescriptorHeap;
+    ComPtr<ID3D12DescriptorHeap> SRVHeap;
+    ComPtr<ID3D12DescriptorHeap> UAVHeap;
 
     uint32 Size;
     uint32 Count;
     D3D12_RESOURCE_STATES ResourceState;
 
-    D3D12_CPU_DESCRIPTOR_HANDLE ShaderResourceDescriptorHeapStart;
-    D3D12_CPU_DESCRIPTOR_HANDLE UnorderedAccessDescriptorHeapStart;
+    D3D12_CPU_DESCRIPTOR_HANDLE SRVHeapStart;
+    D3D12_CPU_DESCRIPTOR_HANDLE UAVHeapStart;
 };

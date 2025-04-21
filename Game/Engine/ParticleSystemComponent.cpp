@@ -4,7 +4,7 @@
 #include "Resources.h"
 #include "StructuredBuffer.h"
 #include "TimeManager.h"
-#include "Transform.h"
+#include "SceneComponent.h"
 
 UParticleSystemComponent::UParticleSystemComponent()
     : Super(EComponentType::ParticleSystem)
@@ -18,16 +18,16 @@ UParticleSystemComponent::UParticleSystemComponent()
     , StartScale(10.f)
     , EndScale(5.f)
 {
-    ParticleBuffer = make_shared<FStructuredBuffer>();
+    ParticleBuffer = MakeShared<FStructuredBuffer>();
     ParticleBuffer->Initialize(sizeof(FParticleData), MaxParticle);
 
-    SharedComputeBuffer = make_shared<FStructuredBuffer>();
+    SharedComputeBuffer = MakeShared<FStructuredBuffer>();
     SharedComputeBuffer->Initialize(sizeof(FSharedComputeData), 1);
 
     Mesh = Resources::Get()->LoadPoint();
     Material = Resources::Get()->Get<FMaterial>(L"Particle");
 
-    shared_ptr<FTexture> Texture = Resources::Get()->Load<FTexture>(
+    TSharedPtr<FTexture> Texture = Resources::Get()->Load<FTexture>(
         L"Bubbles",
         L"..\\Resources\\Texture\\Particle\\Bubble.png"
         );
@@ -38,9 +38,8 @@ UParticleSystemComponent::UParticleSystemComponent()
 
 UParticleSystemComponent::~UParticleSystemComponent() = default;
 
-void UParticleSystemComponent::FinalUpdate()
+void UParticleSystemComponent::FinalUpdate(float DeltaTime)
 {
-    float DeltaTime = TimeManager::Get()->GetDeltaTime();
     AccumulateTime += DeltaTime;
 
     int32 bSpawn = 0;

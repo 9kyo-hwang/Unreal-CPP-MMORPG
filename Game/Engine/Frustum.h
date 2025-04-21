@@ -19,5 +19,5 @@ public:
 	bool ContainsSphere(const FVector3& Position, float Radius);
 
 private:
-	array<FVector4, static_cast<size_t>(EPlaneType::END)> Planes;
+	array<FVector4, ConstexprCast<size_t>(EPlaneType::END)> Planes;
 };

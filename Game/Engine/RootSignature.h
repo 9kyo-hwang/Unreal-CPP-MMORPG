@@ -6,8 +6,8 @@ public:
 	FGraphicsRootSignature();
 	~FGraphicsRootSignature();
 
-	void Initialize();
-	ComPtr<ID3D12RootSignature> GetD3DRootSignature() { return RootSignature; }
+	void Initialize(ComPtr<ID3D12Device> Device, ComPtr<ID3D12GraphicsCommandList> CommandList);
+	ComPtr<ID3D12RootSignature> GetRootSignature() { return RootSignature; }
 
 private:
 	ComPtr<ID3D12RootSignature> RootSignature;
@@ -20,8 +20,8 @@ public:
 	FComputeRootSignature();
 	~FComputeRootSignature();
 
-	void Initialize();
-	ComPtr<ID3D12RootSignature> GetD3DRootSignature() { return RootSignature; }
+	void Initialize(ComPtr<ID3D12Device> Device, ComPtr<ID3D12GraphicsCommandList> CommandList);
+	ComPtr<ID3D12RootSignature> GetRootSignature() { return RootSignature; }
 
 private:
 	ComPtr<ID3D12RootSignature> RootSignature;

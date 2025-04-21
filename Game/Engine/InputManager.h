@@ -44,7 +44,7 @@ enum class EKeyState : uint8
 };
 
 constexpr int32 KeyCodeCount = UINT8_MAX + 1;	// 256개(0번 ~ 255번)
-constexpr int32 KeyStateCount = static_cast<int32>(EKeyState::End);
+constexpr int32 KeyStateCount = ConstexprCast<int32>(EKeyState::End);
 
 class InputManager
 {
@@ -59,7 +59,7 @@ public:
 	bool GetButtonUp(EKeyCode Key) const { return GetState(Key) == EKeyState::Up; }
 
 private:
-	EKeyState GetState(EKeyCode Key) const { return KeyStates[static_cast<uint8>(Key)]; }
+	EKeyState GetState(EKeyCode Key) const { return KeyStates[StaticCast<uint8>(Key)]; }
 
 private:
 	HWND Window = nullptr;

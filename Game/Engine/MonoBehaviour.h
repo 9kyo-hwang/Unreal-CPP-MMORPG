@@ -1,15 +1,15 @@
 #pragma once
-#include "Component.h"
+#include "ActorComponent.h"
 
-class MonoBehaviour : public Component
+class MonoBehaviour : public UActorComponent
 {
-	using Super = Component;
+	using Super = UActorComponent;
 
 public:
 	MonoBehaviour();
 	~MonoBehaviour() override;
 
 private:
-	void FinalUpdate() sealed {}	// 더 이상 활용하지 못하도록 sealed
+	void FinalUpdate(float DeltaTime) sealed {}	// 더 이상 활용하지 못하도록 sealed
 };
 

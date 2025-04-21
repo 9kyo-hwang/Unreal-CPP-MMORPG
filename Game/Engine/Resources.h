@@ -1,5 +1,5 @@
 #pragma once
-#include "GameObject.h"
+#include "Actor.h"
 #include "Material.h"
 #include "Mesh.h"
 #include "Object.h"
@@ -13,50 +13,50 @@ public:
 	void Initialize();
 
 	template<typename T>
-	shared_ptr<T> Load(const wstring& Name, const wstring& Path);
+	TSharedPtr<T> Load(const wstring& Name, const wstring& Path);
 
 	// TODO: 파일에서 로드하는 기능을 추가하면 삭제
 	template<typename T>
-	bool Add(const wstring& Name, shared_ptr<T> NewObject);
+	bool Add(const wstring& Name, TSharedPtr<T> NewObject);
 
 	template<typename T>
-	shared_ptr<T> Get(const wstring& Name);
+	TSharedPtr<T> Get(const wstring& Name);
 
 	template<typename T>
 	EObjectType GetObjectType() const;
 
 public:
-	shared_ptr<FMesh> LoadPoint();
-	shared_ptr<FMesh> LoadRectangle();
-	shared_ptr<FMesh> LoadCube();
-	shared_ptr<FMesh> LoadSphere();
+	TSharedPtr<UMesh> LoadPoint();
+	TSharedPtr<UMesh> LoadRectangle();
+	TSharedPtr<UMesh> LoadCube();
+	TSharedPtr<UMesh> LoadSphere();
 
-	shared_ptr<FTexture> CreateTexture(const wstring& Name, DXGI_FORMAT Format, uint32 Width, uint32 Height,
+	TSharedPtr<FTexture> CreateTexture(const wstring& Name, DXGI_FORMAT Format, uint32 Width, uint32 Height,
 		const D3D12_HEAP_PROPERTIES& HeapProperties, D3D12_HEAP_FLAGS HeapFlags,
 		D3D12_RESOURCE_FLAGS ResourceFlags = D3D12_RESOURCE_FLAG_NONE, FVector4 ClearColor = {});
-	shared_ptr<FTexture> CreateTexture(const wstring& Name, ComPtr<ID3D12Resource> Texture2D);
+	TSharedPtr<FTexture> CreateTexture(const wstring& Name, ComPtr<ID3D12Resource> Texture2D);
 
 private:
 	void CreateDefaultShader();
 	void CreateDefaultMaterial();
 
 private:
-	using ResourceNameMap = std::unordered_map<wstring, shared_ptr<Object>>;
+	using ResourceNameMap = std::unordered_map<wstring, TSharedPtr<UObject>>;
 	array<ResourceNameMap, ObjectCount> ResourceList;
 };
 
 template <typename T>
-shared_ptr<T> Resources::Load(const wstring& Name, const wstring& Path)
+TSharedPtr<T> Resources::Load(const wstring& Name, const wstring& Path)
 {
 	EObjectType Type = GetObjectType<T>();
-	auto& Map = ResourceList[static_cast<uint8>(Type)];
+	auto& Map = ResourceList[StaticCast<uint8>(Type)];
 
 	if (Map.contains(Name))
 	{
-		return static_pointer_cast< T >( Map[Name] );
+		return StaticCastSharedPtr<T>(Map[Name]);
 	}
 
-	shared_ptr<T> NewObject = make_shared<T>();
+	TSharedPtr<T> NewObject = MakeShared<T>();
 	NewObject->Load(Path);
 	Map.emplace(Name, NewObject);
 
@@ -64,10 +64,10 @@ shared_ptr<T> Resources::Load(const wstring& Name, const wstring& Path)
 }
 
 template <typename T>
-bool Resources::Add(const wstring& Name, shared_ptr<T> NewObject)
+bool Resources::Add(const wstring& Name, TSharedPtr<T> NewObject)
 {
 	EObjectType Type = GetObjectType<T>();
-	auto& Map = ResourceList[static_cast<uint8>(Type)];
+	auto& Map = ResourceList[StaticCast<uint8>(Type)];
 
 	if (Map.contains(Name))
 	{
@@ -79,14 +79,14 @@ bool Resources::Add(const wstring& Name, shared_ptr<T> NewObject)
 }
 
 template <typename T>
-shared_ptr<T> Resources::Get(const wstring& Name)
+TSharedPtr<T> Resources::Get(const wstring& Name)
 {
 	EObjectType Type = GetObjectType<T>();
-	auto& Map = ResourceList[static_cast< uint8 >( Type )];
+	auto& Map = ResourceList[StaticCast< uint8 >( Type )];
 
 	if (Map.contains(Name))
 	{
-		return static_pointer_cast< T >( Map[Name] );
+		return StaticCastSharedPtr<T>( Map[Name] );
 	}
 
 	return nullptr;
@@ -97,9 +97,9 @@ EObjectType Resources::GetObjectType() const
 {
 	// Type trait
 
-	if (is_same_v<T, GameObject>)
+	if (is_same_v<T, AActor>)
 	{
-		return EObjectType::GameObject;
+		return EObjectType::Actor;
 	}
 
 	if (is_same_v<T, FMaterial>)
@@ -107,7 +107,7 @@ EObjectType Resources::GetObjectType() const
 		return EObjectType::Material;
 	}
 
-	if ( is_same_v<T, FMesh> )
+	if ( is_same_v<T, UMesh> )
 	{
 		return EObjectType::Mesh;
 	}
@@ -122,7 +122,7 @@ EObjectType Resources::GetObjectType() const
 		return EObjectType::Texture;
 	}
 
-	if ( is_same_v<T, Component> )
+	if ( is_same_v<T, UActorComponent> )
 	{
 		return EObjectType::Component;
 	}

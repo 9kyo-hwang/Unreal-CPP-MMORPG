@@ -205,10 +205,10 @@ RECT Viewport::ComputeDisplayArea(DXGI_SCALING scaling, UINT backBufferWidth, UI
             const float offsetX = (float(outputWidth) - scaledWidth) * 0.5f;
             const float offsetY = (float(outputHeight) - scaledHeight) * 0.5f;
 
-            rct.left = static_cast<LONG>(offsetX);
-            rct.top = static_cast<LONG>(offsetY);
-            rct.right = static_cast<LONG>(offsetX + scaledWidth);
-            rct.bottom = static_cast<LONG>(offsetY + scaledHeight);
+            rct.left    = static_cast<LONG>(offsetX);
+            rct.top     = static_cast<LONG>(offsetY);
+            rct.right   = static_cast<LONG>(offsetX + scaledWidth);
+            rct.bottom  = static_cast<LONG>(offsetY + scaledHeight);
 
             // Clip to display window
             rct.left = std::max<LONG>(0, rct.left);

@@ -20,23 +20,23 @@ public:
 	void Render();
 
 public:
-	void RenderBegin();
-	void RenderEnd();
+	void PreRender();
+	void PostRender();
 	void ResizeWindow(int32 Width, int32 Height);
 
 public:
 	FWindowInfo GetWindow() const { return Info; }
 
-	shared_ptr<FDevice> GetDevice() { return Device; }
-	shared_ptr<FGraphicsCommandQueue> GetGraphicsCommandQueue() { return GraphicsCommandQueue; }
-	shared_ptr<FComputeCommandQueue> GetComputeCommandQueue() { return ComputeCommandQueue; }
-	shared_ptr<FSwapChain> GetSwapChain() { return SwapChain; }
-	shared_ptr<FGraphicsRootSignature> GetGraphicsRootSignature() { return GraphicsRootSignature; }
-	shared_ptr<FComputeRootSignature> GetComputeRootSignature() { return ComputeRootSignature; }
-	shared_ptr<FGraphicsDescriptorTable> GetGraphicsDescriptorTable() { return GraphicsDescriptorTable; }
-	shared_ptr<FComputeDescriptorTable> GetComputeDescriptorTable() { return ComputeDescriptorTable; }
-	shared_ptr<FConstantBuffer> GetConstantBuffer(EConstantBufferType Type) { return ConstantBufferList[static_cast<uint8>(Type)]; }
-	shared_ptr<MultipleRenderTarget> GetMultipleRenderTarget(EMultipleRenderTargetType Type) { return MultipleRenderTargetArray[static_cast<uint8>(Type)]; }
+	TSharedPtr<FDevice> GetDevice() { return Device; }
+	TSharedPtr<FGraphicsCommandQueue> GetGraphicsCommandQueue() { return GraphicsCommandQueue; }
+	TSharedPtr<FComputeCommandQueue> GetComputeCommandQueue() { return ComputeCommandQueue; }
+	TSharedPtr<FSwapChain> GetSwapChain() { return SwapChain; }
+	TSharedPtr<FGraphicsRootSignature> GetGraphicsRootSignature() { return GraphicsRootSignature; }
+	TSharedPtr<FComputeRootSignature> GetComputeRootSignature() { return ComputeRootSignature; }
+	TSharedPtr<FGraphicsResourceTables> GetGraphicsResourceTables() { return GraphicsResourceTables; }
+	TSharedPtr<FComputeResourceTables> GetComputeResourceTables() { return ComputeResourceTables; }
+	TSharedPtr<FConstantBuffer> GetConstantBuffer(EConstantBufferType Type) { return ConstantBufferList[StaticCast<uint8>(Type)]; }
+	TSharedPtr<MultipleRenderTarget> GetMultipleRenderTarget(ERenderTargetType Type) { return MultipleRenderTargetArray[StaticCast<uint8>(Type)]; }
 
 private:
 	void ShowFPS();
@@ -48,16 +48,16 @@ private:
 	D3D12_VIEWPORT Viewport;
 	D3D12_RECT ScissorRect;
 
-	shared_ptr<FDevice> Device;
-	shared_ptr<FGraphicsCommandQueue> GraphicsCommandQueue;
-	shared_ptr<FComputeCommandQueue> ComputeCommandQueue;
-	shared_ptr<FSwapChain> SwapChain;
-	shared_ptr<FGraphicsRootSignature> GraphicsRootSignature;
-	shared_ptr<FComputeRootSignature> ComputeRootSignature;
-	shared_ptr<FGraphicsDescriptorTable> GraphicsDescriptorTable;
-	shared_ptr<FComputeDescriptorTable> ComputeDescriptorTable;
+	TSharedPtr<FDevice> Device;
+	TSharedPtr<FGraphicsCommandQueue> GraphicsCommandQueue;
+	TSharedPtr<FComputeCommandQueue> ComputeCommandQueue;
+	TSharedPtr<FSwapChain> SwapChain;
+	TSharedPtr<FGraphicsRootSignature> GraphicsRootSignature;
+	TSharedPtr<FComputeRootSignature> ComputeRootSignature;
+	TSharedPtr<FGraphicsResourceTables> GraphicsResourceTables;
+	TSharedPtr<FComputeResourceTables> ComputeResourceTables;
 
-	vector<shared_ptr<FConstantBuffer>> ConstantBufferList;
-	array<shared_ptr<MultipleRenderTarget>, NumMultipleRenderTarget> MultipleRenderTargetArray;	// SwapChain, GBuffer
+	vector<TSharedPtr<FConstantBuffer>> ConstantBufferList;
+	array<TSharedPtr<MultipleRenderTarget>, NumRenderTargets> MultipleRenderTargetArray;	// SwapChain, GBuffer
 };
 

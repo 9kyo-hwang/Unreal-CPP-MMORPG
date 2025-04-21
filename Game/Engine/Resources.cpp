@@ -11,9 +11,9 @@ void Resources::Initialize()
 	CreateDefaultMaterial();
 }
 
-shared_ptr<FMesh> Resources::LoadPoint()
+TSharedPtr<UMesh> Resources::LoadPoint()
 {
-	if (shared_ptr<FMesh> Point = Get<FMesh>(L"Point"))
+	if (TSharedPtr<UMesh> Point = Get<UMesh>(L"Point"))
 	{
 		return Point;
 	}
@@ -30,16 +30,16 @@ shared_ptr<FMesh> Resources::LoadPoint()
 
 	vector<uint32> Indices{0};
 
-	shared_ptr<FMesh> Point = make_shared<FMesh>();
+	TSharedPtr<UMesh> Point = MakeShared<UMesh>();
 	Point->Initialize(Vertices, Indices);
-	Add<FMesh>(L"Point", Point);
+	Add<UMesh>(L"Point", Point);
 
 	return Point;
 }
 
-shared_ptr<FMesh> Resources::LoadRectangle()
+TSharedPtr<UMesh> Resources::LoadRectangle()
 {
-	if (shared_ptr<FMesh> Rectangle = Get<FMesh>(L"Rectangle"))
+	if (TSharedPtr<UMesh> Rectangle = Get<UMesh>(L"Rectangle"))
 	{
 		return Rectangle;
 	}
@@ -83,16 +83,16 @@ shared_ptr<FMesh> Resources::LoadRectangle()
 
 	vector<uint32> Indices{ 0, 1, 2, 0, 2, 3 };
 
-	shared_ptr<FMesh> Rectangle = make_shared<FMesh>();
+	TSharedPtr<UMesh> Rectangle = MakeShared<UMesh>();
 	Rectangle->Initialize(Vertices, Indices);
-	Add<FMesh>(L"Rectangle", Rectangle);
+	Add<UMesh>(L"Rectangle", Rectangle);
 
 	return Rectangle;
 }
 
-shared_ptr<FMesh> Resources::LoadCube()
+TSharedPtr<UMesh> Resources::LoadCube()
 {
-	if (shared_ptr<FMesh> Cube = Get<FMesh>(L"Cube"))
+	if (TSharedPtr<UMesh> Cube = Get<UMesh>(L"Cube"))
 	{
 		return Cube;
 	}
@@ -295,16 +295,16 @@ shared_ptr<FMesh> Resources::LoadCube()
 		20, 21, 22, 20, 22, 23,	// 오른쪽면
 	};
 
-	shared_ptr<FMesh> Cube = make_shared<FMesh>();
+	TSharedPtr<UMesh> Cube = MakeShared<UMesh>();
 	Cube->Initialize(Vertices, Indices);
-	Add<FMesh>(L"Cube", Cube);
+	Add<UMesh>(L"Cube", Cube);
 
 	return Cube;
 }
 
-shared_ptr<FMesh> Resources::LoadSphere()
+TSharedPtr<UMesh> Resources::LoadSphere()
 {
-	if (shared_ptr<FMesh> Sphere = Get<FMesh>(L"Sphere"))
+	if (TSharedPtr<UMesh> Sphere = Get<UMesh>(L"Sphere"))
 	{
 		return Sphere;
 	}
@@ -327,8 +327,8 @@ shared_ptr<FMesh> Resources::LoadSphere()
 	float SliceAngle = XM_2PI / SliceCount;
 
 	// UV 값 세팅 시 사용될 증가량
-	float DeltaU = 1.f / static_cast<float>(SliceCount);
-	float DeltaV = 1.f / static_cast<float>(StackCount);
+	float DeltaU = 1.f / StaticCast<float>(SliceCount);
+	float DeltaV = 1.f / StaticCast<float>(StackCount);
 
 	// 각 고리를 순회하면서 정점 계산(북극/남극은 단일점이라 고리가 없음)
 	for (uint32 Y = 1; Y <= StackCount - 1; ++Y)
@@ -408,7 +408,7 @@ shared_ptr<FMesh> Resources::LoadSphere()
 	}
 
 	// 남극 인덱스
-	uint32 BottomIndex = static_cast<uint32>(Vertices.size() - 1);
+	uint32 BottomIndex = StaticCast<uint32>(Vertices.size() - 1);
 	uint32 LastRingStartIndex = BottomIndex - RingVertexCount;
 	for (uint32 Index = 0; Index < SliceCount; ++Index)
 	{
@@ -423,27 +423,27 @@ shared_ptr<FMesh> Resources::LoadSphere()
 		Indices.emplace_back(LastRingStartIndex + Index + 1);
 	}
 
-	shared_ptr<FMesh> Sphere = make_shared<FMesh>();
+	TSharedPtr<UMesh> Sphere = MakeShared<UMesh>();
 	Sphere->Initialize(Vertices, Indices);
-	Add<FMesh>(L"Sphere", Sphere);
+	Add<UMesh>(L"Sphere", Sphere);
 
 	return Sphere;
 }
 
-shared_ptr<FTexture> Resources::CreateTexture(const wstring& Name, DXGI_FORMAT Format, uint32 Width, uint32 Height,
+TSharedPtr<FTexture> Resources::CreateTexture(const wstring& Name, DXGI_FORMAT Format, uint32 Width, uint32 Height,
 	const D3D12_HEAP_PROPERTIES& HeapProperties, D3D12_HEAP_FLAGS HeapFlags, D3D12_RESOURCE_FLAGS ResourceFlags,
 	FVector4 ClearColor)
 {
-	shared_ptr<FTexture> Texture = make_shared<FTexture>();
+	TSharedPtr<FTexture> Texture = MakeShared<FTexture>();
 	Texture->Create(Format, Width, Height, HeapProperties, HeapFlags, ResourceFlags, ClearColor);
 	Add<FTexture>(Name, Texture);
 
 	return Texture;
 }
 
-shared_ptr<FTexture> Resources::CreateTexture(const wstring& Name, ComPtr<ID3D12Resource> Texture2D)
+TSharedPtr<FTexture> Resources::CreateTexture(const wstring& Name, ComPtr<ID3D12Resource> Texture2D)
 {
-	shared_ptr<FTexture> Texture = make_shared<FTexture>();
+	TSharedPtr<FTexture> Texture = MakeShared<FTexture>();
 	Texture->Create(Texture2D);
 	Add<FTexture>(Name, Texture);
 
@@ -454,7 +454,7 @@ void Resources::CreateDefaultShader()
 {
 	// Skybox
 	{
-		shared_ptr<FShader> Shader = make_shared<FShader>();
+		TSharedPtr<FShader> Shader = MakeShared<FShader>();
 		Shader->CreateGraphicsShader(
 			L"..\\Resources\\Shader\\Skybox.fx",
 			{ EShaderType::Forward, ERasterizeType::CullNone, EDepthStencilType::LessEqual }
@@ -465,7 +465,7 @@ void Resources::CreateDefaultShader()
 
 	// Deferred
 	{
-		shared_ptr<FShader> Shader = make_shared<FShader>();
+		TSharedPtr<FShader> Shader = MakeShared<FShader>();
 		Shader->CreateGraphicsShader(
 			L"..\\Resources\\Shader\\Deferred.fx",
 			{ EShaderType::Deferred, }
@@ -475,7 +475,7 @@ void Resources::CreateDefaultShader()
 
 	// Forward(구 Default)
 	{
-		shared_ptr<FShader> Shader = make_shared<FShader>();
+		TSharedPtr<FShader> Shader = MakeShared<FShader>();
 		Shader->CreateGraphicsShader(
 			L"..\\Resources\\Shader\\Forward.fx", 
 			{EShaderType::Forward, }
@@ -485,7 +485,7 @@ void Resources::CreateDefaultShader()
 
 	// Texture
 	{
-		shared_ptr<FShader> Shader = make_shared<FShader>();
+		TSharedPtr<FShader> Shader = MakeShared<FShader>();
 		Shader->CreateGraphicsShader(
 			L"..\\Resources\\Shader\\Forward.fx",
 			{EShaderType::Forward, ERasterizeType::CullNone, EDepthStencilType::NoDepthNoWrite},
@@ -496,7 +496,7 @@ void Resources::CreateDefaultShader()
 
 	// Directional Light
 	{
-		shared_ptr<FShader> Shader = make_shared<FShader>();
+		TSharedPtr<FShader> Shader = MakeShared<FShader>();
 		Shader->CreateGraphicsShader(
 			L"..\\Resources\\Shader\\Lighting.fx",
 			{ EShaderType::Lighting, ERasterizeType::CullNone, EDepthStencilType::NoDepthNoWrite, EBlendType::OneToOneBlend },
@@ -508,7 +508,7 @@ void Resources::CreateDefaultShader()
 	// Point Light
 	{
 		// CullNone으로 세팅해줘야 빛의 범위가 매우 커지더라도 정상적으로 표시됨
-		shared_ptr<FShader> Shader = make_shared<FShader>();
+		TSharedPtr<FShader> Shader = MakeShared<FShader>();
 		Shader->CreateGraphicsShader(
 			L"..\\Resources\\Shader\\Lighting.fx",
 			{ EShaderType::Lighting, ERasterizeType::CullNone, EDepthStencilType::NoDepthNoWrite, EBlendType::OneToOneBlend },
@@ -519,7 +519,7 @@ void Resources::CreateDefaultShader()
 
 	// Final
 	{
-		shared_ptr<FShader> Shader = make_shared<FShader>();
+		TSharedPtr<FShader> Shader = MakeShared<FShader>();
 		Shader->CreateGraphicsShader(
 			L"..\\Resources\\Shader\\Lighting.fx",
 			{ EShaderType::Lighting, ERasterizeType::CullBack, EDepthStencilType::NoDepthNoWrite },
@@ -530,7 +530,7 @@ void Resources::CreateDefaultShader()
 
 	// Compute Shader
 	{
-		shared_ptr<FShader> Shader = make_shared<FShader>();
+		TSharedPtr<FShader> Shader = MakeShared<FShader>();
 		Shader->CreateComputeShader(L"..\\Resources\\Shader\\Compute.fx", "CSMain", "cs_5_0");
 		Add<FShader>(L"ComputeShader", Shader);
 	}
@@ -561,9 +561,8 @@ void Resources::CreateDefaultMaterial()
 {
 	// Skybox
 	{
-		auto Shader = Get()->Get<FShader>(L"Skybox");
-
-		shared_ptr<FMaterial> Material = make_shared<FMaterial>();
+		TSharedPtr<FShader> Shader = Get()->Get<FShader>(L"Skybox");
+		TSharedPtr<FMaterial> Material = MakeShared<FMaterial>();
 		Material->SetShader(Shader);
 
 		Add<FMaterial>(L"Skybox", Material);
@@ -571,9 +570,8 @@ void Resources::CreateDefaultMaterial()
 
 	// Directional Light
 	{
-		auto Shader = Get()->Get<FShader>(L"DirectionalLight");
-
-		shared_ptr<FMaterial> Material = make_shared<FMaterial>();
+		TSharedPtr<FShader> Shader = Get()->Get<FShader>(L"DirectionalLight");
+		TSharedPtr<FMaterial> Material = MakeShared<FMaterial>();
 		Material->SetShader(Shader);
 		Material->SetTexture(0, Get()->Get<FTexture>(L"PositionTarget"));	// MRT 내부에서 Create된 상태
 		Material->SetTexture(1, Get()->Get<FTexture>(L"NormalTarget"));
@@ -584,11 +582,11 @@ void Resources::CreateDefaultMaterial()
 	// Point Light
 	{
 		const FWindowInfo& Info = GEngine->GetWindow();
-		FVector2 Resolution = { static_cast<float>(Info.Width), static_cast<float>(Info.Height) };
+		FVector2 Resolution = { StaticCast<float>(Info.Width), StaticCast<float>(Info.Height) };
 
-		auto Shader = Get()->Get<FShader>(L"PointLight");
+		TSharedPtr<FShader> Shader = Get()->Get<FShader>(L"PointLight");
 
-		shared_ptr<FMaterial> Material = make_shared<FMaterial>();
+		TSharedPtr<FMaterial> Material = MakeShared<FMaterial>();
 		Material->SetShader(Shader);
 		Material->SetTexture(0, Get()->Get<FTexture>(L"PositionTarget"));
 		Material->SetTexture(1, Get()->Get<FTexture>(L"NormalTarget"));
@@ -599,9 +597,9 @@ void Resources::CreateDefaultMaterial()
 
 	// Final
 	{
-		auto Shader = Get()->Get<FShader>(L"Final");
+		TSharedPtr<FShader> Shader = Get()->Get<FShader>(L"Final");
 
-		shared_ptr<FMaterial> Material = make_shared<FMaterial>();
+		TSharedPtr<FMaterial> Material = MakeShared<FMaterial>();
 		Material->SetShader(Shader);
 		Material->SetTexture(0, Get()->Get<FTexture>(L"DiffuseTarget"));
 		Material->SetTexture(1, Get()->Get<FTexture>(L"DiffuseLightTarget"));
@@ -612,8 +610,8 @@ void Resources::CreateDefaultMaterial()
 
 	// Compute Shader
 	{
-		shared_ptr<FShader> Shader = Get()->Get<FShader>(L"ComputeShader");
-		shared_ptr<FMaterial> Material = make_shared<FMaterial>();	// 셰이더에게 인자를 넘길 때 활용
+		TSharedPtr<FShader> Shader = Get()->Get<FShader>(L"ComputeShader");
+		TSharedPtr<FMaterial> Material = MakeShared<FMaterial>();	// 셰이더에게 인자를 넘길 때 활용
 		Material->SetShader(Shader);
 		Add<FMaterial>(L"ComputeShader", Material);
 	}
@@ -634,4 +632,18 @@ void Resources::CreateDefaultMaterial()
 
 	//	Add<FMaterial>(L"ComputeParticle", Material);
 	//}
+
+	// Actor
+	{
+		TSharedPtr<FShader> Shader = Get()->Get<FShader>(L"Deferred");	// Deferred로 변경
+		TSharedPtr<FTexture> Texture = Get()->Load<FTexture>(L"Wood", L"..\\Resources\\Texture\\Wood.jpg");
+		TSharedPtr<FTexture> NormalTexture = Get()->Load<FTexture>(L"Wood_Normal", L"..\\Resources\\Texture\\Wood_Normal.jpg");
+
+		TSharedPtr<FMaterial> Material = MakeShared<FMaterial>();
+		Material->SetShader(Shader);
+		Material->SetTexture(0, Texture);
+		Material->SetTexture(1, NormalTexture);
+
+		Add<FMaterial>(L"GameObject", Material);
+	}
 }

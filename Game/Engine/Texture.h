@@ -1,9 +1,9 @@
 #pragma once
 #include "Object.h"
 
-class FTexture : public Object
+class FTexture : public UObject
 {
-	using Super = Object;
+	using Super = UObject;
 
 public:
 	FTexture();
@@ -18,25 +18,25 @@ public:
 
 public:
 	ComPtr<ID3D12Resource> GetTexture2D() { return Texture2D; }
-	ComPtr<ID3D12DescriptorHeap> GetShaderResourceDescriptorHeap() { return ShaderResourceDescriptorHeap; }
-	ComPtr<ID3D12DescriptorHeap> GetRenderTargetDescriptorHeap() { return RenderTargetDescriptorHeap; }
-	ComPtr<ID3D12DescriptorHeap> GetDepthStencilDescriptorHeap() { return DepthStencilDescriptorHeap; }
-	ComPtr<ID3D12DescriptorHeap> GetUnorderedAccessDescriptorHeap() { return UnorderedAccessDescriptorHeap; }
+	ComPtr<ID3D12DescriptorHeap> GetSRVHeap() { return SRVHeap; }
+	ComPtr<ID3D12DescriptorHeap> GetRTVHeap() { return RTVHeap; }
+	ComPtr<ID3D12DescriptorHeap> GetDSVHeap() { return DSVHeap; }
+	ComPtr<ID3D12DescriptorHeap> GetUAVHeap() { return UAVHeap; }
 
-	D3D12_CPU_DESCRIPTOR_HANDLE GetShaderResourceDescriptorHandle() { return ShaderResourceDescriptorHeapStart; }
-	D3D12_CPU_DESCRIPTOR_HANDLE GetUnorderedAccessDescriptorHandle() { return UnorderedAccessDescriptorHeapStart; }
+	D3D12_CPU_DESCRIPTOR_HANDLE GetSRV() { return SRVHeapStart; }
+	D3D12_CPU_DESCRIPTOR_HANDLE GetUAV() { return UAVHeapStart; }
 
 private:
 	ScratchImage Image;
 	ComPtr<ID3D12Resource> Texture2D;
 
 	// ConstantBuffer는 View를 여러 개 담은 Heap을 사용하지만, Texture는 Heap에 View 하나만 사용
-	ComPtr<ID3D12DescriptorHeap> ShaderResourceDescriptorHeap;
-	ComPtr<ID3D12DescriptorHeap> RenderTargetDescriptorHeap;
-	ComPtr<ID3D12DescriptorHeap> DepthStencilDescriptorHeap;
-	ComPtr<ID3D12DescriptorHeap> UnorderedAccessDescriptorHeap;
+	ComPtr<ID3D12DescriptorHeap> SRVHeap;
+	ComPtr<ID3D12DescriptorHeap> RTVHeap;
+	ComPtr<ID3D12DescriptorHeap> DSVHeap;
+	ComPtr<ID3D12DescriptorHeap> UAVHeap;
 
 private:
-	D3D12_CPU_DESCRIPTOR_HANDLE ShaderResourceDescriptorHeapStart;
-	D3D12_CPU_DESCRIPTOR_HANDLE UnorderedAccessDescriptorHeapStart;
+	D3D12_CPU_DESCRIPTOR_HANDLE SRVHeapStart;
+	D3D12_CPU_DESCRIPTOR_HANDLE UAVHeapStart;
 };

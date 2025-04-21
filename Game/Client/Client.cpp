@@ -48,8 +48,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     GWindowInfo.bWindowed = true;
 
     // 유일하고 안전한 게임 객체
-    const unique_ptr<Game> game = make_unique<Game>();
-    game->Initialize(GWindowInfo);
+    const TUniquePtr<Game> Application = MakeUnique<Game>();
+    Application->Initialize(GWindowInfo);
 
     MSG msg;
     // 기본 메시지 루프입니다:
@@ -70,7 +70,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
         }
 
         // TODO: GameLogic
-        game->Update();
+        Application->Update();
     }
 
     return (int) msg.wParam;

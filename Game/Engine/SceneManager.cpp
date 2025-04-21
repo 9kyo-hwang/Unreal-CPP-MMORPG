@@ -1,20 +1,20 @@
 #include "pch.h"
 #include "SceneManager.h"
 
-#include "Camera.h"
-#include "CameraMovement.h"
+#include "CameraComponent.h"
+#include "CameraMovementComponent.h"
 #include "Engine.h"
-#include "GameObject.h"
-#include "Light.h"
+#include "Actor.h"
+#include "LightComponent.h"
 #include "Material.h"
 #include "Mesh.h"
-#include "MeshRenderer.h"
+#include "MeshComponent.h"
 #include "ParticleSystemComponent.h"
 #include "Resources.h"
-#include "Scene.h"
+#include "Level.h"
 #include "Shader.h"
 #include "Texture.h"
-#include "Transform.h"
+#include "SceneComponent.h"
 
 void SceneManager::Update()
 {
@@ -66,7 +66,7 @@ uint8 SceneManager::NameToLayer(const wstring& Name)
 	return 0;
 }
 
-shared_ptr<Scene> SceneManager::LoadTestScene()
+TSharedPtr<ULevel> SceneManager::LoadTestScene()
 {
 #pragma region LayerMask
 	// 기본값 레이어 설정
@@ -77,8 +77,8 @@ shared_ptr<Scene> SceneManager::LoadTestScene()
 	// Compute Shader Texture를 UI에게 넘길 예정
 #pragma region Compute Shader
 	{
-		shared_ptr<FShader> Shader = Resources::Get()->Get<FShader>(L"ComputeShader");
-		shared_ptr<FTexture> Texture = Resources::Get()->CreateTexture(
+		TSharedPtr<FShader> Shader = Resources::Get()->Get<FShader>(L"ComputeShader");
+		TSharedPtr<FTexture> Texture = Resources::Get()->CreateTexture(
 			L"UAVTexture",
 			DXGI_FORMAT_R8G8B8A8_UNORM,
 			1024, 1024,
@@ -87,168 +87,161 @@ shared_ptr<Scene> SceneManager::LoadTestScene()
 			D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS	// NOT Render Target!
 		);
 
-		shared_ptr<FMaterial> Material = Resources::Get()->Get<FMaterial>(L"ComputeShader");
+		TSharedPtr<FMaterial> Material = Resources::Get()->Get<FMaterial>(L"ComputeShader");
 		Material->SetShader(Shader);
 		Material->SetParameter(0, 1);
-		GEngine->GetComputeDescriptorTable()->SetDescriptor(Texture->GetUnorderedAccessDescriptorHandle(), EUnorderedAccessViewRegisters::u0);
+		GEngine->GetComputeResourceTables()->SetUAV(Texture->GetUAV(), EUnorderedAccessViewRegisters::u0);
 
 		Material->Dispatch(1, 256, 1);	// 쓰레드 그룹: (1, 1024, 1)
 	}
 #pragma endregion
 
 	// 여기서 임시로 만든 신을 ActiveScene으로 지정
-	shared_ptr<Scene> CurrentScene = make_shared<Scene>();
+	TSharedPtr<ULevel> CurrentScene = MakeShared<ULevel>();
 
 #pragma region Camera
 	{
-		shared_ptr<GameObject> CameraObject = make_shared<GameObject>();
+		TSharedPtr<AActor> CameraObject = MakeShared<AActor>();
 		CameraObject->SetName(L"Main Camera");
 
-		CameraObject->AddComponent(make_shared<Transform>());
-		CameraObject->AddComponent(make_shared<Camera>());
-		CameraObject->AddComponent(make_shared<CameraMovementComponent>());
-		CameraObject->GetTransform()->SetLocalPosition(FVector3(0.f, 0.f, 0.f));
+		CameraObject->AddComponent(MakeShared<USceneComponent>());
+		CameraObject->AddComponent(MakeShared<UCameraComponent>());
+		CameraObject->AddComponent(MakeShared<UCameraMovementComponent>());
+		CameraObject->GetSceneComponent()->SetLocalPosition(FVector3(0.f, 0.f, 0.f));
 
 		uint8 Layer = Get()->NameToLayer(L"UI");
-		CameraObject->GetCamera()->EnableLayerCulling(Layer, true);	// UI는 그리지 않도록
+		CameraObject->GetCameraComponent()->EnableLayerCulling(Layer, true);	// UI는 그리지 않도록
 
-		CurrentScene->AddGameObject(CameraObject);
+		CurrentScene->SpawnActor(CameraObject);
 	}
 #pragma endregion
 
 #pragma region UI Camera
 	{
-		shared_ptr<GameObject> CameraObject = make_shared<GameObject>();
+		TSharedPtr<AActor> CameraObject = MakeShared<AActor>();
 		CameraObject->SetName(L"Orthographic Camera");
 
-		CameraObject->AddComponent(make_shared<Transform>());
-		CameraObject->AddComponent(make_shared<Camera>());	// Near: 1, Far: 1000, Fov: None, 800 x 600
-		CameraObject->GetTransform()->SetLocalPosition(FVector3(0.f, 0.f, 0.f));
+		CameraObject->AddComponent(MakeShared<USceneComponent>());
+		CameraObject->AddComponent(MakeShared<UCameraComponent>());	// Near: 1, Far: 1000, Fov: None, 800 x 600
+		CameraObject->GetSceneComponent()->SetLocalPosition(FVector3(0.f, 0.f, 0.f));
 
-		auto CameraComponent = CameraObject->GetCamera();
+		auto CameraComponent = CameraObject->GetCameraComponent();
 		uint8 Layer = Get()->NameToLayer(L"UI");
 
 		CameraComponent->SetProjection(ECameraProjectionType::Orthographic);
 		CameraComponent->CullAllLayers();
 		CameraComponent->EnableLayerCulling(Layer, false);	// UI만 그리도록
 
-		CurrentScene->AddGameObject(CameraObject);
+		CurrentScene->SpawnActor(CameraObject);
 	}
 #pragma endregion
 
 #pragma region Skybox
 	{
-		shared_ptr<GameObject> SkyboxObject = make_shared<GameObject>();
-		SkyboxObject->AddComponent(make_shared<Transform>());	// 크기, 위치, 회전 아무것도 설정하지 않음
+		TSharedPtr<AActor> SkyboxObject = MakeShared<AActor>();
+		SkyboxObject->AddComponent(MakeShared<USceneComponent>());	// 크기, 위치, 회전 아무것도 설정하지 않음
 		SkyboxObject->SetCheckFrustum(false);	// Skybox는 예외적으로 Frustum 범위 밖에 있더라도 그려져야 함
 
-		shared_ptr<FMeshRenderer> MeshRenderer = make_shared<FMeshRenderer>();
+		TSharedPtr<UMeshComponent> MeshRenderer = MakeShared<UMeshComponent>();
 		MeshRenderer->SetMesh(Resources::Get()->LoadSphere());
 
-		shared_ptr<FShader> Shader = Resources::Get()->Get<FShader>(L"Skybox");
-		shared_ptr<FTexture> Texture = Resources::Get()->Load<FTexture>(L"Sky02", L"..\\Resources\\Texture\\Sky02.jpeg");
+		TSharedPtr<FShader> Shader = Resources::Get()->Get<FShader>(L"Skybox");
+		TSharedPtr<FTexture> Texture = Resources::Get()->Load<FTexture>(L"Sky02", L"..\\Resources\\Texture\\Sky02.jpeg");
 
-		shared_ptr<FMaterial> Material = make_shared<FMaterial>();
+		TSharedPtr<FMaterial> Material = MakeShared<FMaterial>();
 		Material->SetShader(Shader);
 		Material->SetTexture(0, Texture);
 
 		MeshRenderer->SetMaterial(Material);
 		SkyboxObject->AddComponent(MeshRenderer);
-		CurrentScene->AddGameObject(SkyboxObject);
+		CurrentScene->SpawnActor(SkyboxObject);
 	}
 #pragma endregion
 
 #pragma region Object
+	for(int32 Index = 0; Index < 50; ++Index)
 	{
-		shared_ptr<GameObject> Object = make_shared<GameObject>();
-		Object->AddComponent(make_shared<Transform>());
-		Object->GetTransform()->SetLocalScale(FVector3(100.f, 100.f, 100.f));
-		Object->GetTransform()->SetLocalPosition(FVector3(0.f, 0.f, 150.f));
+		TSharedPtr<AActor> Actor = MakeShared<AActor>();
+		Actor->AddComponent(MakeShared<USceneComponent>());
+		Actor->GetSceneComponent()->SetLocalScale(FVector3(25.f, 25.f, 25.f));
+		Actor->GetSceneComponent()->SetLocalPosition(FVector3(-300.f + Index * 10.f, 0.f, 500.f));
 
-		shared_ptr<FMeshRenderer> MeshRenderer = make_shared<FMeshRenderer>();
+		TSharedPtr<UMeshComponent> MeshRenderer = MakeShared<UMeshComponent>();
 		MeshRenderer->SetMesh(Resources::Get()->LoadSphere());
 
-		shared_ptr<FShader> Shader = Resources::Get()->Get<FShader>(L"Deferred");	// Deferred로 변경
-		shared_ptr<FTexture> Texture = Resources::Get()->Load<FTexture>(L"Wood", L"..\\Resources\\Texture\\Wood.jpg");
-		shared_ptr<FTexture> NormalTexture = Resources::Get()->Load<FTexture>(L"Wood_Normal", L"..\\Resources\\Texture\\Wood_Normal.jpg");
-
-		shared_ptr<FMaterial> Material = make_shared<FMaterial>();
-		Material->SetShader(Shader);
-		Material->SetTexture(0, Texture);
-		Material->SetTexture(1, NormalTexture);
-
-		MeshRenderer->SetMaterial(Material);
-		Object->AddComponent(MeshRenderer);
-		CurrentScene->AddGameObject(Object);
+		// Instance를 활용하려면 Shader, Texture 등이 모두 "같은 것"이어야 함 -> Resources에서 한 번만 생성하도록
+		TSharedPtr<FMaterial> Material = Resources::Get()->Get<FMaterial>(L"GameObject");
+		{	// 기존
+			//Material->SetParameter(0, 0);
+			//MeshRenderer->SetMaterial(Material->Clone());	// 별개의 Material로 인식하도록 복사
+		}
+		{	// 인스턴스
+			Material->SetParameter(0, 1);	// value 1: Instance <-> 0: 기존
+			MeshRenderer->SetMaterial(Material);
+		}
+		
+		Actor->AddComponent(MeshRenderer);
+		CurrentScene->SpawnActor(Actor);
 	}
 #pragma endregion
 
 #pragma region UI Test
 	for (int32 Index = 0; Index < 6; ++Index)
 	{
-		shared_ptr<GameObject> UIObject = make_shared<GameObject>();
+		TSharedPtr<AActor> UIObject = MakeShared<AActor>();
 		UIObject->SetLayer(Get()->NameToLayer(L"UI"));	// UI, 즉 1번으로 세팅
-		UIObject->AddComponent(make_shared<Transform>());
+		UIObject->AddComponent(MakeShared<USceneComponent>());
 
-		auto Transform = UIObject->GetTransform();
+		TSharedPtr<USceneComponent> Transform = UIObject->GetSceneComponent();
 		Transform->SetLocalScale(FVector3(100.f, 100.f, 100.f));
 		Transform->SetLocalPosition(FVector3(-350.f + (Index * 120), 250.f, 500.f));
 
-		shared_ptr<FMeshRenderer> MeshRenderer = make_shared<FMeshRenderer>();
+		TSharedPtr<UMeshComponent> MeshRenderer = MakeShared<UMeshComponent>();
 		MeshRenderer->SetMesh(Resources::Get()->LoadRectangle());
 
-		auto Shader = Resources::Get()->Get<FShader>(L"Texture");
-		shared_ptr<FTexture> Texture;
+		TSharedPtr<FShader> Shader = Resources::Get()->Get<FShader>(L"Texture");
+		TSharedPtr<FTexture> Texture;
 		if (Index < 3)
 		{
-			Texture = GEngine->GetMultipleRenderTarget(EMultipleRenderTargetType::GeometryBuffer)->GetRenderTargetTexture(Index);
+			Texture = GEngine->GetMultipleRenderTarget(ERenderTargetType::GeometryBuffer)->GetRenderTargetTexture(Index);
 		}
 		else if (Index < 5)
 		{
-			Texture = GEngine->GetMultipleRenderTarget(EMultipleRenderTargetType::Lighting)->GetRenderTargetTexture(Index - 3);
+			Texture = GEngine->GetMultipleRenderTarget(ERenderTargetType::Lighting)->GetRenderTargetTexture(Index - 3);
 		}
 		else
 		{
 			Texture = Resources::Get()->Get<FTexture>(L"UAVTexture");
 		}
 
-		auto Material = make_shared<FMaterial>();
+		auto Material = MakeShared<FMaterial>();
 		Material->SetShader(Shader);
 		Material->SetTexture(0, Texture);
 
 		MeshRenderer->SetMaterial(Material);
 		UIObject->AddComponent(MeshRenderer);
-		CurrentScene->AddGameObject(UIObject);
+		CurrentScene->SpawnActor(UIObject);
 	}
 #pragma endregion
 
 #pragma region Directional Light
 	{
-		shared_ptr<GameObject> LightObject = make_shared<GameObject>();
-		LightObject->AddComponent(make_shared<Transform>());
-		LightObject->AddComponent(make_shared<Light>());
+		TSharedPtr<AActor> LightObject = MakeShared<AActor>();
+		LightObject->AddComponent(MakeShared<USceneComponent>());
+		LightObject->AddComponent(MakeShared<ULightComponent>());
 
-		shared_ptr<Light> LightComponent = LightObject->GetLight();
+		TSharedPtr<ULightComponent> LightComponent = LightObject->GetLightComponent();
 		LightComponent->SetDirection(FVector3(0.f, 0.f, 1.f));
 		LightComponent->SetType(ELightType::Directional);
-		LightComponent->SetDiffuse(FVector3(1.f, 0.f, 0.f));
+		LightComponent->SetDiffuse(FVector3(1.f, 1.f, 1.f));
 		LightComponent->SetAmbient(FVector3(0.1f, 0.1f, 0.1f));
 		LightComponent->SetSpecular(FVector3(0.2f, 0.2f, 0.2f));
 
-		CurrentScene->AddGameObject(LightObject);
+		CurrentScene->SpawnActor(LightObject);
 	}
 #pragma endregion
 
-//#pragma region Particle System
-//	{
-//		shared_ptr<GameObject> ParticleObject = make_shared<GameObject>();
-//		ParticleObject->AddComponent(make_shared<Transform>());
-//		ParticleObject->AddComponent(make_shared<UParticleSystemComponent>());
-//		ParticleObject->SetCheckFrustum(false);
-//		ParticleObject->GetTransform()->SetLocalPosition(FVector3(0.f, 0.f, 100.f));
-//		CurrentScene->AddGameObject(ParticleObject);
-//	}
-//#pragma endregion
+	
 
 	return CurrentScene;
 }

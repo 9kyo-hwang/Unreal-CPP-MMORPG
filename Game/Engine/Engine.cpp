@@ -2,7 +2,8 @@
 #include "Engine.h"
 
 #include "InputManager.h"
-#include "Light.h"
+#include "InstanceManager.h"
+#include "LightComponent.h"
 #include "Material.h"
 #include "Resources.h"
 #include "SceneManager.h"
@@ -13,19 +14,17 @@ Engine::Engine()
 	, Viewport()
 	, ScissorRect()
 {
-	Device = make_shared<FDevice>();
-	GraphicsCommandQueue = make_shared<FGraphicsCommandQueue>();
-	ComputeCommandQueue = make_shared<FComputeCommandQueue>();
-	SwapChain = make_shared<FSwapChain>();
-	GraphicsRootSignature = make_shared<FGraphicsRootSignature>();
-	ComputeRootSignature = make_shared<FComputeRootSignature>();
-	GraphicsDescriptorTable = make_shared<FGraphicsDescriptorTable>();
-	ComputeDescriptorTable = make_shared<FComputeDescriptorTable>();
+	Device					= MakeShared<FDevice>();
+	GraphicsCommandQueue	= MakeShared<FGraphicsCommandQueue>();
+	ComputeCommandQueue		= MakeShared<FComputeCommandQueue>();
+	SwapChain				= MakeShared<FSwapChain>();
+	GraphicsRootSignature	= MakeShared<FGraphicsRootSignature>();
+	ComputeRootSignature	= MakeShared<FComputeRootSignature>();
+	GraphicsResourceTables	= MakeShared<FGraphicsResourceTables>();
+	ComputeResourceTables	= MakeShared<FComputeResourceTables>();
 }
 
-Engine::~Engine()
-{
-}
+Engine::~Engine() = default;
 
 void Engine::Initialize(const FWindowInfo& InInfo)
 {
@@ -34,19 +33,19 @@ void Engine::Initialize(const FWindowInfo& InInfo)
 	Viewport =
 	{
 		.TopLeftX = 0, .TopLeftY = 0,
-		.Width = static_cast<FLOAT>(Info.Width),
-		.Height = static_cast<FLOAT>(Info.Height),
+		.Width = StaticCast<FLOAT>(Info.Width),
+		.Height = StaticCast<FLOAT>(Info.Height),
 		.MinDepth = 0.0f, .MaxDepth = 1.0f
 	};
 
 	ScissorRect = CD3DX12_RECT(0, 0, Info.Width, Info.Height);
 
 	Device->Initialize();
-	GraphicsCommandQueue->Initialize(SwapChain);
-	ComputeCommandQueue->Initialize();
-	SwapChain->Initialize(Info, Device->GetDXGI(), GraphicsCommandQueue->GetD3DCommandQueue());
-	GraphicsRootSignature->Initialize();
-	ComputeRootSignature->Initialize();
+	GraphicsCommandQueue->Initialize(Device->GetDevice(), SwapChain);
+	ComputeCommandQueue->Initialize(Device->GetDevice());
+	SwapChain->Initialize(Info, Device->GetFactory(), GraphicsCommandQueue->GetCommandQueue());
+	GraphicsRootSignature->Initialize(Device->GetDevice(), GraphicsCommandQueue->GetCommandList());
+	ComputeRootSignature->Initialize(Device->GetDevice(), ComputeCommandQueue->GetCommandList());
 
 	CreateConstantBuffer(EConstantBufferViewRegisters::b0, sizeof(FLightParameters), 1);	// 1개만 세팅하므로 버퍼 1개만
 	CreateConstantBuffer(EConstantBufferViewRegisters::b1, sizeof(FTransformParameters), 256);
@@ -54,8 +53,8 @@ void Engine::Initialize(const FWindowInfo& InInfo)
 
 	CreateMultipleRenderTargets();
 
-	GraphicsDescriptorTable->Initialize(256);
-	ComputeDescriptorTable->Initialize();
+	GraphicsResourceTables->Initialize(Device->GetDevice(), 256);
+	ComputeResourceTables->Initialize(Device->GetDevice());
 
 	InputManager::Get()->Initialize(Info.Window);
 	TimeManager::Get()->Initialize();
@@ -69,6 +68,7 @@ void Engine::Update()
 	InputManager::Get()->Update();
 	TimeManager::Get()->Update();
 	SceneManager::Get()->Update();
+	UInstanceManager::Get()->ClearBuffer();
 
 	Render();
 
@@ -77,21 +77,21 @@ void Engine::Update()
 
 void Engine::Render()
 {
-	RenderBegin();
+	PreRender();
 
 	SceneManager::Get()->Render();
 
-	RenderEnd();
+	PostRender();
 }
 
-void Engine::RenderBegin()
+void Engine::PreRender()
 {
-	GraphicsCommandQueue->RenderBegin(&Viewport, &ScissorRect);
+	GraphicsCommandQueue->PreRender(&Viewport, &ScissorRect);
 }
 
-void Engine::RenderEnd()
+void Engine::PostRender()
 {
-	GraphicsCommandQueue->RenderEnd();
+	GraphicsCommandQueue->PostRender();
 }
 
 void Engine::ResizeWindow(const int32 Width, const int32 Height)
@@ -114,16 +114,16 @@ void Engine::ShowFPS()
 
 void Engine::CreateConstantBuffer(EConstantBufferViewRegisters Register, uint32 BufferSize, uint32 Count)
 {
-	assert(ConstantBufferList.size() == static_cast<uint8>(Register));
+	assert(ConstantBufferList.size() == StaticCast<uint8>(Register));
 
-	shared_ptr<FConstantBuffer> ConstantBuffer = make_shared<FConstantBuffer>();
+	TSharedPtr<FConstantBuffer> ConstantBuffer = MakeShared<FConstantBuffer>();
 	ConstantBuffer->Initialize(Register, BufferSize, Count);
 	ConstantBufferList.push_back(ConstantBuffer);
 }
 
 void Engine::CreateMultipleRenderTargets()
 {
-	shared_ptr<FTexture> DepthStencilTexture = Resources::Get()->CreateTexture(
+	TSharedPtr<FTexture> DepthStencilTexture = Resources::Get()->CreateTexture(
 		L"DepthStencil",
 		DXGI_FORMAT_D32_FLOAT,
 		Info.Width, Info.Height,
@@ -142,18 +142,18 @@ void Engine::CreateMultipleRenderTargets()
 
 			// 원래 SwapChain Create 단계에서 내부적으로 버퍼 세팅을 진행했었음
 			SwapChain->GetDXGISwapChain()->GetBuffer(Index, IID_PPV_ARGS(&Resource));
-			RenderTargets[Index].Target = Resources::Get()->CreateTexture(Name, Resource);
+			RenderTargets[Index].Texture = Resources::Get()->CreateTexture(Name, Resource);
 		}
 
-		EMultipleRenderTargetType Type = EMultipleRenderTargetType::SwapChain;
-		MultipleRenderTargetArray[static_cast<uint8>(Type)] = make_shared<MultipleRenderTarget>();
-		MultipleRenderTargetArray[static_cast<uint8>(Type)]->Create(Type, RenderTargets, DepthStencilTexture);
+		ERenderTargetType Type = ERenderTargetType::SwapChain;
+		MultipleRenderTargetArray[StaticCast<uint8>(Type)] = MakeShared<MultipleRenderTarget>();
+		MultipleRenderTargetArray[StaticCast<uint8>(Type)]->Create(Device->GetDevice(), Type, RenderTargets, DepthStencilTexture);
 	}
 
 	// Deferred
 	{
 		vector<FRenderTarget> RenderTargets(NumRenderTargetGeometryBufferMember);
-		RenderTargets[0].Target = Resources::Get()->CreateTexture(
+		RenderTargets[0].Texture = Resources::Get()->CreateTexture(
 			L"PositionTarget",
 			DXGI_FORMAT_R32G32B32A32_FLOAT,
 			Info.Width, Info.Height,
@@ -161,7 +161,7 @@ void Engine::CreateMultipleRenderTargets()
 			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET
 		);
 
-		RenderTargets[1].Target = Resources::Get()->CreateTexture(
+		RenderTargets[1].Texture = Resources::Get()->CreateTexture(
 			L"NormalTarget",
 			DXGI_FORMAT_R32G32B32A32_FLOAT,
 			Info.Width, Info.Height,
@@ -169,7 +169,7 @@ void Engine::CreateMultipleRenderTargets()
 			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET
 		);
 
-		RenderTargets[2].Target = Resources::Get()->CreateTexture(
+		RenderTargets[2].Texture = Resources::Get()->CreateTexture(
 			L"DiffuseTarget",
 			DXGI_FORMAT_R8G8B8A8_UNORM,
 			Info.Width, Info.Height,
@@ -177,15 +177,15 @@ void Engine::CreateMultipleRenderTargets()
 			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET
 		);
 
-		EMultipleRenderTargetType Type = EMultipleRenderTargetType::GeometryBuffer;
-		MultipleRenderTargetArray[static_cast<uint8>(Type)] = make_shared<MultipleRenderTarget>();
-		MultipleRenderTargetArray[static_cast<uint8>(Type)]->Create(Type, RenderTargets, DepthStencilTexture);
+		ERenderTargetType Type = ERenderTargetType::GeometryBuffer;
+		MultipleRenderTargetArray[StaticCast<uint8>(Type)] = MakeShared<MultipleRenderTarget>();
+		MultipleRenderTargetArray[StaticCast<uint8>(Type)]->Create(Device->GetDevice(), Type, RenderTargets, DepthStencilTexture);
 	}
 
 	// Lighting
 	{
 		vector<FRenderTarget> RenderTargets(NumRenderTargetLightingMember);
-		RenderTargets[0].Target = Resources::Get()->CreateTexture(
+		RenderTargets[0].Texture = Resources::Get()->CreateTexture(
 			L"DiffuseLightTarget",
 			DXGI_FORMAT_R8G8B8A8_UNORM,
 			Info.Width, Info.Height,
@@ -193,7 +193,7 @@ void Engine::CreateMultipleRenderTargets()
 			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET
 		);
 
-		RenderTargets[1].Target = Resources::Get()->CreateTexture(
+		RenderTargets[1].Texture = Resources::Get()->CreateTexture(
 			L"SpecularLightTarget",
 			DXGI_FORMAT_R8G8B8A8_UNORM,
 			Info.Width, Info.Height,
@@ -201,8 +201,8 @@ void Engine::CreateMultipleRenderTargets()
 			D3D12_HEAP_FLAG_NONE, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET
 		);
 
-		EMultipleRenderTargetType Type = EMultipleRenderTargetType::Lighting;
-		MultipleRenderTargetArray[static_cast<uint8>(Type)] = make_shared<MultipleRenderTarget>();
-		MultipleRenderTargetArray[static_cast<uint8>(Type)]->Create(Type, RenderTargets, DepthStencilTexture);
+		ERenderTargetType Type = ERenderTargetType::Lighting;
+		MultipleRenderTargetArray[StaticCast<uint8>(Type)] = MakeShared<MultipleRenderTarget>();
+		MultipleRenderTargetArray[StaticCast<uint8>(Type)]->Create(Device->GetDevice(), Type, RenderTargets, DepthStencilTexture);
 	}
 }

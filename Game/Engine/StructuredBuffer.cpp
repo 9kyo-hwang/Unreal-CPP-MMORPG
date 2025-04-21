@@ -7,8 +7,8 @@ FStructuredBuffer::FStructuredBuffer()
     : Size(0)
     , Count(0)
     , ResourceState()
-    , ShaderResourceDescriptorHeapStart()
-    , UnorderedAccessDescriptorHeapStart()
+    , SRVHeapStart()
+    , UAVHeapStart()
 {
 }
 
@@ -21,28 +21,28 @@ void FStructuredBuffer::Initialize(uint32 ElementSize, uint32 ElementCount)
     ResourceState = D3D12_RESOURCE_STATE_COMMON;
 
     CreateStructuredBuffer();
-    CreateShaderResourceDescriptor();
-    CreateUnorderedAccessDescriptor();
+    CreateSRV();
+    CreateUAV();
 }
 
 void FStructuredBuffer::PushGraphicsData(EShaderResourceViewRegisters Register)
 {
-    GEngine->GetGraphicsDescriptorTable()->SetDescriptor(ShaderResourceDescriptorHeapStart, Register);
+    GEngine->GetGraphicsResourceTables()->SetSRV(SRVHeapStart, Register);
 }
 
 void FStructuredBuffer::PushComputeData(EShaderResourceViewRegisters Register)
 {
-    GEngine->GetComputeDescriptorTable()->SetDescriptor(ShaderResourceDescriptorHeapStart, Register);
+    GEngine->GetComputeResourceTables()->SetSRV(SRVHeapStart, Register);
 }
 
 void FStructuredBuffer::PushComputeData(EUnorderedAccessViewRegisters Register)
 {
-    GEngine->GetComputeDescriptorTable()->SetDescriptor(UnorderedAccessDescriptorHeapStart, Register);
+    GEngine->GetComputeResourceTables()->SetUAV(UAVHeapStart, Register);
 }
 
 void FStructuredBuffer::CreateStructuredBuffer()
 {
-    uint64 BufferMallocSize = static_cast<uint64>(Size) * Count;
+    uint64 BufferMallocSize = StaticCast<uint64>(Size) * Count;
     D3D12_RESOURCE_DESC Desc = CD3DX12_RESOURCE_DESC::Buffer(BufferMallocSize, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
     D3D12_HEAP_PROPERTIES HeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 
@@ -56,7 +56,7 @@ void FStructuredBuffer::CreateStructuredBuffer()
         )));
 }
 
-void FStructuredBuffer::CreateShaderResourceDescriptor()
+void FStructuredBuffer::CreateSRV()
 {
     D3D12_DESCRIPTOR_HEAP_DESC HeapDesc
     {
@@ -65,8 +65,8 @@ void FStructuredBuffer::CreateShaderResourceDescriptor()
         D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
         0
     };
-    assert(SUCCEEDED(DEVICE->CreateDescriptorHeap(&HeapDesc, IID_PPV_ARGS(&ShaderResourceDescriptorHeap))));
-    ShaderResourceDescriptorHeapStart = ShaderResourceDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+    assert(SUCCEEDED(DEVICE->CreateDescriptorHeap(&HeapDesc, IID_PPV_ARGS(&SRVHeap))));
+    SRVHeapStart = SRVHeap->GetCPUDescriptorHandleForHeapStart();
 
     D3D12_SHADER_RESOURCE_VIEW_DESC DescriptorDesc
     {
@@ -75,10 +75,10 @@ void FStructuredBuffer::CreateShaderResourceDescriptor()
         .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
         .Buffer ={ 0, Count, Size, D3D12_BUFFER_SRV_FLAG_NONE }
     };
-    DEVICE->CreateShaderResourceView(Data.Get(), &DescriptorDesc, ShaderResourceDescriptorHeapStart);
+    DEVICE->CreateShaderResourceView(Data.Get(), &DescriptorDesc, SRVHeapStart);
 }
 
-void FStructuredBuffer::CreateUnorderedAccessDescriptor()
+void FStructuredBuffer::CreateUAV()
 {
     D3D12_DESCRIPTOR_HEAP_DESC HeapDesc
     {
@@ -86,8 +86,8 @@ void FStructuredBuffer::CreateUnorderedAccessDescriptor()
         1,
         D3D12_DESCRIPTOR_HEAP_FLAG_NONE
     };
-    assert(SUCCEEDED(DEVICE->CreateDescriptorHeap(&HeapDesc, IID_PPV_ARGS(&UnorderedAccessDescriptorHeap))));
-    UnorderedAccessDescriptorHeapStart = UnorderedAccessDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+    assert(SUCCEEDED(DEVICE->CreateDescriptorHeap(&HeapDesc, IID_PPV_ARGS(&UAVHeap))));
+    UAVHeapStart = UAVHeap->GetCPUDescriptorHandleForHeapStart();
 
     D3D12_UNORDERED_ACCESS_VIEW_DESC DescriptorDesc
     {
@@ -95,5 +95,5 @@ void FStructuredBuffer::CreateUnorderedAccessDescriptor()
         .ViewDimension = D3D12_UAV_DIMENSION_BUFFER,
         .Buffer = { 0, Count, Size, 0, D3D12_BUFFER_UAV_FLAG_NONE }
     };
-    DEVICE->CreateUnorderedAccessView(Data.Get(), nullptr, &DescriptorDesc, UnorderedAccessDescriptorHeapStart);
+    DEVICE->CreateUnorderedAccessView(Data.Get(), nullptr, &DescriptorDesc, UAVHeapStart);
 }

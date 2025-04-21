@@ -1,7 +1,7 @@
 #pragma once
-#include "Component.h"
+#include "ActorComponent.h"
 
-class FMesh;
+class UMesh;
 class FMaterial;
 class FStructuredBuffer;
 
@@ -21,28 +21,28 @@ struct FSharedComputeData
     int32 Padding[3];
 };
 
-class UParticleSystemComponent : public Component
+class UParticleSystemComponent : public UActorComponent
 {
-    using Super = Component;
+    using Super = UActorComponent;
 
 public:
     UParticleSystemComponent();
     ~UParticleSystemComponent() override;
 
-    void FinalUpdate() override;
+    void FinalUpdate(float DeltaTime) override;
     void Render();
 
     void Load(const wstring& Path) override {}
     void Save(const wstring& Path) override {}
 
 private:
-    shared_ptr<FStructuredBuffer> ParticleBuffer;
-    shared_ptr<FStructuredBuffer> SharedComputeBuffer;
+    TSharedPtr<FStructuredBuffer> ParticleBuffer;
+    TSharedPtr<FStructuredBuffer> SharedComputeBuffer;
     int32 MaxParticle;
 
-    shared_ptr<FMaterial> Material;
-    shared_ptr<FMaterial> ComputeMaterial;
-    shared_ptr<FMesh> Mesh;
+    TSharedPtr<FMaterial> Material;
+    TSharedPtr<FMaterial> ComputeMaterial;
+    TSharedPtr<UMesh> Mesh;
 
     float SpawnInterval;
     float AccumulateTime;

@@ -6,35 +6,16 @@ FSwapChain::FSwapChain()
 {
 }
 
-FSwapChain::~FSwapChain()
-{
-}
+FSwapChain::~FSwapChain() = default;
 
-void FSwapChain::Initialize(const FWindowInfo& Info, ComPtr<IDXGIFactory> DXGI, ComPtr<ID3D12CommandQueue> CommandQueue)
-{
-	Create(Info, DXGI, CommandQueue);
-}
-
-void FSwapChain::Present() const
-{
-	// 현재 프레임을 그리는 것
-	SwapChain->Present(0, 0);
-}
-
-void FSwapChain::SwapIndex()
-{
-	// 지금은 숫자가 0, 1밖에 없으므로 BackBufferIndex ^= 1; 도 가능할 듯
-	BackBufferIndex = (BackBufferIndex + 1) % NumSwapChainBuffer;
-}
-
-void FSwapChain::Create(const FWindowInfo& Info, ComPtr<IDXGIFactory> DXGI, ComPtr<ID3D12CommandQueue> CommandQueue)
+void FSwapChain::Initialize(const FWindowInfo& Info, ComPtr<IDXGIFactory> Factory, ComPtr<ID3D12CommandQueue> CommandQueue)
 {
 	SwapChain.Reset();	// 혹시 Init 함수가 2번 호출될 것을 대비해 Clear
 
 	DXGI_MODE_DESC BufferDesc  // 버퍼 정보
 	{
-		.Width = static_cast<uint32>(Info.Width),	// 해상도 너비
-		.Height = static_cast<uint32>(Info.Height),	// 해상도 높이
+		.Width = StaticCast<uint32>(Info.Width),	// 해상도 너비
+		.Height = StaticCast<uint32>(Info.Height),	// 해상도 높이
 		.RefreshRate = {.Numerator = 60, .Denominator = 1},	// 주사율
 		.Format = DXGI_FORMAT_R8G8B8A8_UNORM,	// 디스플레이 형식
 		.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED,
@@ -53,5 +34,17 @@ void FSwapChain::Create(const FWindowInfo& Info, ComPtr<IDXGIFactory> DXGI, ComP
 		.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH
 	};
 
-	DXGI->CreateSwapChain(CommandQueue.Get(), &Desc, &SwapChain);
+	Factory->CreateSwapChain(CommandQueue.Get(), &Desc, &SwapChain);
+}
+
+void FSwapChain::Present() const
+{
+	// 현재 프레임을 그리는 것
+	SwapChain->Present(0, 0);
+}
+
+void FSwapChain::SwapIndex()
+{
+	// 지금은 숫자가 0, 1밖에 없으므로 BackBufferIndex ^= 1; 도 가능할 듯
+	BackBufferIndex = (BackBufferIndex + 1) % NumSwapChainBuffer;
 }

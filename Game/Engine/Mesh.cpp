@@ -2,30 +2,31 @@
 #include "Mesh.h"
 
 #include "Engine.h"
+#include "InstanceBuffer.h"
 #include "Material.h"
 
-FMesh::FMesh()
+UMesh::UMesh()
 	: Super(EObjectType::Mesh)
-	, VertexBufferDescriptor()
+	, VertexBufferView()
 	, NumVertices(0)
-	, IndexBufferDescriptor()
+	, IndexBufferView()
 	, NumIndices(0)
 {
 }
 
-FMesh::~FMesh() = default;
+UMesh::~UMesh() = default;
 
-void FMesh::Initialize(const vector<FVertex>& Vertices, const vector<uint32>& Indices)
+void UMesh::Initialize(const vector<FVertex>& Vertices, const vector<uint32>& Indices)
 {
 	CreateVertexBuffer(Vertices);
 	CreateIndexBuffer(Indices);
 }
 
 // CommandQueue의 RenderBegin, RenderEnd 사이에 이러한 Render들이 호출될 예정(CommandList에 들어갔으므로)
-void FMesh::Render(uint32 InstanceCount)
+void UMesh::Render(uint32 InstanceCount)
 {
-	GRAPHICS_COMMAND_LIST->IASetVertexBuffers(0, 1, &VertexBufferDescriptor);
-	GRAPHICS_COMMAND_LIST->IASetIndexBuffer(&IndexBufferDescriptor);
+	GRAPHICS_COMMAND_LIST->IASetVertexBuffers(0, 1, &VertexBufferView);
+	GRAPHICS_COMMAND_LIST->IASetIndexBuffer(&IndexBufferView);
 
 	// TODO: 작성한 서명을 실제로 사용하려면 이 부분에서 코드 작성
 	/**
@@ -36,15 +37,26 @@ void FMesh::Render(uint32 InstanceCount)
 
 	// Material의 Update는 GameObject를 통해 이루어짐
 
-	GEngine->GetGraphicsDescriptorTable()->Commit();
+	GEngine->GetGraphicsResourceTables()->Commit();
 
 	//GRAPHICS_COMMAND_LIST->DrawInstanced(VertexCount, 1, 0, 0);  // 정점 정보로만 그리는 함수
 	GRAPHICS_COMMAND_LIST->DrawIndexedInstanced(NumIndices, InstanceCount, 0, 0, 0);
 }
 
-void FMesh::CreateVertexBuffer(const vector<FVertex>& Vertices)
+void UMesh::Render(TSharedPtr<FInstanceBuffer>& InstanceBuffer)
 {
-	NumVertices = static_cast<uint32>(Vertices.size());
+	D3D12_VERTEX_BUFFER_VIEW VertexBufferViews[] = {VertexBufferView, InstanceBuffer->GetView()};	// 셰이더 생성 시 IA 단계에 넘겨줄 데이터 구조 또한 변경돼야 함
+	GRAPHICS_COMMAND_LIST->IASetVertexBuffers(0, 2, VertexBufferViews);
+	GRAPHICS_COMMAND_LIST->IASetIndexBuffer(&IndexBufferView);
+
+	GEngine->GetGraphicsResourceTables()->Commit();
+
+	GRAPHICS_COMMAND_LIST->DrawIndexedInstanced(NumIndices, InstanceBuffer->Num(), 0, 0, 0);
+}
+
+void UMesh::CreateVertexBuffer(const vector<FVertex>& Vertices)
+{
+	NumVertices = StaticCast<uint32>(Vertices.size());
 	uint32 MallocSize = NumVertices * sizeof(FVertex);
 
 	/**
@@ -72,14 +84,14 @@ void FMesh::CreateVertexBuffer(const vector<FVertex>& Vertices)
 	::memcpy(VertexData, &Vertices[0], MallocSize);
 	VertexBuffer->Unmap(0, nullptr);
 
-	VertexBufferDescriptor.BufferLocation = VertexBuffer->GetGPUVirtualAddress();
-	VertexBufferDescriptor.StrideInBytes = sizeof(FVertex);  // 정점 1개 크기
-	VertexBufferDescriptor.SizeInBytes = MallocSize;  // 버퍼 크기
+	VertexBufferView.BufferLocation = VertexBuffer->GetGPUVirtualAddress();
+	VertexBufferView.StrideInBytes = sizeof(FVertex);  // 정점 1개 크기
+	VertexBufferView.SizeInBytes = MallocSize;  // 버퍼 크기
 }
 
-void FMesh::CreateIndexBuffer(const vector<uint32>& Indices)
+void UMesh::CreateIndexBuffer(const vector<uint32>& Indices)
 {
-	NumIndices = static_cast<uint32>(Indices.size());
+	NumIndices = StaticCast<uint32>(Indices.size());
 	uint32 MallocSize = NumIndices * sizeof(uint32);
 
 	D3D12_HEAP_PROPERTIES HeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
@@ -100,7 +112,7 @@ void FMesh::CreateIndexBuffer(const vector<uint32>& Indices)
 	::memcpy(IndexData, &Indices[0], MallocSize);
 	IndexBuffer->Unmap(0, nullptr);
 
-	IndexBufferDescriptor.BufferLocation = IndexBuffer->GetGPUVirtualAddress();
-	IndexBufferDescriptor.Format = DXGI_FORMAT_R32_UINT;
-	IndexBufferDescriptor.SizeInBytes = MallocSize;
+	IndexBufferView.BufferLocation = IndexBuffer->GetGPUVirtualAddress();
+	IndexBufferView.Format = DXGI_FORMAT_R32_UINT;
+	IndexBufferView.SizeInBytes = MallocSize;
 }

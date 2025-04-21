@@ -1,12 +1,12 @@
 #include "pch.h"
 #include "Frustum.h"
 
-#include "Camera.h"
+#include "CameraComponent.h"
 
 void Frustum::FinalUpdate()
 {
-	FMatrix InverseViewMatrix = Camera::StaticViewMatrix.Invert();
-	FMatrix InverseProjectionMatrix = Camera::StaticProjectionMatrix.Invert();
+	FMatrix InverseViewMatrix = UCameraComponent::StaticViewMatrix.Invert();
+	FMatrix InverseProjectionMatrix = UCameraComponent::StaticProjectionMatrix.Invert();
 	FMatrix InverseMatrix = InverseProjectionMatrix * InverseViewMatrix;
 
 	// x, y, z, w(1)
@@ -23,12 +23,12 @@ void Frustum::FinalUpdate()
 		::XMVector3TransformCoord(FVector3(-1.f, -1.f, 1.f), InverseMatrix)
 	};
 
-	Planes[static_cast<uint8>(EPlaneType::Front)] = ::XMPlaneFromPoints(WorldPositions[0], WorldPositions[1], WorldPositions[2]);		// CW
-	Planes[static_cast< uint8 >( EPlaneType::Back )] = ::XMPlaneFromPoints(WorldPositions[4], WorldPositions[7], WorldPositions[5]);		// CCW
-	Planes[static_cast< uint8 >( EPlaneType::Up )] = ::XMPlaneFromPoints(WorldPositions[4], WorldPositions[5], WorldPositions[1]);		// CW
-	Planes[static_cast< uint8 >( EPlaneType::Down )] = ::XMPlaneFromPoints(WorldPositions[7], WorldPositions[3], WorldPositions[6]);		// CCW
-	Planes[static_cast< uint8 >( EPlaneType::Left )] = ::XMPlaneFromPoints(WorldPositions[4], WorldPositions[0], WorldPositions[7]);		// CW
-	Planes[static_cast< uint8 >( EPlaneType::Right )] = ::XMPlaneFromPoints(WorldPositions[5], WorldPositions[6], WorldPositions[1]);	// CCW
+	Planes[StaticCast<uint8>(EPlaneType::Front)] = ::XMPlaneFromPoints(WorldPositions[0], WorldPositions[1], WorldPositions[2]);		// CW
+	Planes[StaticCast<uint8>( EPlaneType::Back)] = ::XMPlaneFromPoints(WorldPositions[4], WorldPositions[7], WorldPositions[5]);		// CCW
+	Planes[StaticCast<uint8>( EPlaneType::Up)] = ::XMPlaneFromPoints(WorldPositions[4], WorldPositions[5], WorldPositions[1]);		// CW
+	Planes[StaticCast<uint8>( EPlaneType::Down)] = ::XMPlaneFromPoints(WorldPositions[7], WorldPositions[3], WorldPositions[6]);		// CCW
+	Planes[StaticCast<uint8>( EPlaneType::Left)] = ::XMPlaneFromPoints(WorldPositions[4], WorldPositions[0], WorldPositions[7]);		// CW
+	Planes[StaticCast<uint8>( EPlaneType::Right)] = ::XMPlaneFromPoints(WorldPositions[5], WorldPositions[6], WorldPositions[1]);	// CCW
 }
 
 bool Frustum::ContainsSphere(const FVector3& Position, float Radius)

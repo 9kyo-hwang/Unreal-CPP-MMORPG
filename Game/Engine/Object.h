@@ -3,7 +3,7 @@
 enum class EObjectType : uint8
 {
 	None,
-	GameObject,	// Prefab(Blueprint)
+	Actor,	// Prefab(Blueprint)
 	Component,
 	Material,
 	Mesh,
@@ -13,17 +13,18 @@ enum class EObjectType : uint8
 	End
 };
 
-constexpr uint8 ObjectCount = static_cast<uint8>(EObjectType::End);
+constexpr uint8 ObjectCount = ConstexprCast<uint8>(EObjectType::End);
 
-class Object
+class UObject
 {
 public:
-	Object(EObjectType InType);
-	virtual ~Object();
+	UObject(EObjectType InType);
+	virtual ~UObject();
 
-	EObjectType GetObjectType() const { return Type; }
+	EObjectType GetObjectType() const { return ObjectType; }
 	const wstring& GetName() const { return Name; }
 	void SetName(const wstring& NewName) { Name = NewName; }
+	uint32 GetID() const { return ID; }
 
 	// TODO: Instantiate
 
@@ -33,7 +34,8 @@ protected:
 	virtual void Save(const wstring& Path) {}
 
 protected:
-	EObjectType Type;
+	EObjectType ObjectType;
 	wstring Name;
+	uint32 ID;
 };
 

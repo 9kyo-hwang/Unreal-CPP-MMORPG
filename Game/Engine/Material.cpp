@@ -11,8 +11,17 @@ FMaterial::FMaterial()
 {
 }
 
-FMaterial::~FMaterial()
+FMaterial::~FMaterial() = default;
+
+TSharedPtr<FMaterial> FMaterial::Clone() const
 {
+	TSharedPtr<FMaterial> Material = MakeShared<FMaterial>();
+
+	Material->SetShader(Shader);
+	Material->Parameters = Parameters;
+	Material->Textures = Textures;
+
+	return Material;
 }
 
 void FMaterial::PushGraphicsData()
@@ -23,8 +32,8 @@ void FMaterial::PushGraphicsData()
 	{
 		if (Textures[Index])
 		{
-			EShaderResourceViewRegisters Register = static_cast< EShaderResourceViewRegisters >( static_cast< int8 >( EShaderResourceViewRegisters::t0 ) + Index );
-			GEngine->GetGraphicsDescriptorTable()->SetDescriptor(Textures[Index]->GetShaderResourceDescriptorHandle(), Register);
+			EShaderResourceViewRegisters Register = StaticCast< EShaderResourceViewRegisters >( StaticCast< int8 >( EShaderResourceViewRegisters::t0 ) + Index );
+			GEngine->GetGraphicsResourceTables()->SetSRV(Textures[Index]->GetSRV(), Register);
 		}
 	}
 
@@ -40,8 +49,8 @@ void FMaterial::PushComputeData()
 	{
 		if (Textures[Index])
 		{
-			EShaderResourceViewRegisters Register = static_cast<EShaderResourceViewRegisters>(static_cast<uint8>(EShaderResourceViewRegisters::t0) + Index);
-			GEngine->GetComputeDescriptorTable()->SetDescriptor(Textures[Index]->GetShaderResourceDescriptorHandle(), Register);
+			EShaderResourceViewRegisters Register = StaticCast<EShaderResourceViewRegisters>(StaticCast<uint8>(EShaderResourceViewRegisters::t0) + Index);
+			GEngine->GetComputeResourceTables()->SetSRV(Textures[Index]->GetSRV(), Register);
 		}
 	}
 
@@ -52,7 +61,7 @@ void FMaterial::Dispatch(uint32 X, uint32 Y, uint32 Z)
 {
 	PushComputeData();	// CBV + SRV + SetPipelineState
 
-	GEngine->GetComputeDescriptorTable()->Commit();
+	GEngine->GetComputeResourceTables()->Commit();
 	COMPUTE_COMMAND_LIST->Dispatch(X, Y, Z);
 	GEngine->GetComputeCommandQueue()->Flush();
 }

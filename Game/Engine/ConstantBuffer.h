@@ -8,7 +8,7 @@ enum class EConstantBufferType : uint8
 	END
 };
 
-constexpr uint8 ConstantBufferCount = static_cast<uint8>(EConstantBufferType::END);
+constexpr uint8 ConstantBufferCount = ConstexprCast<uint8>(EConstantBufferType::END);
 
 class FConstantBuffer
 {
@@ -26,22 +26,22 @@ public:
 	D3D12_CPU_DESCRIPTOR_HANDLE GetCPUHandle(uint32 Index);
 
 private:
-	void CreateDescriptorHeap();
-	void CreateDescriptor();
+	void BindResource();
+	void CreateHeapAndViews();
 
 	// Constant Buffer
 private:
 	// 버퍼가 배열의 원소가 됨.
-	ComPtr<ID3D12Resource> Data;	// GPU 쪽 DRAM에서 들고 있을 버퍼 요소들을 가리키는 포인터
-	BYTE* MappedElement;			// CPU 쪽에서 데이터를 전송할 때 사용하는 버퍼
-	uint32 Size;					// 개별 버퍼의 크기
-	uint32 Count;					// 각 버퍼의 총 개수
-	uint32 Top;						// 마지막 원소를 가리키는 인덱스
+	ComPtr<ID3D12Resource> ConstantBuffer;	// GPU 쪽 DRAM에서 들고 있을 버퍼 요소들을 가리키는 포인터
+	BYTE* Data;				// CPU 쪽에서 데이터를 전송할 때 사용하는 버퍼
+	uint32 Size;						// 개별 버퍼의 크기
+	uint32 Count;						// 각 버퍼의 총 개수
+	uint32 Top;							// 마지막 원소를 가리키는 인덱스
 
 	// CBV들을 저장하는 Descriptor Heap
 private:
-	ComPtr<ID3D12DescriptorHeap> DescriptorHeap;
-	D3D12_CPU_DESCRIPTOR_HANDLE DescriptorHandle;
+	ComPtr<ID3D12DescriptorHeap> Heap;
+	D3D12_CPU_DESCRIPTOR_HANDLE HeapStart;
 	uint32 IncrementSize;
 
 	EConstantBufferViewRegisters Register;

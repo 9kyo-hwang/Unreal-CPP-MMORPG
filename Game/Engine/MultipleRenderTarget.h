@@ -1,6 +1,6 @@
 #pragma once
 
-enum class EMultipleRenderTargetType : uint8
+enum class ERenderTargetType : uint8
 {
 	SwapChain,	// BackBuffer, FrontBuffer
 	GeometryBuffer,	// Position, Normal, Color. 디퍼드 셰이딩에서 사용
@@ -10,11 +10,11 @@ enum class EMultipleRenderTargetType : uint8
 
 constexpr int32 NumRenderTargetGeometryBufferMember = 3;
 constexpr int32 NumRenderTargetLightingMember = 2;
-constexpr uint8 NumMultipleRenderTarget = static_cast<uint8>(EMultipleRenderTargetType::END);
+constexpr uint8 NumRenderTargets = ConstexprCast<uint8>(ERenderTargetType::END);
 
 struct FRenderTarget
 {
-	shared_ptr<class FTexture> Target;	// 그릴 대상
+	TSharedPtr<class FTexture> Texture;	// 그릴 대상
 	float ClearColor[4];	// 초기값 색상
 };
 
@@ -24,31 +24,31 @@ public:
 	MultipleRenderTarget();
 	~MultipleRenderTarget();
 	
-	void Create(EMultipleRenderTargetType InType, vector<FRenderTarget>& RenderTargets, shared_ptr<FTexture> InDepthStencilTexture);
+	void Create(ComPtr<ID3D12Device> Device, ERenderTargetType InType, vector<FRenderTarget>& InRenderTargets, TSharedPtr<FTexture> InDepthStencilTexture);
 
-	void OMSetRenderTargets(uint32 NumDescriptors, uint32 DescriptorHeapOffset) const;
+	void OMSetRenderTargets(uint32 NumViews, uint32 HeapOffset) const;
 	void OMSetRenderTargets() const;
 
-	void ClearRenderTargetView(uint32 Index) const;
-	void ClearRenderTargetView() const;
+	void ClearRTV(uint32 Index) const;
+	void ClearRTV() const;
 
-	shared_ptr<FTexture> GetRenderTargetTexture(uint32 Index) { return Data[Index].Target; }
-	shared_ptr<FTexture> GetDepthStencilTexture() { return DepthStencilTexture; }
+	TSharedPtr<FTexture> GetRenderTargetTexture(uint32 Index) { return RenderTargets[Index].Texture; }
+	TSharedPtr<FTexture> GetDepthStencilTexture() { return DepthStencilTexture; }
 
 	void WaitForUseAsAResource() const;
 	void WaitForUseAsRenderTarget() const;
 
 private:
-	EMultipleRenderTargetType Type;
-	vector<FRenderTarget> Data;
+	ERenderTargetType Type;
+	vector<FRenderTarget> RenderTargets;
 	uint32 Num;
-	shared_ptr<FTexture> DepthStencilTexture;
-	ComPtr<ID3D12DescriptorHeap> RenderTargetDescriptorHeap;
+	TSharedPtr<FTexture> DepthStencilTexture;
+	ComPtr<ID3D12DescriptorHeap> RTVHeap;
 
 private:
-	uint32 RenderTargetDescriptorIncrementSize;
-	D3D12_CPU_DESCRIPTOR_HANDLE RenderTargetDescriptorHeapStart;
-	D3D12_CPU_DESCRIPTOR_HANDLE DepthStencilDescriptorHeapStart;
+	uint32 RTVIncrementSize;
+	D3D12_CPU_DESCRIPTOR_HANDLE RTVHeapStart;
+	D3D12_CPU_DESCRIPTOR_HANDLE DSVHeapStart;
 
 private:
 	D3D12_RESOURCE_BARRIER RenderTargetToResourceBarriers[8];
