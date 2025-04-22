@@ -86,7 +86,7 @@ void Engine::Render()
 
 void Engine::PreRender()
 {
-	GraphicsCommandQueue->PreRender(&Viewport, &ScissorRect);
+	GraphicsCommandQueue->PreRender();
 }
 
 void Engine::PostRender()
@@ -146,8 +146,34 @@ void Engine::CreateMultipleRenderTargets()
 		}
 
 		ERenderTargetType Type = ERenderTargetType::SwapChain;
-		MultipleRenderTargetArray[StaticCast<uint8>(Type)] = MakeShared<MultipleRenderTarget>();
+		MultipleRenderTargetArray[StaticCast<uint8>(Type)] = MakeShared<FMultipleRenderTarget>();
 		MultipleRenderTargetArray[StaticCast<uint8>(Type)]->Create(Device->GetDevice(), Type, RenderTargets, DepthStencilTexture);
+	}
+
+	// Shadow
+	{
+		vector<FRenderTarget> RenderTargets(NumRenderTargetShadowMember);
+		RenderTargets[0].Texture = Resources::Get()->CreateTexture(
+			L"ShadowTarget",
+			DXGI_FORMAT_R32_FLOAT,	// Red Channel Only
+			4096, 4096,
+			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+			D3D12_HEAP_FLAG_NONE
+			, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET
+		);
+
+		TSharedPtr<FTexture> ShadowDepthTexture = Resources::Get()->CreateTexture(
+			L"ShadowDepthStencil",	// 별도의 DepthStencil 사용(공유 X, 별도 크기를 가지기 때문)
+			DXGI_FORMAT_D32_FLOAT,
+			4096, 4096,
+			CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
+			D3D12_HEAP_FLAG_NONE,
+			D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL
+		);
+
+		ERenderTargetType Type = ERenderTargetType::Shadow;
+		MultipleRenderTargetArray[StaticCast<uint8>(Type)] = MakeShared<FMultipleRenderTarget>();
+		MultipleRenderTargetArray[StaticCast<uint8>(Type)]->Create(Device->GetDevice(), Type, RenderTargets, ShadowDepthTexture);
 	}
 
 	// Deferred
@@ -178,7 +204,7 @@ void Engine::CreateMultipleRenderTargets()
 		);
 
 		ERenderTargetType Type = ERenderTargetType::GeometryBuffer;
-		MultipleRenderTargetArray[StaticCast<uint8>(Type)] = MakeShared<MultipleRenderTarget>();
+		MultipleRenderTargetArray[StaticCast<uint8>(Type)] = MakeShared<FMultipleRenderTarget>();
 		MultipleRenderTargetArray[StaticCast<uint8>(Type)]->Create(Device->GetDevice(), Type, RenderTargets, DepthStencilTexture);
 	}
 
@@ -202,7 +228,7 @@ void Engine::CreateMultipleRenderTargets()
 		);
 
 		ERenderTargetType Type = ERenderTargetType::Lighting;
-		MultipleRenderTargetArray[StaticCast<uint8>(Type)] = MakeShared<MultipleRenderTarget>();
+		MultipleRenderTargetArray[StaticCast<uint8>(Type)] = MakeShared<FMultipleRenderTarget>();
 		MultipleRenderTargetArray[StaticCast<uint8>(Type)]->Create(Device->GetDevice(), Type, RenderTargets, DepthStencilTexture);
 	}
 }

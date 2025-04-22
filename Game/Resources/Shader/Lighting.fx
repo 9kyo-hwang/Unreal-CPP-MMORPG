@@ -61,6 +61,30 @@ PSOut PSDirectionalLight(VSOut Input)
     float3 ViewNormal = GTexture_1.Sample(GSampler_0, Input.UV).xyz;
     LightColor Color = CalculateLightColor(GInt_0, ViewNormal, ViewPosition);
 
+    if (length(Color.Diffuse) != 0) // Shadow
+    {
+        matrix ShadowCameraViewProjectionMatrix = GMatrix_0;
+        float4 WorldPosition = mul(float4(ViewPosition.xyz, 1.f), GInverseViewMatrix);
+        float4 ShadowClipPosition = mul(WorldPosition, ShadowCameraViewProjectionMatrix);
+        float Depth = ShadowClipPosition.z / ShadowClipPosition.w;
+
+        // x [-1 ~ 1] -> u [0 ~ 1]
+        // y [1 ~ -1] -> v [0 ~ 1]
+        float2 UV = ShadowClipPosition.xy / ShadowClipPosition.w;
+        UV.y = -UV.y;
+        UV = UV * 0.5 + 0.5;
+
+        if (0 < UV.x && UV.x < 1 && 0 < UV.y && UV.y < 1)
+        {
+            float ShadowDepth = GTexture_2.Sample(GSampler_0, UV).x;
+            if (ShadowDepth > 0 && Depth > ShadowDepth + 0.00001f)
+			{
+                Color.Diffuse *= 0.5f;
+                Color.Specular = (float4) 0.f;
+            }
+        }
+    }
+
     PSOut Output = (PSOut) 0;
     Output.Diffuse = Color.Diffuse + Color.Ambient;
     Output.Specular = Color.Specular;

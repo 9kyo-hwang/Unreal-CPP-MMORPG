@@ -138,6 +138,7 @@ struct FTransformParameters
 	FMatrix ProjectionMatrix;
 	FMatrix WorldViewMatrix;
 	FMatrix WorldViewProjectionMatrix;
+	FMatrix InverseViewMatrix;
 };
 
 #define GENERATED_SINGLETON(type)	\

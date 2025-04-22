@@ -12,19 +12,19 @@ public:
 	void Update();
 	void Render();
 
-	void LoadScene(wstring SceneName);
+	void LoadLevel(wstring LevelName);
 
-	TSharedPtr<ULevel> GetActiveScene() { return ActiveScene; }
+	TSharedPtr<ULevel> GetCurrentLevel() { return CurrentLevel; }
 
 	void SetLayer(uint8 Layer, const wstring& Name);
 	const wstring& LayerToName(uint8 Index) { return LayerNames[Index]; }
 	uint8 NameToLayer(const wstring& Name);
 
 private:
-	TSharedPtr<ULevel> LoadTestScene();
+	TSharedPtr<ULevel> LoadTestLevel();
 
 private:
-	TSharedPtr<ULevel> ActiveScene;
+	TSharedPtr<ULevel> CurrentLevel;
 
 	array<wstring, NumLayer> LayerNames;	// Client 측에서 string을 통해 자유롭게 추가/삭제 가능하도록 string으로 관리
 	unordered_map<wstring, uint8> Layers;

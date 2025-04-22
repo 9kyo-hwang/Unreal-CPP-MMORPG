@@ -22,6 +22,8 @@ UCameraComponent::UCameraComponent()
 	, Far(1000.f)
 	, Fov(XM_PI / 4.f) // 45도
 	, Scale(1.f)
+	, Width(StaticCast<float>(GEngine->GetWindow().Width))
+	, Height(StaticCast<float>(GEngine->GetWindow().Height))
 	, ViewMatrix()
 	, ProjectionMatrix()
 	, CullingMask(0)
@@ -33,9 +35,6 @@ UCameraComponent::~UCameraComponent() = default;
 void UCameraComponent::FinalUpdate(float DeltaTime)
 {
 	ViewMatrix = GetTransform()->GetLocalToWorldMatrix().Invert();	// 월드 행렬의 역행렬
-
-	float Width = StaticCast<float>(GEngine->GetWindow().Width);
-	float Height = StaticCast<float>(GEngine->GetWindow().Height);
 
 	switch (Projection)
 	{
@@ -50,47 +49,93 @@ void UCameraComponent::FinalUpdate(float DeltaTime)
 	Frustum.FinalUpdate();
 }
 
-void UCameraComponent::SortGameObject()
+void UCameraComponent::SortActors()
 {
-	auto ActiveScene = SceneManager::Get()->GetActiveScene();
-	auto& GameObjects = ActiveScene->GetAllActor();
+	TSharedPtr<ULevel> CurrentLevel = SceneManager::Get()->GetCurrentLevel();
+	auto& Actors = CurrentLevel->GetAllLevelActors();
 
 	DeferredShaders.clear();
 	ForwardShaders.clear();
 	ParticleShaders.clear();
 
-	for (auto& GameObject : GameObjects)
+	for (auto& Actor : Actors)
 	{
-		if ( IsLayerCulled(GameObject->GetLayer()) )
+		if ( IsLayerCulled(Actor->GetLayer()) )
 		{
 			continue;
 		}
 
-		if (GameObject->GetCheckFrustum())
+		if (Actor->GetCheckFrustum())
 		{
-			auto Transform = GameObject->GetSceneComponent();
+			auto Transform = Actor->GetSceneComponent();
 			if (!Frustum.ContainsSphere(Transform->GetWorldPosition(), Transform->GetFrustumBound()))
 			{
 				continue;
 			}
 		}
 
-		if (TSharedPtr<UMeshComponent> MeshComponent = GameObject->GetMeshComponent())
+		if (TSharedPtr<UMeshComponent> MeshComponent = Actor->GetMeshComponent())
 		{
 			switch (MeshComponent->GetMaterial()->GetShader()->GetShaderType())
 			{
 			case EShaderType::Deferred:
-				DeferredShaders.push_back(GameObject);
+				DeferredShaders.push_back(Actor);
 				break;
 			case EShaderType::Forward:
-				ForwardShaders.push_back(GameObject);
+				ForwardShaders.push_back(Actor);
 				break;
 			}
 		}
-		else if (TSharedPtr<UParticleSystemComponent> ParticleSystemComponent = GameObject->GetParticleSystemComponent())
+		else if (TSharedPtr<UParticleSystemComponent> ParticleSystemComponent = Actor->GetParticleSystemComponent())
 		{
-			ParticleShaders.push_back(GameObject);
+			ParticleShaders.push_back(Actor);
 		}
+	}
+}
+
+void UCameraComponent::SortShadowActors()
+{
+	ShadowShaders.clear();
+
+	TSharedPtr<ULevel> CurrentLevel = SceneManager::Get()->GetCurrentLevel();
+	for (auto& Actor : CurrentLevel->GetAllLevelActors())
+	{
+		if (!Actor->GetMeshComponent())
+		{
+			continue;
+		}
+
+		if (Actor->IsStaticShadow())
+		{
+			continue;
+		}
+
+		if (IsLayerCulled(Actor->GetLayer()))
+		{
+			continue;
+		}
+
+		if ( Actor->GetCheckFrustum() )
+		{
+			auto SceneComponent = Actor->GetSceneComponent();
+			if (!Frustum.ContainsSphere(SceneComponent->GetWorldPosition(), SceneComponent->GetFrustumBound()) )
+			{
+				continue;
+			}
+		}
+
+		ShadowShaders.push_back(Actor);
+	}
+}
+
+void UCameraComponent::RenderShadow()
+{
+	StaticViewMatrix = ViewMatrix;
+	StaticProjectionMatrix = ProjectionMatrix;
+
+	for (auto& Actor : ShadowShaders)
+	{
+		Actor->GetMeshComponent()->RenderShadow();
 	}
 }
 

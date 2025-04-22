@@ -4,7 +4,7 @@
 #include "Engine.h"
 #include "Texture.h"
 
-MultipleRenderTarget::MultipleRenderTarget()
+FMultipleRenderTarget::FMultipleRenderTarget()
 	: Type()
 	, Num(0)
 	, RTVIncrementSize(0)
@@ -15,9 +15,9 @@ MultipleRenderTarget::MultipleRenderTarget()
 {
 }
 
-MultipleRenderTarget::~MultipleRenderTarget() = default;
+FMultipleRenderTarget::~FMultipleRenderTarget() = default;
 
-void MultipleRenderTarget::Create(ComPtr<ID3D12Device> Device, ERenderTargetType InType, vector<FRenderTarget>& InRenderTargets,
+void FMultipleRenderTarget::Create(ComPtr<ID3D12Device> Device, ERenderTargetType InType, vector<FRenderTarget>& InRenderTargets,
                                   TSharedPtr<FTexture> InDepthStencilTexture)
 {
 	Type = InType;
@@ -69,25 +69,37 @@ void MultipleRenderTarget::Create(ComPtr<ID3D12Device> Device, ERenderTargetType
 	}
 }
 
-void MultipleRenderTarget::OMSetRenderTargets(uint32 NumViews, uint32 HeapOffset) const
+void FMultipleRenderTarget::OMSetRenderTargets(uint32 NumViews, uint32 HeapOffset) const
 {
+	// Shadow가 생기면서 모든 렌더 타겟의 크기가 동일하지 않음 -> Viewport와 Rect를 새로 계산해줘야 함
+	D3D12_VIEWPORT Viewport = D3D12_VIEWPORT{ 0.f, 0.f, RenderTargets[0].Texture->GetWidth(), RenderTargets[0].Texture->GetHeight(), 0.f, 1.f };
+	D3D12_RECT Rect = D3D12_RECT{ 0, 0, StaticCast<LONG>(RenderTargets[0].Texture->GetWidth()), StaticCast<LONG>(RenderTargets[0].Texture->GetHeight()) };
+
+	GRAPHICS_COMMAND_LIST->RSSetViewports(1, &Viewport);
+	GRAPHICS_COMMAND_LIST->RSSetScissorRects(1, &Rect);
+
 	D3D12_CPU_DESCRIPTOR_HANDLE View = CD3DX12_CPU_DESCRIPTOR_HANDLE(RTVHeapStart, HeapOffset * RTVIncrementSize);
 	GRAPHICS_COMMAND_LIST->OMSetRenderTargets(NumViews, &View, false, &DSVHeapStart);
 }
 
-void MultipleRenderTarget::OMSetRenderTargets() const
+void FMultipleRenderTarget::OMSetRenderTargets() const
 {
+	D3D12_VIEWPORT Viewport = D3D12_VIEWPORT{ 0.f, 0.f, RenderTargets[0].Texture->GetWidth(), RenderTargets[0].Texture->GetHeight(), 0.f, 1.f };
+	D3D12_RECT Rect = D3D12_RECT{ 0, 0, StaticCast<LONG>(RenderTargets[0].Texture->GetWidth()), StaticCast<LONG>(RenderTargets[0].Texture->GetHeight()) };
+
+	GRAPHICS_COMMAND_LIST->RSSetViewports(1, &Viewport);
+	GRAPHICS_COMMAND_LIST->RSSetScissorRects(1, &Rect);
 	GRAPHICS_COMMAND_LIST->OMSetRenderTargets(Num, &RTVHeapStart, true, &DSVHeapStart);
 }
 
-void MultipleRenderTarget::ClearRTV(uint32 Index) const
+void FMultipleRenderTarget::ClearRTV(uint32 Index) const
 {
 	D3D12_CPU_DESCRIPTOR_HANDLE View = CD3DX12_CPU_DESCRIPTOR_HANDLE(RTVHeapStart, Index * RTVIncrementSize);
 	GRAPHICS_COMMAND_LIST->ClearRenderTargetView(View, RenderTargets[Index].ClearColor, 0, nullptr);
 	GRAPHICS_COMMAND_LIST->ClearDepthStencilView(DSVHeapStart, D3D12_CLEAR_FLAG_DEPTH, 1.f, 0, 0, nullptr);
 }
 
-void MultipleRenderTarget::ClearRTV() const
+void FMultipleRenderTarget::ClearRTV() const
 {
 	WaitForUseAsRenderTarget();
 
@@ -100,12 +112,12 @@ void MultipleRenderTarget::ClearRTV() const
 	GRAPHICS_COMMAND_LIST->ClearDepthStencilView(DSVHeapStart, D3D12_CLEAR_FLAG_DEPTH, 1.f, 0, 0, nullptr);
 }
 
-void MultipleRenderTarget::WaitForUseAsAResource() const
+void FMultipleRenderTarget::WaitForUseAsAResource() const
 {
 	GRAPHICS_COMMAND_LIST->ResourceBarrier(Num, RenderTargetToResourceBarriers);
 }
 
-void MultipleRenderTarget::WaitForUseAsRenderTarget() const
+void FMultipleRenderTarget::WaitForUseAsRenderTarget() const
 {
 	GRAPHICS_COMMAND_LIST->ResourceBarrier(Num, ResourceToRenderTargetBarriers);
 }

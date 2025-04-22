@@ -144,7 +144,7 @@ TSharedPtr<UMesh> Resources::LoadCube()
 		),
 		FVertex
 		(
-			FVector3(+WidthHalf, +HeightHalf, +DepthHalf),
+			FVector3(+WidthHalf, -HeightHalf, +DepthHalf),
 			FVector2(0.f, 1.f),
 			FVector3(0.f, 0.f, 1.f),
 			FVector3(-1.f, 0.f, 0.f)
@@ -174,7 +174,7 @@ TSharedPtr<UMesh> Resources::LoadCube()
 		),
 		FVertex
 		(
-			FVector3(+WidthHalf, -HeightHalf, +DepthHalf),
+			FVector3(+WidthHalf, +HeightHalf, +DepthHalf),
 			FVector2(0.f, 0.f),
 			FVector3(0.f, 1.f, 0.f),
 			FVector3(1.f, 0.f, 0.f)
@@ -227,61 +227,61 @@ TSharedPtr<UMesh> Resources::LoadCube()
 		// 왼쪽면
 		FVertex
 		(
-		FVector3(-WidthHalf, -HeightHalf, +DepthHalf),
-		FVector2(0.f, 1.f),
-		FVector3(-1.f, 0.f, 0.f),
-		FVector3(0.f, 0.f, -1.f)
+			FVector3(-WidthHalf, -HeightHalf, +DepthHalf),
+			FVector2(0.f, 1.f),
+			FVector3(-1.f, 0.f, 0.f),
+			FVector3(0.f, 0.f, -1.f)
 		),
 		FVertex
 		(
-		FVector3(-WidthHalf, +HeightHalf, +DepthHalf),
-		FVector2(0.f, 0.f),
-		FVector3(-1.f, 0.f, 0.f),
-		FVector3(0.f, 0.f, -1.f)
+			FVector3(-WidthHalf, +HeightHalf, +DepthHalf),
+			FVector2(0.f, 0.f),
+			FVector3(-1.f, 0.f, 0.f),
+			FVector3(0.f, 0.f, -1.f)
 		),
 		FVertex
 		(
-		FVector3(-WidthHalf, +HeightHalf, -DepthHalf),
-		FVector2(1.f, 0.f),
-		FVector3(-1.f, 0.f, 0.f),
-		FVector3(0.f, 0.f, -1.f)
+			FVector3(-WidthHalf, +HeightHalf, -DepthHalf),
+			FVector2(1.f, 0.f),
+			FVector3(-1.f, 0.f, 0.f),
+			FVector3(0.f, 0.f, -1.f)
 		),
 		FVertex
 		(
-		FVector3(-WidthHalf, -HeightHalf, -DepthHalf),
-		FVector2(1.f, 1.f),
-		FVector3(-1.f, 0.f, 0.f),
-		FVector3(0.f, 0.f, -1.f)
+			FVector3(-WidthHalf, -HeightHalf, -DepthHalf),
+			FVector2(1.f, 1.f),
+			FVector3(-1.f, 0.f, 0.f),
+			FVector3(0.f, 0.f, -1.f)
 		),
 
 		// 오른쪽면
 		FVertex
 		(
-		FVector3(+WidthHalf, -HeightHalf, -DepthHalf),
-		FVector2(0.f, 1.f),
-		FVector3(1.f, 0.f, 0.f),
-		FVector3(0.f, 0.f, 1.f)
+			FVector3(+WidthHalf, -HeightHalf, -DepthHalf),
+			FVector2(0.f, 1.f),
+			FVector3(1.f, 0.f, 0.f),
+			FVector3(0.f, 0.f, 1.f)
 		),
 		FVertex
 		(
-		FVector3(+WidthHalf, +HeightHalf, -DepthHalf),
-		FVector2(0.f, 0.f),
-		FVector3(1.f, 0.f, 0.f),
-		FVector3(0.f, 0.f, 1.f)
+			FVector3(+WidthHalf, +HeightHalf, -DepthHalf),
+			FVector2(0.f, 0.f),
+			FVector3(1.f, 0.f, 0.f),
+			FVector3(0.f, 0.f, 1.f)
 		),
 		FVertex
 		(
-		FVector3(+WidthHalf, +HeightHalf, +DepthHalf),
-		FVector2(1.f, 0.f),
-		FVector3(1.f, 0.f, 0.f),
-		FVector3(0.f, 0.f, 1.f)
+			FVector3(+WidthHalf, +HeightHalf, +DepthHalf),
+			FVector2(1.f, 0.f),
+			FVector3(1.f, 0.f, 0.f),
+			FVector3(0.f, 0.f, 1.f)
 		),
 		FVertex
 		(
-		FVector3(+WidthHalf, -HeightHalf, +DepthHalf),
-		FVector2(1.f, 1.f),
-		FVector3(1.f, 0.f, 0.f),
-		FVector3(0.f, 0.f, 1.f)
+			FVector3(+WidthHalf, -HeightHalf, +DepthHalf),
+			FVector2(1.f, 1.f),
+			FVector3(1.f, 0.f, 0.f),
+			FVector3(0.f, 0.f, 1.f)
 		),
 	};
 
@@ -555,6 +555,16 @@ void Resources::CreateDefaultShader()
 	//		);
 	//	Add<FShader>(L"ComputeParticle", Shader);
 	//}
+
+	// Shadow
+	{
+		TSharedPtr<FShader> Shader = MakeShared<FShader>();
+		Shader->CreateGraphicsShader(
+			L"..\\Resources\\Shader\\Shadow.fx",
+			{ EShaderType::Shadow, ERasterizeType::CullBack, EDepthStencilType::Less }
+		);
+		Add<FShader>(L"Shadow", Shader);
+	}
 }
 
 void Resources::CreateDefaultMaterial()
@@ -645,5 +655,13 @@ void Resources::CreateDefaultMaterial()
 		Material->SetTexture(1, NormalTexture);
 
 		Add<FMaterial>(L"GameObject", Material);
+	}
+
+	// Shadow
+	{
+		TSharedPtr<FShader> Shader = Get()->Get<FShader>(L"Shadow");
+		TSharedPtr<FMaterial> Material = MakeShared<FMaterial>();
+		Material->SetShader(Shader);
+		Add<FMaterial>(L"Shadow", Material);
 	}
 }

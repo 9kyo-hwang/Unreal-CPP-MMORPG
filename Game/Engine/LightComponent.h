@@ -44,15 +44,17 @@ public:
 
 	void FinalUpdate(float DeltaTime) override;
 	void Render();
+	void RenderShadow();
 
 public:
 	const FLightInfo& GetInfo() const { return Info; }
+	ELightType GetLightType() const { return StaticCast<ELightType>(Info.Type); }
 
 	void SetDiffuse(const FVector3& NewDiffuse) { Info.Color.Diffuse = NewDiffuse; }
 	void SetAmbient(const FVector3& NewAmbient) { Info.Color.Ambient = NewAmbient; }
 	void SetSpecular(const FVector3& NewSpecular) { Info.Color.Specular = NewSpecular; }
 
-	void SetDirection(const FVector3& NewDirection) { Info.Direction = NewDirection; }
+	void SetDirection(FVector3 NewDirection);
 	void SetType(ELightType NewType);
 	void SetRange(float NewRange) { Info.Range = NewRange; }
 	void SetAngle(float NewAngle) { Info.Angle = NewAngle; }
@@ -65,5 +67,7 @@ private:
 	int8 Index;
 	TSharedPtr<class UMesh> VolumeMesh;	// 빛이 영향을 미치는 영역
 	TSharedPtr<class FMaterial> Material;	// 셰이더에 인자를 넘기기 위해 사용
+
+	TSharedPtr<class AActor> ShadowCameraActor;
 };
 

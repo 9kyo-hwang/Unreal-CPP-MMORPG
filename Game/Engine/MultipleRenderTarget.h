@@ -3,11 +3,13 @@
 enum class ERenderTargetType : uint8
 {
 	SwapChain,	// BackBuffer, FrontBuffer
+	Shadow,
 	GeometryBuffer,	// Position, Normal, Color. 디퍼드 셰이딩에서 사용
 	Lighting,	// Diffuse, Specular
 	END
 };
 
+constexpr int32 NumRenderTargetShadowMember = 1;
 constexpr int32 NumRenderTargetGeometryBufferMember = 3;
 constexpr int32 NumRenderTargetLightingMember = 2;
 constexpr uint8 NumRenderTargets = ConstexprCast<uint8>(ERenderTargetType::END);
@@ -18,11 +20,11 @@ struct FRenderTarget
 	float ClearColor[4];	// 초기값 색상
 };
 
-class MultipleRenderTarget
+class FMultipleRenderTarget
 {
 public:
-	MultipleRenderTarget();
-	~MultipleRenderTarget();
+	FMultipleRenderTarget();
+	~FMultipleRenderTarget();
 	
 	void Create(ComPtr<ID3D12Device> Device, ERenderTargetType InType, vector<FRenderTarget>& InRenderTargets, TSharedPtr<FTexture> InDepthStencilTexture);
 

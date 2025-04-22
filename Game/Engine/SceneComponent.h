@@ -34,6 +34,11 @@ public:
 	void SetLocalRotation(const FVector3& Rotation) { LocalRotation = Rotation; }
 	void SetLocalScale(const FVector3& Scale) { LocalScale = Scale; }
 
+	void LookAt(const FVector3& Direction);
+
+	static bool CloseEnough(const float& Lhs, const float& Rhs, const float& Epsilon = std::numeric_limits<float>::epsilon());
+	static FVector3 DecomposeRotationMatrix(const FMatrix& Rotation);
+
 	TWeakPtr<USceneComponent> GetOwner() { return Owner; }
 	void SetOwner(TSharedPtr<USceneComponent> NewOwner) { Owner = NewOwner; }
 

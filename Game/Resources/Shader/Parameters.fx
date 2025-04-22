@@ -34,6 +34,7 @@ cbuffer TRANSFORM_PARAMETERS : register(b1)
     row_major matrix GProjectionMatrix;
     row_major matrix GWorldViewMatrix;
     row_major matrix GWorldViewProjectionMatrix;
+    row_major matrix GInverseViewMatrix;
 };
 
 cbuffer MATERIAL_PARAMETERS : register(b2)
@@ -63,6 +64,11 @@ cbuffer MATERIAL_PARAMETERS : register(b2)
     float4 GVector4_1;
     float4 GVector4_2;
     float4 GVector4_3;
+
+    row_major float4x4 GMatrix_0;
+    row_major float4x4 GMatrix_1;
+    row_major float4x4 GMatrix_2;
+    row_major float4x4 GMatrix_3;
 };
 
 Texture2D GTexture_0 : register(t0);

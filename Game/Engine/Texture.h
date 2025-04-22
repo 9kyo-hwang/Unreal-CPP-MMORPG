@@ -26,8 +26,13 @@ public:
 	D3D12_CPU_DESCRIPTOR_HANDLE GetSRV() { return SRVHeapStart; }
 	D3D12_CPU_DESCRIPTOR_HANDLE GetUAV() { return UAVHeapStart; }
 
+	float GetWidth() const { return StaticCast<float>(Desc.Width); }
+	float GetHeight() const { return StaticCast<float>(Desc.Height); }
+
+
 private:
 	ScratchImage Image;
+	D3D12_RESOURCE_DESC Desc;
 	ComPtr<ID3D12Resource> Texture2D;
 
 	// ConstantBuffer는 View를 여러 개 담은 Heap을 사용하지만, Texture는 Heap에 View 하나만 사용

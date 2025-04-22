@@ -13,6 +13,7 @@ constexpr uint8 NumMaterialFloat = 4;
 constexpr uint8 NumMaterialTexture = 4;
 constexpr uint8 NumMaterialVector2 = 4;
 constexpr uint8 NumMaterialVector4 = 4;
+constexpr uint8 NumMaterialMatrix = 4;
 
 struct FMaterialParameters
 {
@@ -21,6 +22,7 @@ public:
 	void Set(uint8 Index, float Value) { FloatParameters[Index] = Value; }
 	void Set(uint8 Index, FVector2 Value) { Vector2Parameters[Index] = Value; }
 	void Set(uint8 Index, FVector4 Value) { Vector4Parameters[Index] = Value; }
+	void Set(uint8 Index, FMatrix Value) { MatrixParameters[Index] = Value; }
 	void SetUseTexture(uint8 Index, int32 Use) { UsedTextureParameters[Index] = Use; }
 
 private:
@@ -29,6 +31,7 @@ private:
 	array<int32, NumMaterialTexture> UsedTextureParameters;
 	array<FVector2, NumMaterialVector2> Vector2Parameters;
 	array<FVector4, NumMaterialVector4> Vector4Parameters;
+	array<FMatrix, NumMaterialMatrix> MatrixParameters;
 };
 
 class FMaterial : public UObject
@@ -47,7 +50,8 @@ public:
 	void SetParameter(uint8 Index, int32 Value) { Parameters.Set(Index, Value); }
 	void SetParameter(uint8 Index, float Value) { Parameters.Set(Index, Value); }
 	void SetParameter(uint8 Index, FVector2 Value) { Parameters.Set(Index, Value); }
-	void SetParameter(uint8 Index,FVector4 Value) { Parameters.Set(Index, Value); }
+	void SetParameter(uint8 Index, FVector4 Value) { Parameters.Set(Index, Value); }
+	void SetParameter(uint8 Index, FMatrix Value) { Parameters.Set(Index, Value); }
 	void SetTexture(uint8 Index, TSharedPtr<FTexture> Texture)
 	{
 		Textures[Index] = Texture;

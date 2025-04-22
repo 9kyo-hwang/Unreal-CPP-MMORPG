@@ -10,6 +10,9 @@
 
 AActor::AActor()
 	: Super(EObjectType::Actor)
+	, bCheckFrustum(true)
+	, Layer(0)
+	, bStaticShadow(true)
 {
 }
 

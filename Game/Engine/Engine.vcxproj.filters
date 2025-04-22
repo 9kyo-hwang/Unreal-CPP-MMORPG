@@ -270,5 +270,8 @@
     <FxCompile Include="..\Resources\Shader\Particle.fx">
       <Filter>Shader</Filter>
     </FxCompile>
+    <FxCompile Include="..\Resources\Shader\Shadow.fx">
+      <Filter>Shader</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

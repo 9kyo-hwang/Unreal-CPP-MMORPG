@@ -12,16 +12,20 @@ public:
 	void FinalUpdate();
 
 	void Render();
-	void RenderLights();
-	void RenderFinal();
 
 	void SpawnActor(TSharedPtr<AActor> Actor);
 	void RemoveActor(TSharedPtr<AActor> Actor);
 
-	const vector<TSharedPtr<AActor>>& GetAllActor() { return Actors; }
+	const vector<TSharedPtr<AActor>>& GetAllLevelActors() { return Actors; }
 
 private:
 	void PushLightData();
+	void ClearRTV();
+	void RenderShadow();
+	void RenderDeferred();
+	void RenderLights();
+	void RenderFinal();
+	void RenderForward();
 
 private:
 	// TODO: Layer 단계를 추가해 최적화

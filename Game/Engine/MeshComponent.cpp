@@ -4,6 +4,7 @@
 #include "InstanceBuffer.h"
 #include "Material.h"
 #include "Mesh.h"
+#include "Resources.h"
 #include "SceneComponent.h"
 
 UMeshComponent::UMeshComponent()
@@ -25,6 +26,13 @@ void UMeshComponent::Render(TSharedPtr<FInstanceBuffer> InstanceBuffer)
 	InstanceBuffer->Push();	// Instance는 VSIn 구조체의 정보를 넘겨줘야 함
 	Material->PushGraphicsData();
 	Mesh->Render(InstanceBuffer);
+}
+
+void UMeshComponent::RenderShadow()
+{
+	GetTransform()->PushData();
+	Resources::Get()->Get<FMaterial>(L"Shadow")->PushGraphicsData();	// Shadow.fx의 함수를 호출하기 위해
+	Mesh->Render();
 }
 
 uint64 UMeshComponent::GetInstanceID() const

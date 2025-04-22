@@ -62,7 +62,7 @@ void FGraphicsCommandQueue::WaitSync()
 	}
 }
 
-void FGraphicsCommandQueue::PreRender(const D3D12_VIEWPORT* Viewport, const D3D12_RECT* Rect)
+void FGraphicsCommandQueue::PreRender()
 {
 	CommandAllocator->Reset();
 	CommandList->Reset(CommandAllocator.Get(), nullptr);
@@ -90,9 +90,7 @@ void FGraphicsCommandQueue::PreRender(const D3D12_VIEWPORT* Viewport, const D3D1
 
 	CommandList->ResourceBarrier(1, &Barrier);
 
-	// CommandList가 Reset될 때를 대비해 설정
-	CommandList->RSSetViewports(1, Viewport);
-	CommandList->RSSetScissorRects(1, Rect);
+	// NOTE: MultipleRenderTarget에서 Viewport와 ScissorRect에 대한 세팅을 진행하기 때문에 CommandQueue에서는 더 이상 수행하지 않음
 
 	// NOTE: 원래 여기서 수행하던 ClearRenderTargetView/OMSetRenderTargets/ClearDepthStencilView는 Scene의 Render로 이관됨
 }

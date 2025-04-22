@@ -36,7 +36,7 @@ public:
 	TSharedPtr<FGraphicsResourceTables> GetGraphicsResourceTables() { return GraphicsResourceTables; }
 	TSharedPtr<FComputeResourceTables> GetComputeResourceTables() { return ComputeResourceTables; }
 	TSharedPtr<FConstantBuffer> GetConstantBuffer(EConstantBufferType Type) { return ConstantBufferList[StaticCast<uint8>(Type)]; }
-	TSharedPtr<MultipleRenderTarget> GetMultipleRenderTarget(ERenderTargetType Type) { return MultipleRenderTargetArray[StaticCast<uint8>(Type)]; }
+	TSharedPtr<FMultipleRenderTarget> GetMultipleRenderTarget(ERenderTargetType Type) { return MultipleRenderTargetArray[StaticCast<uint8>(Type)]; }
 
 private:
 	void ShowFPS();
@@ -58,6 +58,6 @@ private:
 	TSharedPtr<FComputeResourceTables> ComputeResourceTables;
 
 	vector<TSharedPtr<FConstantBuffer>> ConstantBufferList;
-	array<TSharedPtr<MultipleRenderTarget>, NumRenderTargets> MultipleRenderTargetArray;	// SwapChain, GBuffer
+	array<TSharedPtr<FMultipleRenderTarget>, NumRenderTargets> MultipleRenderTargetArray;	// SwapChain, GBuffer
 };
 

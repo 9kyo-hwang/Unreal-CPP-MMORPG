@@ -8,7 +8,7 @@ void Game::Initialize(const FWindowInfo& Info)
 	GEngine->Initialize(Info);
 
 	// Scene Load는 컨텐츠단이 맞음
-	SceneManager::Get()->LoadScene(L"TestScene");
+	SceneManager::Get()->LoadLevel(L"TestScene");
 }
 
 void Game::Update()

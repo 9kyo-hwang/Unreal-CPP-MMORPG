@@ -26,6 +26,7 @@ public:
 
 	void Render();
 	void Render(TSharedPtr<class FInstanceBuffer> InstanceBuffer);
+	void RenderShadow();
 
 	uint64 GetInstanceID() const;
 	TSharedPtr<FMaterial> GetMaterial() { return Material;  }

@@ -11,7 +11,7 @@ public:
 	void Initialize(ComPtr<ID3D12Device> Device, TSharedPtr<FSwapChain> InSwapChain);
 	void WaitSync();
 
-	void PreRender(const D3D12_VIEWPORT* Viewport, const D3D12_RECT* Rect);
+	void PreRender();
 	void PostRender();
 
 	// ResourceCommandQueue에 있는 모든 작업을 다 처리하는 함수

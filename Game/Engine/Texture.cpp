@@ -5,6 +5,7 @@
 
 FTexture::FTexture()
 	: Super(EObjectType::Texture)
+	, Desc()
 	, SRVHeapStart()
 	, UAVHeapStart()
 {
@@ -43,7 +44,7 @@ void FTexture::Load(const wstring& Path)
 
 	const uint64 BufferSize = ::GetRequiredIntermediateSize(Texture2D.Get(), 0, StaticCast< uint32 >( SubResources.size() ));
 	D3D12_HEAP_PROPERTIES HeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-	D3D12_RESOURCE_DESC Desc = CD3DX12_RESOURCE_DESC::Buffer(BufferSize);
+	Desc = CD3DX12_RESOURCE_DESC::Buffer(BufferSize);
 
 	ComPtr<ID3D12Resource> TextureUploadHeap;
 	assert(SUCCEEDED(::DEVICE->CreateCommittedResource(
@@ -89,8 +90,8 @@ void FTexture::Create(DXGI_FORMAT Format, uint32 Width, uint32 Height, const D3D
 	D3D12_HEAP_FLAGS HeapFlags, D3D12_RESOURCE_FLAGS ResourceFlags, FVector4 ClearColor)
 {
 	// 기존 DepthStencilBuffer에서 수행하던 작업을 여기서 수행함
-	D3D12_RESOURCE_DESC ResourceDesc = CD3DX12_RESOURCE_DESC::Tex2D(Format, Width, Height);
-	ResourceDesc.Flags = ResourceFlags;
+	Desc = CD3DX12_RESOURCE_DESC::Tex2D(Format, Width, Height);
+	Desc.Flags = ResourceFlags;
 
 	D3D12_CLEAR_VALUE OptimizedClearValue{};
 	D3D12_CLEAR_VALUE* OptimizedClearValuePtr = nullptr;
@@ -113,7 +114,7 @@ void FTexture::Create(DXGI_FORMAT Format, uint32 Width, uint32 Height, const D3D
 	assert(SUCCEEDED(DEVICE->CreateCommittedResource(
 		&HeapProperties,
 		HeapFlags,
-		&ResourceDesc,
+		&Desc,
 		ResourceStates,
 		OptimizedClearValuePtr,
 		IID_PPV_ARGS(&Texture2D)
@@ -125,7 +126,7 @@ void FTexture::Create(DXGI_FORMAT Format, uint32 Width, uint32 Height, const D3D
 void FTexture::Create(ComPtr<ID3D12Resource> InTexture2D)
 {
 	Texture2D = InTexture2D;
-	D3D12_RESOURCE_DESC ResourceDesc = InTexture2D->GetDesc();
+	Desc = InTexture2D->GetDesc();
 
 	/**
 	 *	1. DepthStencil 단독
@@ -133,7 +134,7 @@ void FTexture::Create(ComPtr<ID3D12Resource> InTexture2D)
 	 *	3. RenderTarget + ShaderResource
 	 */
 
-	if (ResourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
+	if ( Desc.Flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL)
 	{
 		D3D12_DESCRIPTOR_HEAP_DESC HeapDesc
 		{
@@ -150,7 +151,7 @@ void FTexture::Create(ComPtr<ID3D12Resource> InTexture2D)
 	}
 	else
 	{
-		if (ResourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET)
+		if ( Desc.Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET)
 		{
 			// 기존 SwapChain의 CreateRenderTargetView에서 수행하던 작업을 여기서 수행
 			D3D12_DESCRIPTOR_HEAP_DESC HeapDesc
@@ -166,7 +167,7 @@ void FTexture::Create(ComPtr<ID3D12Resource> InTexture2D)
 			DEVICE->CreateRenderTargetView(Texture2D.Get(), nullptr, RenderTargetDescriptorHandle);
 		}
 
-		if (ResourceDesc.Flags & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS)
+		if ( Desc.Flags & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS)
 		{
 			D3D12_DESCRIPTOR_HEAP_DESC DescriptorHeapDesc
 			{

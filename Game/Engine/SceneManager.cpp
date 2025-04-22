@@ -18,33 +18,33 @@
 
 void SceneManager::Update()
 {
-	if (!ActiveScene)
+	if (!CurrentLevel)
 	{
 		return;
 	}
 
-	ActiveScene->Update();
-	ActiveScene->LateUpdate();
-	ActiveScene->FinalUpdate();
+	CurrentLevel->Update();
+	CurrentLevel->LateUpdate();
+	CurrentLevel->FinalUpdate();
 }
 
 // TEMP
 void SceneManager::Render()
 {
-	if (ActiveScene )
+	if (CurrentLevel )
 	{
-		ActiveScene->Render();
+		CurrentLevel->Render();
 	}
 }
 
-void SceneManager::LoadScene(wstring SceneName)
+void SceneManager::LoadLevel(wstring LevelName)
 {
 	// TODO: 기존 씬 정리
 	// TODO: 파일에서 Scene 정보 로드
 
-	ActiveScene = LoadTestScene();
-	ActiveScene->Awake();
-	ActiveScene->Start();
+	CurrentLevel = LoadTestLevel();
+	CurrentLevel->Awake();
+	CurrentLevel->Start();
 }
 
 void SceneManager::SetLayer(uint8 Layer, const wstring& Name)
@@ -66,7 +66,7 @@ uint8 SceneManager::NameToLayer(const wstring& Name)
 	return 0;
 }
 
-TSharedPtr<ULevel> SceneManager::LoadTestScene()
+TSharedPtr<ULevel> SceneManager::LoadTestLevel()
 {
 #pragma region LayerMask
 	// 기본값 레이어 설정
@@ -97,42 +97,42 @@ TSharedPtr<ULevel> SceneManager::LoadTestScene()
 #pragma endregion
 
 	// 여기서 임시로 만든 신을 ActiveScene으로 지정
-	TSharedPtr<ULevel> CurrentScene = MakeShared<ULevel>();
+	TSharedPtr<ULevel> TestLevel = MakeShared<ULevel>();
 
 #pragma region Camera
 	{
-		TSharedPtr<AActor> CameraObject = MakeShared<AActor>();
-		CameraObject->SetName(L"Main Camera");
+		TSharedPtr<AActor> CameraActor = MakeShared<AActor>();
+		CameraActor->SetName(L"Main Camera");
 
-		CameraObject->AddComponent(MakeShared<USceneComponent>());
-		CameraObject->AddComponent(MakeShared<UCameraComponent>());
-		CameraObject->AddComponent(MakeShared<UCameraMovementComponent>());
-		CameraObject->GetSceneComponent()->SetLocalPosition(FVector3(0.f, 0.f, 0.f));
+		CameraActor->AddComponent(MakeShared<USceneComponent>());
+		CameraActor->AddComponent(MakeShared<UCameraComponent>());
+		CameraActor->AddComponent(MakeShared<UCameraMovementComponent>());
+		CameraActor->GetSceneComponent()->SetLocalPosition(FVector3(0.f, 0.f, 0.f));
 
 		uint8 Layer = Get()->NameToLayer(L"UI");
-		CameraObject->GetCameraComponent()->EnableLayerCulling(Layer, true);	// UI는 그리지 않도록
+		CameraActor->GetCameraComponent()->EnableLayerCulling(Layer, true);	// UI는 그리지 않도록
 
-		CurrentScene->SpawnActor(CameraObject);
+		TestLevel->SpawnActor(CameraActor);
 	}
 #pragma endregion
 
 #pragma region UI Camera
 	{
-		TSharedPtr<AActor> CameraObject = MakeShared<AActor>();
-		CameraObject->SetName(L"Orthographic Camera");
+		TSharedPtr<AActor> UICameraActor = MakeShared<AActor>();
+		UICameraActor->SetName(L"Orthographic Camera");
 
-		CameraObject->AddComponent(MakeShared<USceneComponent>());
-		CameraObject->AddComponent(MakeShared<UCameraComponent>());	// Near: 1, Far: 1000, Fov: None, 800 x 600
-		CameraObject->GetSceneComponent()->SetLocalPosition(FVector3(0.f, 0.f, 0.f));
+		UICameraActor->AddComponent(MakeShared<USceneComponent>());
+		UICameraActor->AddComponent(MakeShared<UCameraComponent>());	// Near: 1, Far: 1000, Fov: None, 800 x 600
+		UICameraActor->GetSceneComponent()->SetLocalPosition(FVector3(0.f, 0.f, 0.f));
 
-		auto CameraComponent = CameraObject->GetCameraComponent();
+		TSharedPtr<UCameraComponent> CameraComponent = UICameraActor->GetCameraComponent();
 		uint8 Layer = Get()->NameToLayer(L"UI");
 
 		CameraComponent->SetProjection(ECameraProjectionType::Orthographic);
 		CameraComponent->CullAllLayers();
 		CameraComponent->EnableLayerCulling(Layer, false);	// UI만 그리도록
 
-		CurrentScene->SpawnActor(CameraObject);
+		TestLevel->SpawnActor(UICameraActor);
 	}
 #pragma endregion
 
@@ -154,45 +154,59 @@ TSharedPtr<ULevel> SceneManager::LoadTestScene()
 
 		MeshRenderer->SetMaterial(Material);
 		SkyboxObject->AddComponent(MeshRenderer);
-		CurrentScene->SpawnActor(SkyboxObject);
+		TestLevel->SpawnActor(SkyboxObject);
 	}
 #pragma endregion
 
 #pragma region Object
-	for(int32 Index = 0; Index < 50; ++Index)
 	{
 		TSharedPtr<AActor> Actor = MakeShared<AActor>();
 		Actor->AddComponent(MakeShared<USceneComponent>());
-		Actor->GetSceneComponent()->SetLocalScale(FVector3(25.f, 25.f, 25.f));
-		Actor->GetSceneComponent()->SetLocalPosition(FVector3(-300.f + Index * 10.f, 0.f, 500.f));
+		Actor->GetSceneComponent()->SetLocalScale(FVector3(100.f, 100.f, 100.f));
+		Actor->GetSceneComponent()->SetLocalPosition(FVector3(0.f, 0.f, 500.f));
+		Actor->SetIsStaticShadow(false);
 
-		TSharedPtr<UMeshComponent> MeshRenderer = MakeShared<UMeshComponent>();
-		MeshRenderer->SetMesh(Resources::Get()->LoadSphere());
+		TSharedPtr<UMeshComponent> MeshComponent = MakeShared<UMeshComponent>();
+		MeshComponent->SetMesh(Resources::Get()->LoadSphere());
 
 		// Instance를 활용하려면 Shader, Texture 등이 모두 "같은 것"이어야 함 -> Resources에서 한 번만 생성하도록
 		TSharedPtr<FMaterial> Material = Resources::Get()->Get<FMaterial>(L"GameObject");
-		{	// 기존
-			//Material->SetParameter(0, 0);
-			//MeshRenderer->SetMaterial(Material->Clone());	// 별개의 Material로 인식하도록 복사
-		}
-		{	// 인스턴스
-			Material->SetParameter(0, 1);	// value 1: Instance <-> 0: 기존
-			MeshRenderer->SetMaterial(Material);
-		}
+		MeshComponent->SetMaterial(Material->Clone());	// 별개의 Material로 인식하도록 복사
 		
-		Actor->AddComponent(MeshRenderer);
-		CurrentScene->SpawnActor(Actor);
+		Actor->AddComponent(MeshComponent);
+		TestLevel->SpawnActor(Actor);
+	}
+#pragma endregion
+
+#pragma region Plane
+	{
+		TSharedPtr<AActor> PlaneActor = MakeShared<AActor>();
+		PlaneActor->AddComponent(MakeShared<USceneComponent>());
+		PlaneActor->GetSceneComponent()->SetLocalScale(FVector3(1000.f, 1.f, 1000.f));
+		PlaneActor->GetSceneComponent()->SetLocalPosition(FVector3(0.f, -100.f, 500.f));
+		PlaneActor->SetIsStaticShadow(true);
+
+		TSharedPtr<UMeshComponent> MeshComponent = MakeShared<UMeshComponent>();
+		MeshComponent->SetMesh(Resources::Get()->LoadCube());
+
+		TSharedPtr<FMaterial> Material = Resources::Get()->Get<FMaterial>(L"GameObject")->Clone();
+		Material->SetParameter(0, 0);
+
+		MeshComponent->SetMaterial(Material);
+		PlaneActor->AddComponent(MeshComponent);
+
+		TestLevel->SpawnActor(PlaneActor);
 	}
 #pragma endregion
 
 #pragma region UI Test
 	for (int32 Index = 0; Index < 6; ++Index)
 	{
-		TSharedPtr<AActor> UIObject = MakeShared<AActor>();
-		UIObject->SetLayer(Get()->NameToLayer(L"UI"));	// UI, 즉 1번으로 세팅
-		UIObject->AddComponent(MakeShared<USceneComponent>());
+		TSharedPtr<AActor> UIActor = MakeShared<AActor>();
+		UIActor->SetLayer(Get()->NameToLayer(L"UI"));	// UI, 즉 1번으로 세팅
+		UIActor->AddComponent(MakeShared<USceneComponent>());
 
-		TSharedPtr<USceneComponent> Transform = UIObject->GetSceneComponent();
+		TSharedPtr<USceneComponent> Transform = UIActor->GetSceneComponent();
 		Transform->SetLocalScale(FVector3(100.f, 100.f, 100.f));
 		Transform->SetLocalPosition(FVector3(-350.f + (Index * 120), 250.f, 500.f));
 
@@ -211,37 +225,36 @@ TSharedPtr<ULevel> SceneManager::LoadTestScene()
 		}
 		else
 		{
-			Texture = Resources::Get()->Get<FTexture>(L"UAVTexture");
+			Texture = GEngine->GetMultipleRenderTarget(ERenderTargetType::Shadow)->GetRenderTargetTexture(0);
 		}
 
-		auto Material = MakeShared<FMaterial>();
+		TSharedPtr<FMaterial> Material = MakeShared<FMaterial>();
 		Material->SetShader(Shader);
 		Material->SetTexture(0, Texture);
 
 		MeshRenderer->SetMaterial(Material);
-		UIObject->AddComponent(MeshRenderer);
-		CurrentScene->SpawnActor(UIObject);
+		UIActor->AddComponent(MeshRenderer);
+		TestLevel->SpawnActor(UIActor);
 	}
 #pragma endregion
 
 #pragma region Directional Light
 	{
-		TSharedPtr<AActor> LightObject = MakeShared<AActor>();
-		LightObject->AddComponent(MakeShared<USceneComponent>());
-		LightObject->AddComponent(MakeShared<ULightComponent>());
+		TSharedPtr<AActor> LightActor = MakeShared<AActor>();
+		LightActor->AddComponent(MakeShared<USceneComponent>());
+		LightActor->AddComponent(MakeShared<ULightComponent>());
+		LightActor->GetSceneComponent()->SetLocalPosition(FVector3(0, 1000, 500));
 
-		TSharedPtr<ULightComponent> LightComponent = LightObject->GetLightComponent();
-		LightComponent->SetDirection(FVector3(0.f, 0.f, 1.f));
+		TSharedPtr<ULightComponent> LightComponent = LightActor->GetLightComponent();
+		LightComponent->SetDirection(FVector3(0.f, -1.f, 0.f));
 		LightComponent->SetType(ELightType::Directional);
 		LightComponent->SetDiffuse(FVector3(1.f, 1.f, 1.f));
 		LightComponent->SetAmbient(FVector3(0.1f, 0.1f, 0.1f));
-		LightComponent->SetSpecular(FVector3(0.2f, 0.2f, 0.2f));
+		LightComponent->SetSpecular(FVector3(0.1f, 0.1f, 0.1f));
 
-		CurrentScene->SpawnActor(LightObject);
+		TestLevel->SpawnActor(LightActor);
 	}
 #pragma endregion
 
-	
-
-	return CurrentScene;
+	return TestLevel;
 }

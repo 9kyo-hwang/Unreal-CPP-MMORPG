@@ -18,9 +18,11 @@ public:
 
 	void FinalUpdate(float DeltaTime) override;
 
-	void SortGameObject();
+	void SortActors();
+	void SortShadowActors();
 	void RenderDeferred();
 	void RenderForward();
+	void RenderShadow();
 
 	ECameraProjectionType GetProjection() const { return Projection; }
 	void SetProjection(ECameraProjectionType InProjection) { Projection = InProjection; }
@@ -30,6 +32,16 @@ public:
 	void SetCullingMask(uint32 Mask) { CullingMask = Mask; }
 	bool IsLayerCulled(uint8 Layer) const { return ( CullingMask & 1 << Layer ) != 0; }
 
+	void SetNear(float Value) { Near = Value; }
+	void SetFar(float Value) { Far = Value; }
+	void SetFov(float Value) { Fov = Value; }
+	void SetScale(float Value) { Scale = Value; }
+	void SetWidth(float Value) { Width = Value; }
+	void SetHeight(float Value) { Height = Value; }
+
+	FMatrix GetViewMatrix() const { return ViewMatrix; }
+	FMatrix GetProjectionMatrix() const { return ProjectionMatrix; }
+
 private:
 	ECameraProjectionType Projection;
 
@@ -37,6 +49,8 @@ private:
 	float Far;
 	float Fov;
 	float Scale;
+	float Width;
+	float Height;
 
 	FMatrix ViewMatrix;
 	FMatrix ProjectionMatrix;
@@ -53,6 +67,7 @@ private:	// 카메라로 찍어야 할 객체들을 셰이더 타입에 따라 �
 	vector<TSharedPtr<AActor>> DeferredShaders;
 	vector<TSharedPtr<AActor>> ForwardShaders;
 	vector<TSharedPtr<AActor>> ParticleShaders;
+	vector<TSharedPtr<AActor>> ShadowShaders;
 
 public:
 	// TEMP

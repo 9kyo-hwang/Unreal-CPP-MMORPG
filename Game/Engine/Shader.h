@@ -9,6 +9,7 @@ enum class EShaderType : uint8 // 해당 셰이더를 어떤 방식으로 그려
 	Lighting,
 	Particle,
 	Compute,
+	Shadow
 };
 
 enum class ERasterizeType : uint8
