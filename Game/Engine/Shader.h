@@ -49,6 +49,15 @@ struct FShaderInfo
 	D3D12_PRIMITIVE_TOPOLOGY Topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 };
 
+struct FShaderArgument
+{
+	const string VertexShaderInitter = "VSMain";
+	const string HullShaderInitter;
+	const string DomainShaderInitter;
+	const string GeometryShaderInitter;
+	const string PixelShaderInitter = "PSMain";
+};
+
 class FShader : public UObject
 {
 	using Super = UObject;
@@ -58,7 +67,7 @@ public:
 	~FShader() override;
 
 	// 외부의 파일로 관리하게 될 예정, 그것들을 로드
-	void CreateGraphicsShader(const wstring& Path, FShaderInfo InInfo = {}, const string& VertexShaderInitter = "VSMain", const string& PixelShaderInitter = "PSMain", const string& GeometryShaderInitter = "");
+	void CreateGraphicsShader(const wstring& Path, FShaderInfo InInfo = {}, FShaderArgument Argument = {});
 	void CreateComputeShader(const wstring& Path, const string& Name, const string& Version);
 	
 	void Update();
@@ -70,8 +79,10 @@ public:
 private:
 	void Create(const wstring& Path, const string& Name, const string& Version, ComPtr<ID3DBlob>& Blob, D3D12_SHADER_BYTECODE& ShaderBytecode);
 	void CreateVertexShader(const wstring& Path, const string& Name, const string& Version);
-	void CreatePixelShader(const wstring& Path, const string& Name, const string& Version);
+	void CreateHullShader(const wstring& Path, const string& Name, const string& Version);
+	void CreateDomainShader(const wstring& Path, const string& Name, const string& Version);
 	void CreateGeometryShader(const wstring& Path, const string& Name, const string& Version);
+	void CreatePixelShader(const wstring& Path, const string& Name, const string& Version);
 
 private:
 	FShaderInfo Info;
@@ -79,8 +90,10 @@ private:
 
 private:
 	ComPtr<ID3DBlob> VertexShaderBlob;
-	ComPtr<ID3DBlob> PixelShaderBlob;
+	ComPtr<ID3DBlob> HullShaderBlob;
+	ComPtr<ID3DBlob> DomainShaderBlob;
 	ComPtr<ID3DBlob> GeometryShaderBlob;
+	ComPtr<ID3DBlob> PixelShaderBlob;
 	ComPtr<ID3DBlob> ErrorBlob;
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC GraphicsPipelineStateDesc;
 

@@ -13,17 +13,28 @@ FShader::FShader()
 
 FShader::~FShader() = default;
 
-void FShader::CreateGraphicsShader(const wstring& Path, FShaderInfo InInfo, const string& VertexShaderInitter, const string& PixelShaderInitter, const string& GeometryShaderInitter)
+void FShader::CreateGraphicsShader(const wstring& Path, FShaderInfo InInfo, FShaderArgument Argument)
 {
 	Info = InInfo;
 
-	CreateVertexShader(Path, VertexShaderInitter, "vs_5_0");
-	CreatePixelShader(Path, PixelShaderInitter, "ps_5_0");
+	CreateVertexShader(Path, Argument.VertexShaderInitter, "vs_5_0");
 
-	if(!GeometryShaderInitter.empty())
+	if ( !Argument.HullShaderInitter.empty() )
 	{
-		CreateGeometryShader(Path, GeometryShaderInitter, "gs_5_0");
+		CreateHullShader(Path, Argument.HullShaderInitter, "hs_5_0");
 	}
+
+	if ( !Argument.DomainShaderInitter.empty() )
+	{
+		CreateDomainShader(Path, Argument.DomainShaderInitter, "ds_5_0");
+	}
+
+	if(!Argument.GeometryShaderInitter.empty())
+	{
+		CreateGeometryShader(Path, Argument.GeometryShaderInitter, "gs_5_0");
+	}
+
+	CreatePixelShader(Path, Argument.PixelShaderInitter, "ps_5_0");
 	
 	D3D12_INPUT_ELEMENT_DESC Desc[]
 	{
@@ -229,14 +240,24 @@ void FShader::CreateVertexShader(const wstring& Path, const string& Name, const 
 	Create(Path, Name, Version, VertexShaderBlob, GraphicsPipelineStateDesc.VS);
 }
 
-void FShader::CreatePixelShader(const wstring& Path, const string& Name, const string& Version)
+void FShader::CreateHullShader(const wstring& Path, const string& Name, const string& Version)
 {
-	Create(Path, Name, Version, PixelShaderBlob, GraphicsPipelineStateDesc.PS);
+	Create(Path, Name, Version, HullShaderBlob, GraphicsPipelineStateDesc.HS);
+}
+
+void FShader::CreateDomainShader(const wstring& Path, const string& Name, const string& Version)
+{
+	Create(Path, Name, Version, DomainShaderBlob, GraphicsPipelineStateDesc.DS);
 }
 
 void FShader::CreateGeometryShader(const wstring& Path, const string& Name, const string& Version)
 {
 	Create(Path, Name, Version, GeometryShaderBlob, GraphicsPipelineStateDesc.GS);
+}
+
+void FShader::CreatePixelShader(const wstring& Path, const string& Name, const string& Version)
+{
+	Create(Path, Name, Version, PixelShaderBlob, GraphicsPipelineStateDesc.PS);
 }
 
 D3D12_PRIMITIVE_TOPOLOGY_TYPE FShader::GetTopologyType(D3D_PRIMITIVE_TOPOLOGY Topology)

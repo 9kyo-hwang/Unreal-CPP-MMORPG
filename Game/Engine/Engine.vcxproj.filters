@@ -273,5 +273,8 @@
     <FxCompile Include="..\Resources\Shader\Shadow.fx">
       <Filter>Shader</Filter>
     </FxCompile>
+    <FxCompile Include="..\Resources\Shader\Tessellation.fx">
+      <Filter>Shader</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

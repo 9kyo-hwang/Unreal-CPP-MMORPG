@@ -489,7 +489,7 @@ void Resources::CreateDefaultShader()
 		Shader->CreateGraphicsShader(
 			L"..\\Resources\\Shader\\Forward.fx",
 			{EShaderType::Forward, ERasterizeType::CullNone, EDepthStencilType::NoDepthNoWrite},
-			"VSTex", "PSTex"
+			{"VSTex", "", "", "", "PSTex"}
 		);
 		Add<FShader>(L"Texture", Shader);
 	}
@@ -500,7 +500,7 @@ void Resources::CreateDefaultShader()
 		Shader->CreateGraphicsShader(
 			L"..\\Resources\\Shader\\Lighting.fx",
 			{ EShaderType::Lighting, ERasterizeType::CullNone, EDepthStencilType::NoDepthNoWrite, EBlendType::OneToOneBlend },
-			"VSDirectionalLight", "PSDirectionalLight"
+			{ "VSDirectionalLight", "", "", "", "PSDirectionalLight" }
 		);
 		Add<FShader>(L"DirectionalLight", Shader);
 	}
@@ -512,7 +512,7 @@ void Resources::CreateDefaultShader()
 		Shader->CreateGraphicsShader(
 			L"..\\Resources\\Shader\\Lighting.fx",
 			{ EShaderType::Lighting, ERasterizeType::CullNone, EDepthStencilType::NoDepthNoWrite, EBlendType::OneToOneBlend },
-			"VSPointLight", "PSPointLight"
+			{ "VSPointLight", "", "", "", "PSPointLight" }
 		);
 		Add<FShader>(L"PointLight", Shader);
 	}
@@ -523,7 +523,7 @@ void Resources::CreateDefaultShader()
 		Shader->CreateGraphicsShader(
 			L"..\\Resources\\Shader\\Lighting.fx",
 			{ EShaderType::Lighting, ERasterizeType::CullBack, EDepthStencilType::NoDepthNoWrite },
-			"VSFinal", "PSFinal"
+			{ "VSFinal", "", "", "", "PSFinal" }
 		);
 		Add<FShader>(L"Final", Shader);
 	}
@@ -564,6 +564,17 @@ void Resources::CreateDefaultShader()
 			{ EShaderType::Shadow, ERasterizeType::CullBack, EDepthStencilType::Less }
 		);
 		Add<FShader>(L"Shadow", Shader);
+	}
+
+	// Tessellation
+	{
+		TSharedPtr<FShader> Shader = MakeShared<FShader>();
+		Shader->CreateGraphicsShader(
+			L"..\\Resources\\Shader\\Tessellation.fx",
+			{EShaderType::Forward, ERasterizeType::Wireframe, EDepthStencilType::Less, EBlendType::Default, D3D_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST},
+			{"VSMain", "HSMain","DSMain", "", "PSMain"}
+		);
+		Add<FShader>(L"Tessellation", Shader);
 	}
 }
 
@@ -663,5 +674,13 @@ void Resources::CreateDefaultMaterial()
 		TSharedPtr<FMaterial> Material = MakeShared<FMaterial>();
 		Material->SetShader(Shader);
 		Add<FMaterial>(L"Shadow", Material);
+	}
+
+	// Tessellation
+	{
+		TSharedPtr<FShader> Shader = Get()->Get<FShader>(L"Tessellation");
+		TSharedPtr<FMaterial> Material = MakeShared<FMaterial>();
+		Material->SetShader(Shader);
+		Add<FMaterial>(L"Tessellation", Material);
 	}
 }

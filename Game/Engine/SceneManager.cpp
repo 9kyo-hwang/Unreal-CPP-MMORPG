@@ -159,23 +159,23 @@ TSharedPtr<ULevel> SceneManager::LoadTestLevel()
 #pragma endregion
 
 #pragma region Object
-	{
-		TSharedPtr<AActor> Actor = MakeShared<AActor>();
-		Actor->AddComponent(MakeShared<USceneComponent>());
-		Actor->GetSceneComponent()->SetLocalScale(FVector3(100.f, 100.f, 100.f));
-		Actor->GetSceneComponent()->SetLocalPosition(FVector3(0.f, 0.f, 500.f));
-		Actor->SetIsStaticShadow(false);
+	//{
+	//	TSharedPtr<AActor> Actor = MakeShared<AActor>();
+	//	Actor->AddComponent(MakeShared<USceneComponent>());
+	//	Actor->GetSceneComponent()->SetLocalScale(FVector3(100.f, 100.f, 100.f));
+	//	Actor->GetSceneComponent()->SetLocalPosition(FVector3(0.f, 0.f, 500.f));
+	//	Actor->SetIsStaticShadow(false);
 
-		TSharedPtr<UMeshComponent> MeshComponent = MakeShared<UMeshComponent>();
-		MeshComponent->SetMesh(Resources::Get()->LoadSphere());
+	//	TSharedPtr<UMeshComponent> MeshComponent = MakeShared<UMeshComponent>();
+	//	MeshComponent->SetMesh(Resources::Get()->LoadSphere());
 
-		// Instance를 활용하려면 Shader, Texture 등이 모두 "같은 것"이어야 함 -> Resources에서 한 번만 생성하도록
-		TSharedPtr<FMaterial> Material = Resources::Get()->Get<FMaterial>(L"GameObject");
-		MeshComponent->SetMaterial(Material->Clone());	// 별개의 Material로 인식하도록 복사
-		
-		Actor->AddComponent(MeshComponent);
-		TestLevel->SpawnActor(Actor);
-	}
+	//	// Instance를 활용하려면 Shader, Texture 등이 모두 "같은 것"이어야 함 -> Resources에서 한 번만 생성하도록
+	//	TSharedPtr<FMaterial> Material = Resources::Get()->Get<FMaterial>(L"GameObject");
+	//	MeshComponent->SetMaterial(Material->Clone());	// 별개의 Material로 인식하도록 복사
+	//	
+	//	Actor->AddComponent(MeshComponent);
+	//	TestLevel->SpawnActor(Actor);
+	//}
 #pragma endregion
 
 #pragma region Plane
@@ -253,6 +253,25 @@ TSharedPtr<ULevel> SceneManager::LoadTestLevel()
 		LightComponent->SetSpecular(FVector3(0.1f, 0.1f, 0.1f));
 
 		TestLevel->SpawnActor(LightActor);
+	}
+#pragma endregion
+
+#pragma region Tessellation
+	{
+		TSharedPtr<AActor> TessellationActor = MakeShared<AActor>();
+
+		TSharedPtr<USceneComponent> SceneComponent = MakeShared<USceneComponent>();
+		SceneComponent->SetLocalPosition(FVector3(0, 0, 300));
+		SceneComponent->SetLocalRotation(FVector3(0, 0, 0));
+		SceneComponent->SetLocalScale(FVector3(100, 100, 100));
+		TessellationActor->AddComponent(SceneComponent);
+
+		TSharedPtr<UMeshComponent> MeshComponent = MakeShared<UMeshComponent>();
+		MeshComponent->SetMesh(Resources::Get()->LoadRectangle());
+		MeshComponent->SetMaterial(Resources::Get()->Get<FMaterial>(L"Tessellation"));
+		TessellationActor->AddComponent(MeshComponent);
+
+		TestLevel->SpawnActor(TessellationActor);
 	}
 #pragma endregion
 
