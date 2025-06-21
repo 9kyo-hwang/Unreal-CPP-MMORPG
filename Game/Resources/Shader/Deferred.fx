@@ -23,7 +23,7 @@ struct VSOut
     float3 ViewPosition : POSITION;
     float3 ViewNormal : NORMAL;
     float3 ViewTangent : TANGENT;
-    float3 ViewBinormal : BINORMAL;
+    float3 ViewBiNormal : BINORMAL;
 };
 
 VSOut VSMain(VSIn Input)
@@ -32,14 +32,14 @@ VSOut VSMain(VSIn Input)
 
     // ���� ��ǥ���� �����ϵ��� wvp_matrix�� ���������� ������
 	// 1.f: ����� ���� �� ��ǥ�� �ν�, 0.f: ���⼺�� ����
-	if(GInt_0 == 0)
+	if(GInt_0 == 1)
 	{
 	    Output.Position = mul(float4(Input.Position, 1.f), GWorldViewProjectionMatrix); // projection ��ǥ��� �Ѿ
         Output.UV = Input.UV;
         Output.ViewPosition = mul(float4(Input.Position, 1.f), GWorldViewMatrix).xyz; // view ��ǥ�谡 �ʿ�
         Output.ViewNormal = normalize(mul(float4(Input.Normal, 0.f), GWorldViewMatrix).xyz);    // translation�� ������� �ʵ��� 0.f ����
         Output.ViewTangent = normalize(mul(float4(Input.Tangent, 0.f), GWorldViewMatrix).xyz);    // translation�� ������� �ʵ��� 0.f ����
-        Output.ViewBinormal = normalize(cross(Output.ViewTangent, Output.ViewNormal));  // tangent, normal ���� ���� �� binormal ����
+        Output.ViewBiNormal = normalize(cross(Output.ViewTangent, Output.ViewNormal));  // tangent, normal ���� ���� �� binormal ����
 	}
     else
     {
@@ -48,7 +48,7 @@ VSOut VSMain(VSIn Input)
         Output.ViewPosition = mul(float4(Input.Position, 1.f), Input.WorldViewMatrix).xyz; // view ��ǥ�谡 �ʿ�
         Output.ViewNormal = normalize(mul(float4(Input.Normal, 0.f), Input.WorldViewMatrix).xyz);    // translation�� ������� �ʵ��� 0.f ����
         Output.ViewTangent = normalize(mul(float4(Input.Tangent, 0.f), Input.WorldViewMatrix).xyz);    // translation�� ������� �ʵ��� 0.f ����
-        Output.ViewBinormal = normalize(cross(Output.ViewTangent, Output.ViewNormal));  // tangent, normal ���� ���� �� binormal ����
+        Output.ViewBiNormal = normalize(cross(Output.ViewTangent, Output.ViewNormal));  // tangent, normal ���� ���� �� binormal ����
     }
 
     return Output;
@@ -79,7 +79,7 @@ PSOut PSMain(VSOut Input)
         // 0 ~ 1���� -1 ~ 1 ��ȯ
 		TangentSpaceNormal = (TangentSpaceNormal - 0.5f) * 2.f;
 
-        float3x3 TBNMatrix = { Input.ViewTangent, Input.ViewBinormal, Input.ViewNormal };
+        float3x3 TBNMatrix = { Input.ViewTangent, Input.ViewBiNormal, Input.ViewNormal };
         ViewNormal = normalize(mul(TangentSpaceNormal, TBNMatrix));
     }
 

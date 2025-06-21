@@ -430,9 +430,66 @@ TSharedPtr<UMesh> Resources::LoadSphere()
 	return Sphere;
 }
 
+TSharedPtr<UMesh> Resources::LoadTerrain(int32 SizeX, int32 SizeZ)
+{
+	// 매 번 새로 생성
+	vector<FVertex> Vertices;
+	for (int32 z = 0; z < SizeZ + 1; ++z)
+	{
+		for (int32 x = 0; x < SizeX + 1; ++x)
+		{
+			FVertex Vertex
+			{
+				FVector3(static_cast<float>(x), 0, static_cast<float>(z)),
+				FVector2(static_cast<float>(x), static_cast<float>(SizeZ - z)),
+				FVector3(0.f, 1.f, 0.f),
+				FVector3(1.f, 0.f, 0.f),
+			};
+
+			Vertices.emplace_back(Vertex);
+		}
+	}
+
+	vector<uint32> Indices;
+	for (int32 z = 0; z < SizeZ; ++z)
+	{
+		for (int32 x = 0; x < SizeX; ++x)
+		{
+			/**
+			 *	[0]
+			 *	 |	\
+			 *	[2] - [1]
+			 */
+			Indices.emplace_back(( SizeX + 1 ) * ( z + 1 ) + x);	// 2차원 배열의 인덱스를 1차원 배열 인덱스로 치환
+			Indices.emplace_back(( SizeX + 1 ) * z + (x + 1));
+			Indices.emplace_back(( SizeX + 1 ) * z + x);
+
+			/**
+			 *	[1] - [2]
+			 *		\  |
+			 *		  [0]
+			 */
+			Indices.emplace_back(( SizeX + 1 ) * z + (x + 1));
+			Indices.emplace_back(( SizeX + 1 ) * (z + 1) * x);
+			Indices.emplace_back(( SizeX + 1 ) * (z + 1) + (x + 1));
+		}
+	}
+
+	if (TSharedPtr<UMesh> Mesh = Get<UMesh>(L"Terrain"))
+	{
+		Mesh->Initialize(Vertices, Indices);
+		return Mesh;
+	}
+
+	TSharedPtr<UMesh> Mesh = MakeShared<UMesh>();
+	Mesh->Initialize(Vertices, Indices);
+	Add(L"Terrain", Mesh);
+	return Mesh;
+}
+
 TSharedPtr<FTexture> Resources::CreateTexture(const wstring& Name, DXGI_FORMAT Format, uint32 Width, uint32 Height,
-	const D3D12_HEAP_PROPERTIES& HeapProperties, D3D12_HEAP_FLAGS HeapFlags, D3D12_RESOURCE_FLAGS ResourceFlags,
-	FVector4 ClearColor)
+                                              const D3D12_HEAP_PROPERTIES& HeapProperties, D3D12_HEAP_FLAGS HeapFlags, D3D12_RESOURCE_FLAGS ResourceFlags,
+                                              FVector4 ClearColor)
 {
 	TSharedPtr<FTexture> Texture = MakeShared<FTexture>();
 	Texture->Create(Format, Width, Height, HeapProperties, HeapFlags, ResourceFlags, ClearColor);
@@ -576,6 +633,16 @@ void Resources::CreateDefaultShader()
 		);
 		Add<FShader>(L"Tessellation", Shader);
 	}
+
+	// Terrain
+	{
+		TSharedPtr<FShader> Shader = MakeShared<FShader>();
+		Shader->CreateGraphicsShader(
+			L"..\\Resources\\Shader\\Deferred.fx",
+			{ EShaderType::Deferred}
+		);
+		Add<FShader>(L"Terrain", Shader);
+	}
 }
 
 void Resources::CreateDefaultMaterial()
@@ -682,5 +749,15 @@ void Resources::CreateDefaultMaterial()
 		TSharedPtr<FMaterial> Material = MakeShared<FMaterial>();
 		Material->SetShader(Shader);
 		Add<FMaterial>(L"Tessellation", Material);
+	}
+
+	// Terrain
+	{
+		TSharedPtr<FShader> Shader = Get()->Get<FShader>(L"Terrain");
+		TSharedPtr<FTexture> Texture = Get()->Load<FTexture>(L"Terrain", L"..\\Resources\\Texture\\Terrain\\Terrain.png");
+		TSharedPtr<FMaterial> Material = MakeShared<FMaterial>();
+		Material->SetShader(Shader);
+		Material->SetTexture(0, Texture);
+		Add<FMaterial>(L"Terrain", Material);
 	}
 }

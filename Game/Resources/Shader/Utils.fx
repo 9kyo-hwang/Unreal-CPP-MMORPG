@@ -83,4 +83,22 @@ float Rand(float2 UV)
     return frac(sin(dot(UV, float2(12.9898, 78.233))) * 43758.5453);
 }
 
+float CalculateTessellationLevel(float3 CameraWorldPosition, float PatchPosition, float MinDistance, float MaxDistance, float MaxLevel)
+{
+    float Distance = length(PatchPosition - CameraWorldPosition);
+
+    if (Distance < MinDistance)
+    {
+        return MaxLevel;
+    }
+	if (Distance > MaxLevel)
+	{
+        return 1.f;
+    }
+
+    float Ratio = (Distance - MinDistance) / (MaxDistance - MinDistance);
+    float Level = (MaxLevel - 1.f) * (1.f - Ratio);
+    return Level;
+}
+
 #endif

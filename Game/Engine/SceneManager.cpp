@@ -178,24 +178,23 @@ TSharedPtr<ULevel> SceneManager::LoadTestLevel()
 	//}
 #pragma endregion
 
-#pragma region Plane
+#pragma region Terrain(Before: Plane)
 	{
-		TSharedPtr<AActor> PlaneActor = MakeShared<AActor>();
-		PlaneActor->AddComponent(MakeShared<USceneComponent>());
-		PlaneActor->GetSceneComponent()->SetLocalScale(FVector3(1000.f, 1.f, 1000.f));
-		PlaneActor->GetSceneComponent()->SetLocalPosition(FVector3(0.f, -100.f, 500.f));
-		PlaneActor->SetIsStaticShadow(true);
+		TSharedPtr<AActor> TerrainActor = MakeShared<AActor>();
+		TerrainActor->AddComponent(MakeShared<USceneComponent>());
+		TerrainActor->GetSceneComponent()->SetLocalScale(FVector3(50.f, 200.f, 50.f));
+		TerrainActor->GetSceneComponent()->SetLocalPosition(FVector3(-100.f, -200.f, 300.f));
+		TerrainActor->SetIsStaticShadow(true);
 
 		TSharedPtr<UMeshComponent> MeshComponent = MakeShared<UMeshComponent>();
-		MeshComponent->SetMesh(Resources::Get()->LoadCube());
+		MeshComponent->SetMesh(Resources::Get()->LoadTerrain());
 
-		TSharedPtr<FMaterial> Material = Resources::Get()->Get<FMaterial>(L"GameObject")->Clone();
-		Material->SetParameter(0, 0);
+		TSharedPtr<FMaterial> Material = Resources::Get()->Get<FMaterial>(L"Terrain");
 
 		MeshComponent->SetMaterial(Material);
-		PlaneActor->AddComponent(MeshComponent);
+		TerrainActor->AddComponent(MeshComponent);
 
-		TestLevel->SpawnActor(PlaneActor);
+		TestLevel->SpawnActor(TerrainActor);
 	}
 #pragma endregion
 

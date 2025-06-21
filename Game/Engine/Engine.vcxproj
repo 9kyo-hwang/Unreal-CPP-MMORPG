@@ -265,6 +265,7 @@
     <FxCompile Include="..\Resources\Shader\Particle.fx" />
     <FxCompile Include="..\Resources\Shader\Shadow.fx" />
     <FxCompile Include="..\Resources\Shader\Skybox.fx" />
+    <FxCompile Include="..\Resources\Shader\Terrain.fx" />
     <FxCompile Include="..\Resources\Shader\Tessellation.fx" />
     <FxCompile Include="..\Resources\Shader\Utils.fx" />
   </ItemGroup>

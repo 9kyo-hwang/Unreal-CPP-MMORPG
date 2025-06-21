@@ -30,6 +30,7 @@ public:
 	TSharedPtr<UMesh> LoadRectangle();
 	TSharedPtr<UMesh> LoadCube();
 	TSharedPtr<UMesh> LoadSphere();
+	TSharedPtr<UMesh> LoadTerrain(int32 SizeX = 15, int32 SizeZ = 15);
 
 	TSharedPtr<FTexture> CreateTexture(const wstring& Name, DXGI_FORMAT Format, uint32 Width, uint32 Height,
 		const D3D12_HEAP_PROPERTIES& HeapProperties, D3D12_HEAP_FLAGS HeapFlags,

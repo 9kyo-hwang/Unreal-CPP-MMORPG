@@ -8,16 +8,19 @@ class FTexture;
  *	.hlsli 파일의 cbuffer register(b1)에서 사용하게 될 구조체
  */
 
-constexpr uint8 NumMaterialInt = 4;
-constexpr uint8 NumMaterialFloat = 4;
-constexpr uint8 NumMaterialTexture = 4;
-constexpr uint8 NumMaterialVector2 = 4;
-constexpr uint8 NumMaterialVector4 = 4;
-constexpr uint8 NumMaterialMatrix = 4;
+constexpr uint8 NumMaterialParamArgs = 4;
 
 struct FMaterialParameters
 {
 public:
+	FMaterialParameters()
+		: IntParameters()
+		, FloatParameters()
+		, UsedTextureParameters()
+		, Vector2Parameters()
+		, MatrixParameters()
+	{}
+
 	void Set(uint8 Index, int32 Value) { IntParameters[Index] = Value; }
 	void Set(uint8 Index, float Value) { FloatParameters[Index] = Value; }
 	void Set(uint8 Index, FVector2 Value) { Vector2Parameters[Index] = Value; }
@@ -26,12 +29,12 @@ public:
 	void SetUseTexture(uint8 Index, int32 Use) { UsedTextureParameters[Index] = Use; }
 
 private:
-	array<int32, NumMaterialInt> IntParameters;
-	array<float, NumMaterialFloat> FloatParameters;
-	array<int32, NumMaterialTexture> UsedTextureParameters;
-	array<FVector2, NumMaterialVector2> Vector2Parameters;
-	array<FVector4, NumMaterialVector4> Vector4Parameters;
-	array<FMatrix, NumMaterialMatrix> MatrixParameters;
+	array<int32, NumMaterialParamArgs> IntParameters;
+	array<float, NumMaterialParamArgs> FloatParameters;
+	array<int32, NumMaterialParamArgs> UsedTextureParameters;
+	array<FVector2, NumMaterialParamArgs> Vector2Parameters;
+	array<FVector4, NumMaterialParamArgs> Vector4Parameters;
+	array<FMatrix, NumMaterialParamArgs> MatrixParameters;
 };
 
 class FMaterial : public UObject
@@ -65,6 +68,6 @@ public:
 private:
 	TSharedPtr<FShader> Shader;
 	FMaterialParameters Parameters;
-	array<TSharedPtr<FTexture>, NumMaterialTexture> Textures;
+	array<TSharedPtr<FTexture>, NumMaterialParamArgs> Textures;
 };
 
