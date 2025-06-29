@@ -4,12 +4,17 @@
 
 FThreadManager* GThreadManager = nullptr;
 
-CoreGlobal::CoreGlobal()
+// 매니저 간 호출 순서를 조정해주는 역할
+class CoreGlobal
 {
-	GThreadManager = new FThreadManager();
-}
+public:
+	CoreGlobal()
+	{
+		GThreadManager = new FThreadManager();
+	}
 
-CoreGlobal::~CoreGlobal()
-{
-	delete GThreadManager;
-}
+	~CoreGlobal()
+	{
+		delete GThreadManager;
+	}
+} GCoreGlobal;

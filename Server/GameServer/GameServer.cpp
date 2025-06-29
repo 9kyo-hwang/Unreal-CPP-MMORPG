@@ -3,8 +3,6 @@
 #include "CoreGlobal.h"
 #include "ThreadManager.h"
 
-CoreGlobal Core;
-
 void ThreadMain()
 {
 	while (true)
