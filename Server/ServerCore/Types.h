@@ -1,6 +1,9 @@
 #pragma once
 
-using byte = unsigned char;
+#include <mutex>
+#include <atomic>
+
+using BYTE = unsigned char;
 using int8 = __int8;
 using int16 = __int16;
 using int32 = __int32;
@@ -9,3 +12,10 @@ using uint8 = unsigned __int8;
 using uint16 = unsigned __int16;
 using uint32 = unsigned __int32;
 using uint64 = unsigned __int64;
+
+template<typename T>
+using TAtomic = std::atomic<T>;
+using FCriticalSection = std::mutex;
+using FConditionVariable = std::condition_variable;
+using FUniqueLock = std::unique_lock<std::mutex>;
+using FScopeLock = std::lock_guard<std::mutex>;
