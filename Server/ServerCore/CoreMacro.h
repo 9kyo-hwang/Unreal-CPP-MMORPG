@@ -1,5 +1,12 @@
 #pragma once
 
+#define USE_LOCKS(count)		FRWLock LockObjects[count];
+#define USE_LOCK				USE_LOCKS(1)
+#define READ_LOCK_INDEX(index)	FRWScopeLock ReadLock_##index(LockObjects[index], FRWScopeLockType::SLT_ReadOnly, typeid(this).name());
+#define READ_LOCK				READ_LOCK_INDEX(0)
+#define WRITE_LOCK_INDEX(index) FRWScopeLock WriteLock_##index(LockObjects[index], FRWScopeLockType::SLT_Write, typeid(this).name());
+#define WRITE_LOCK				WRITE_LOCK_INDEX(0)
+
 #define CRASH(cause)						\
 {											\
 	uint32* Crash = nullptr;				\
