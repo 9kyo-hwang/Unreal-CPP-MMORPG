@@ -13,6 +13,9 @@
     <Filter Include="Thread">
       <UniqueIdentifier>{b7161208-2dd3-4bf5-b7ce-8030d14ab963}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Memory">
+      <UniqueIdentifier>{60227770-71c6-4cc8-96a8-ac74403edecb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Types.h">
@@ -42,6 +45,7 @@
     <ClInclude Include="Profiler.h">
       <Filter>Thread</Filter>
     </ClInclude>
+    <ClInclude Include="RefCountBase.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CorePCH.cpp">
@@ -65,5 +69,6 @@
     <ClCompile Include="Profiler.cpp">
       <Filter>Thread</Filter>
     </ClCompile>
+    <ClCompile Include="RefCountBase.cpp" />
   </ItemGroup>
 </Project>

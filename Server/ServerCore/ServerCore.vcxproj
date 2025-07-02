@@ -166,6 +166,7 @@
     <ClInclude Include="Lock.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Profiler.h" />
+    <ClInclude Include="RefCountBase.h" />
     <ClInclude Include="ThreadManager.h" />
     <ClInclude Include="Types.h" />
   </ItemGroup>
@@ -181,6 +182,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Profiler.cpp" />
+    <ClCompile Include="RefCountBase.cpp" />
     <ClCompile Include="ThreadManager.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
