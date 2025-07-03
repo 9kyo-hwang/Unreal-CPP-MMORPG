@@ -45,7 +45,12 @@
     <ClInclude Include="Profiler.h">
       <Filter>Thread</Filter>
     </ClInclude>
-    <ClInclude Include="RefCountBase.h" />
+    <ClInclude Include="RefCountBase.h">
+      <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="Memory.h">
+      <Filter>Memory</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CorePCH.cpp">
@@ -69,6 +74,11 @@
     <ClCompile Include="Profiler.cpp">
       <Filter>Thread</Filter>
     </ClCompile>
-    <ClCompile Include="RefCountBase.cpp" />
+    <ClCompile Include="RefCountBase.cpp">
+      <Filter>Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="Memory.cpp">
+      <Filter>Memory</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

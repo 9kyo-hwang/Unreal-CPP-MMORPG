@@ -1,56 +1,31 @@
 ﻿#include "pch.h"
 #include <thread>
 #include "CoreGlobal.h"
+#include "Memory.h"
 #include "RefCountBase.h"
 #include "ThreadManager.h"
 
-class FWraight : public FRefCountBase
+class Knight
 {
 public:
-	int32 Hp = 0;
-};
-
-class FMissile : public FRefCountBase
-{
-public:
-	void SetTarget(TSharedPtr<FWraight> InTarget)
+	Knight()
 	{
-		Target = InTarget;
-		Target->AddRef();
+		cout << "Knight()" << endl;
 	}
-
-	void Update()
+	Knight(int32 InHp)
 	{
-		if (Target == nullptr)
-		{
-			return;
-		}
-
-		// TODO: Chase
-
-		if (Target->Hp == 0)
-		{
-			Target->Release();
-			Target = nullptr;
-		}
+		cout << "Knight(int32)" << endl;
 	}
-
-private:
-	TSharedPtr<FWraight> Target = nullptr;
+	~Knight()
+	{
+		cout << "~Knight()" << endl;
+	}
 };
 
 int main()
 {
-	TSharedPtr<FWraight> Wraight(new FWraight());
-	// RefCountBase에서 카운트 1로 시작, 셰어드 포인터를 생성할 때 Set 함수 호출로 인해 카운트 1 증가
-	// 따라서 최초에 한해 1번 Release를 명시적으로 호출해줘야 함
-	Wraight->Release();
-
-	TSharedPtr<FMissile> Missile(new FMissile());
-	Missile->Release();
-
-	// 복사되어 전달, 복사 생성자 동작으로 인해 참조 카운트 증가
-	Missile->SetTarget(Wraight);
+	Knight* knight = NewObject<Knight>(100);
+	DeleteObject(knight);
 
 	return 0;
 }

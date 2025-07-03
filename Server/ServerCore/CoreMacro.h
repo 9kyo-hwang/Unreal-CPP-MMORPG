@@ -7,6 +7,10 @@
 #define WRITE_LOCK_INDEX(index) FRWScopeLock WriteLock_##index(LockObjects[index], FRWScopeLockType::SLT_Write, typeid(this).name());
 #define WRITE_LOCK				WRITE_LOCK_INDEX(0)
 
+#ifdef _DEBUG
+#else
+#endif
+
 #define CRASH(cause)						\
 {											\
 	uint32* Crash = nullptr;				\
