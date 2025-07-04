@@ -1,16 +1,11 @@
 #pragma once
 
-class FMalloc
-{
-public:
-	static void* Malloc(size_t Count);
-	static void Free(void* Original);
-};
+#include "Allocator.h"
 
 template<typename T, typename... Args>
 T* NewObject(Args&&... MallocArgs)
 {
-	T* Mem = static_cast<T*>(FMalloc::Malloc(sizeof(T)));
+	T* Mem = static_cast<T*>(FMallocStomp::Malloc(sizeof(T)));
 
 	/**
 	 *	malloc을 이용한 메모리 할당은 클래스 생성자를 자동으로 호출하지 않음
@@ -27,5 +22,5 @@ template<typename T>
 void DeleteObject(T* Object)
 {
 	Object->~T();
-	FMalloc::Free(Object);
+	FMallocStomp::Free(Object);
 }

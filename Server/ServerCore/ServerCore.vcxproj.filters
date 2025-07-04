@@ -48,7 +48,13 @@
     <ClInclude Include="RefCountBase.h">
       <Filter>Memory</Filter>
     </ClInclude>
-    <ClInclude Include="Memory.h">
+    <ClInclude Include="MemoryBase.h">
+      <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="Allocator.h">
+      <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="Container.h">
       <Filter>Memory</Filter>
     </ClInclude>
   </ItemGroup>
@@ -77,7 +83,13 @@
     <ClCompile Include="RefCountBase.cpp">
       <Filter>Memory</Filter>
     </ClCompile>
-    <ClCompile Include="Memory.cpp">
+    <ClCompile Include="MemoryBase.cpp">
+      <Filter>Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="Allocator.cpp">
+      <Filter>Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="Container.cpp">
       <Filter>Memory</Filter>
     </ClCompile>
   </ItemGroup>

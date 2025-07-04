@@ -8,6 +8,7 @@
 #define WRITE_LOCK				WRITE_LOCK_INDEX(0)
 
 #ifdef _DEBUG
+
 #else
 #endif
 
