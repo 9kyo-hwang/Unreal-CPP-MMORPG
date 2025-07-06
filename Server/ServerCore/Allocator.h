@@ -11,6 +11,13 @@ public:
     static void Free(void* InPtr);
 };
 
+class FMallocPool
+{
+public:
+    static void* Malloc(size_t Size);
+    static void Free(void* InPtr);
+};
+
 template <typename T>
 class TAllocator
 {
@@ -24,11 +31,11 @@ public:
     T* allocate(size_t Count)
 	{
         int32 Size = static_cast<int32>(Count * sizeof(T));
-        return static_cast<T*>(FMallocStomp::Malloc(Size));
+        return static_cast<T*>(FMallocPool::Malloc(Size));
     }
 
     void deallocate(T* InPtr, size_t) noexcept
 	{
-        FMallocStomp::Free(InPtr);
+        FMallocPool::Free(InPtr);
     }
 };

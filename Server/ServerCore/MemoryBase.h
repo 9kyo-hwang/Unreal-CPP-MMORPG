@@ -2,6 +2,27 @@
 
 #include "Allocator.h"
 
+class FMemoryPool;
+
+class FMemory
+{
+	// ~1024까지는 32 단위, ~2048까지는 128 단위, ~4096까지는 256 단위
+	static constexpr uint8 PoolCount = (1024 / 32) + (1024 / 128) + (2048 / 256);
+	static constexpr uint32 MaxAllocSize = 4096;
+
+public:
+	FMemory();
+	~FMemory();
+
+	void* Malloc(int32 Size);
+	void Free(void* InPtr);
+
+private:
+	vector<FMemoryPool*> Pools;
+	FMemoryPool* PoolTable[MaxAllocSize + 1];
+};
+
+
 template<typename T, typename... Args>
 T* NewObject(Args&&... MallocArgs)
 {

@@ -19,8 +19,22 @@ public:
 
 int main()
 {
-	TMap<int32, Knight> Map;
-	Map[100] = Knight();
+	for (int32 i = 0; i < 5; ++i)
+	{
+		GThreadManager->AddThread([]()
+			{
+				while (true)
+				{
+					TArray<Knight> Knights(10);
+					TSortedMap<int32, Knight> Map;
+					Map[100] = Knight();
+
+					this_thread::sleep_for(10ms);
+				}
+			});
+	}
+
+	GThreadManager->WaitForCompletion();
 
 	return 0;
 }

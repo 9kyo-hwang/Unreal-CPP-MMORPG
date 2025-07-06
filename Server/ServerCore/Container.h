@@ -37,7 +37,10 @@ using TDeque = deque<T, TAllocator<T>>;
 template<typename T, typename Container = TDeque<T>>
 using TQueue = queue<T, Container>;
 
+template<typename T, typename Container = TDeque<T>>
+using TStack = stack<T, Container>;
+
 template<typename T, typename Container = TArray<T>, typename Pred = less<typename Container::value_type>>
 using TPriorityQueue = priority_queue<T, Container, Pred>;
 
-using FString = basic_string<wchar_t, char_traits<wchar_t>, allocator<wchar_t>>;
+using FString = basic_string<wchar_t, char_traits<wchar_t>, TAllocator<wchar_t>>;

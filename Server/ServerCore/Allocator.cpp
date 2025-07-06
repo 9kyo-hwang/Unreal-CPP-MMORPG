@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "Allocator.h"
 
+#include "MemoryBase.h"
+
 void* FMallocStomp::Malloc(SIZE_T Size)
 {
 	//const int64 PageCount = (Size + PageSize - 1) / PageSize;
@@ -29,4 +31,14 @@ void FMallocStomp::Free(void* InPtr)
 	const int64 BaseAddress = Address - (Address % PageSize);	// 할당받은 전체 공간의 시작 주소
 
 	::VirtualFree(reinterpret_cast<void*>(BaseAddress), 0, MEM_RELEASE);
+}
+
+void* FMallocPool::Malloc(size_t Size)
+{
+	return GMemory->Malloc(Size);
+}
+
+void FMallocPool::Free(void* InPtr)
+{
+	GMemory->Free(InPtr);
 }
