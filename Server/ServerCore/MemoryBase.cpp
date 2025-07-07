@@ -53,27 +53,31 @@ FMemory::~FMemory()
 void* FMemory::Malloc(int32 Size)
 {
 	// 각자의 메모리 영역만 건드리고 있기 때문에, 별도로 LOCK을 걸지 않음
-	FAllocationData* Data = nullptr;
+	FAllocationData* AllocDataPtr = nullptr;
 	const int32 AllocSize = Size + sizeof(FAllocationData);
 
+#ifdef _STOMP
+	AllocDataPtr = static_cast<FAllocationData*>(FMallocStomp::Malloc(AllocSize));
+#else
 	if (AllocSize > MaxAllocSize)
 	{
 		// 메모리 풀링 최대 크기보다 크면 그냥 할당
-		Data = static_cast<FAllocationData*>(AlignedMalloc(AllocSize, Alignment));
+		AllocDataPtr = static_cast<FAllocationData*>(AlignedMalloc(AllocSize, Alignment));
 	}
 	else
 	{
-		// 해당 사이즈의 풀에서 Pop
-		Data = PoolTable[AllocSize]->Pop();
+		// 해당 사이즈의 풀에서 Release
+		AllocDataPtr = PoolTable[AllocSize]->Get();
 	}
+#endif
 
 	// 내부적으로 AllocSize를 헤더 형식으로 기입해준 뒤, 실제 데이터 시작 주소를 반환해줌
-	return FAllocationData::Attach(Data, AllocSize);
+	return FAllocationData::Attach(AllocDataPtr, AllocSize);
 }
 
 void FMemory::Free(void* InPtr)
 {
-	// 그리고 Pool에 Push/Pop할 때 내부적으로 LOCK을 걸어주고 있음
+	// 그리고 Pool에 Get/Pop할 때 내부적으로 LOCK을 걸어주고 있음
 	if (InPtr == nullptr)
 	{
 		return; 
@@ -85,6 +89,9 @@ void FMemory::Free(void* InPtr)
 	const int32 AllocSize = AllocDataPtr->Size;
 	check(AllocSize > 0);
 
+#ifdef _STOMP
+	FMallocStomp::Free(AllocDataPtr);
+#else
 	if (AllocSize > MaxAllocSize)
 	{
 		// 메모리 풀링 최대 크기를 벗어남 -> free 호출
@@ -93,6 +100,7 @@ void FMemory::Free(void* InPtr)
 	else
 	{
 		// 메모리 풀에 반납
-		PoolTable[AllocSize]->Push(AllocDataPtr);
+		PoolTable[AllocSize]->Release(AllocDataPtr);
 	}
+#endif
 }

@@ -27,3 +27,5 @@
 		__analysis_assume(Expression);	\
 	}									\
 }
+
+//#define _STOMP	// 주석 처리를 해서 Pool 방식으로 스위치 가능

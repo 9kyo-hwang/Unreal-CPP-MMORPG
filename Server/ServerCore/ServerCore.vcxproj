@@ -168,6 +168,7 @@
     <ClInclude Include="Allocator.h" />
     <ClInclude Include="MemoryBase.h" />
     <ClInclude Include="MemoryPool.h" />
+    <ClInclude Include="ObjectPool.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Profiler.h" />
     <ClInclude Include="RefCountBase.h" />

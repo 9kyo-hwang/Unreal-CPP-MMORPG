@@ -22,7 +22,6 @@ private:
 	FMemoryPool* PoolTable[MaxAllocSize + 1];
 };
 
-
 template<typename T, typename... Args>
 T* New(Args&&... MallocArgs)
 {
@@ -44,4 +43,10 @@ void Delete(T* Object)
 {
 	Object->~T();
 	FMallocPool::Free(Object);
+}
+
+template<typename T>
+shared_ptr<T> MakeShared()
+{
+	return shared_ptr<T>{New<T>(), Delete<T>};
 }

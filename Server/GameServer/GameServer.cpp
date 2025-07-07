@@ -13,21 +13,28 @@ public:
 	int32 Hp = rand() % 1000;
 };
 
+class Monster
+{
+public:
+	int64 Id = 0;
+};
+
 int main()
 {
-	for (int32 i = 0; i < 3; ++i)
+	Knight* Knights[100];
+	for (int32 i = 0; i < 100; ++i)
 	{
-		GThreadManager->AddThread([]()
-			{
-				while (true)
-				{
-					Knight* K = New<Knight>();
-					cout << K->Hp << endl;
-					this_thread::sleep_for(10ms);
-					Delete(K);
-				}
-			});
+		Knights[i] = TObjectPool<Knight>::Get();
 	}
+
+	for (int32 i = 0; i < 100; ++i)
+	{
+		TObjectPool<Knight>::Release(Knights[i]);
+		Knights[i] = nullptr;
+	}
+
+	shared_ptr<Knight> K = TObjectPool<Knight>::MakeShared();
+	shared_ptr<Knight> K2 = MakeShared<Knight>();
 
 	return 0;
 }

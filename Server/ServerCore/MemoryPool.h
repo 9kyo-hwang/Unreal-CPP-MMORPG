@@ -42,12 +42,12 @@ public:
 	FMemoryPool(int32 InSize);
 	~FMemoryPool();
 
-	void Push(FAllocationData* InAllocDataPtr);
-	FAllocationData* Pop();
+	void Release(FAllocationData* InAllocDataPtr);
+	FAllocationData* Get();
 
 private:
 	FListHeader ListHead;	// Lock-Free Stack의 Head
-	int32 Size;	// 해당 Pool이 담당하는 할당 크기
-	TAtomic<int32> Num;	// 현재 할당한 메모리 영역 개수
+	int32 MallocSize;	// 해당 Pool이 담당하는 할당 크기
+	TAtomic<int32> NumUses;		// 현재 풀에서 사용 중인 개수
+	TAtomic<int32> NumReserved;	// 현재 풀에 저장된 개수
 };
-
