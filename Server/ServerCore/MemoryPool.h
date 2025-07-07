@@ -1,5 +1,11 @@
 #pragma once
 
+constexpr uint64 Alignment = 16;
+using FListEntry = SLIST_ENTRY;
+using FListHeader = SLIST_HEADER;
+const auto AlignedMalloc = ::_aligned_malloc;
+const auto AlignedFree = ::_aligned_free;
+
 /**
  *	같은 크기를 가지는 인스턴스끼리 Pool에 묶어 줌
  *	그리고 그러한 Pool들을 여러 개 들고 있도록 함
@@ -7,7 +13,8 @@
  *	이를 위해, 동적 할당 시 메타 데이터를 들고 있도록 설계(실제로 C++ 표준에서 동적할당 시 객체 크기와 다음 Heap 메모리 주소 등을 Header로 들고 있음
  */
 
-struct FAllocationData
+__declspec(align(Alignment))
+struct FAllocationData : public FListEntry	// 메모리 구조 최상단에 두기 위해서 상속
 {
 	FAllocationData(int32 InSize)
 		: Size(InSize)
@@ -28,6 +35,7 @@ struct FAllocationData
 	SIZE_T Size;
 };
 
+__declspec(align(Alignment))
 class FMemoryPool
 {
 public:
@@ -38,10 +46,8 @@ public:
 	FAllocationData* Pop();
 
 private:
+	FListHeader ListHead;	// Lock-Free Stack의 Head
 	int32 Size;	// 해당 Pool이 담당하는 할당 크기
 	TAtomic<int32> Num;	// 현재 할당한 메모리 영역 개수
-
-	USE_LOCK;
-	queue<FAllocationData*> Queue;
 };
 

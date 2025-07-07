@@ -24,9 +24,9 @@ private:
 
 
 template<typename T, typename... Args>
-T* NewObject(Args&&... MallocArgs)
+T* New(Args&&... MallocArgs)
 {
-	T* Mem = static_cast<T*>(FMallocStomp::Malloc(sizeof(T)));
+	T* Mem = static_cast<T*>(FMallocPool::Malloc(sizeof(T)));
 
 	/**
 	 *	malloc을 이용한 메모리 할당은 클래스 생성자를 자동으로 호출하지 않음
@@ -40,8 +40,8 @@ T* NewObject(Args&&... MallocArgs)
 }
 
 template<typename T>
-void DeleteObject(T* Object)
+void Delete(T* Object)
 {
 	Object->~T();
-	FMallocStomp::Free(Object);
+	FMallocPool::Free(Object);
 }

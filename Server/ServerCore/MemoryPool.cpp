@@ -4,27 +4,22 @@
 FMemoryPool::FMemoryPool(int32 InSize)
 	: Size(InSize)
 {
+	::InitializeSListHead(&ListHead);
 }
 
 FMemoryPool::~FMemoryPool()
 {
-	while (!Queue.empty())
+	while (FAllocationData* AllocDataPtr = static_cast<FAllocationData*>(::InterlockedPopEntrySList(&ListHead)))
 	{
-		FAllocationData* AllocDataPtr = Queue.front();
-		Queue.pop();
-
-		::free(AllocDataPtr);
+		AlignedFree(AllocDataPtr);
 	}
 }
 
 void FMemoryPool::Push(FAllocationData* InAllocDataPtr)
 {
 	// Pool에 반납
-
-	WRITE_LOCK;
-
 	InAllocDataPtr->Size = 0;
-	Queue.push(InAllocDataPtr);
+	::InterlockedPushEntrySList(&ListHead, InAllocDataPtr);	// ListEntry를 상속받아서 캐스팅 불필요
 	Num.fetch_sub(1);
 }
 
@@ -32,20 +27,12 @@ FAllocationData* FMemoryPool::Pop()
 {
 	// Pool에서 꺼내오기
 
-	FAllocationData* AllocDataPtr = nullptr;
-	{
-		WRITE_LOCK;
-		if (!Queue.empty())
-		{
-			AllocDataPtr = Queue.front();
-			Queue.pop();
-		}
-	}
+	FAllocationData* AllocDataPtr = static_cast<FAllocationData*>(::InterlockedPopEntrySList(&ListHead));
 
 	if (!AllocDataPtr)
 	{
 		// TEMP
-		AllocDataPtr = static_cast<FAllocationData*>(::malloc(Size));
+		AllocDataPtr = static_cast<FAllocationData*>(AlignedMalloc(Size, Alignment));
 	}
 	else
 	{

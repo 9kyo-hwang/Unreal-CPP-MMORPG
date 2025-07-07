@@ -59,7 +59,7 @@ void* FMemory::Malloc(int32 Size)
 	if (AllocSize > MaxAllocSize)
 	{
 		// 메모리 풀링 최대 크기보다 크면 그냥 할당
-		Data = static_cast<FAllocationData*>(::malloc(AllocSize));
+		Data = static_cast<FAllocationData*>(AlignedMalloc(AllocSize, Alignment));
 	}
 	else
 	{
@@ -88,7 +88,7 @@ void FMemory::Free(void* InPtr)
 	if (AllocSize > MaxAllocSize)
 	{
 		// 메모리 풀링 최대 크기를 벗어남 -> free 호출
-		::free(AllocDataPtr);
+		AlignedFree(AllocDataPtr);
 	}
 	else
 	{
