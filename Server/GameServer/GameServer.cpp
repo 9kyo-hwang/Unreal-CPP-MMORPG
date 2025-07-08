@@ -2,39 +2,78 @@
 #include <thread>
 #include "CoreGlobal.h"
 #include "Allocator.h"
+#include "Casts.h"
 #include "Memory.h"
 #include "MemoryBase.h"
 #include "RefCountBase.h"
 #include "ThreadManager.h"
 
-class Knight
+using ActorList = TypeList<class Player, class Knight, class Monster>;
+
+class Player
 {
 public:
+	Player()
+	{
+		TypeId = IndexOf<Types, Player>::Value;
+	}
+
+	virtual ~Player() {}
+
+	using Types = ActorList;
+	int32 TypeId;
+
+private:
+};
+
+class Knight : public Player
+{
+public:
+	Knight()
+	{
+		TypeId = IndexOf<Types, Knight>::Value;
+	}
+	~Knight() override {}
+
 	int32 Hp = rand() % 1000;
 };
 
 class Monster
 {
 public:
-	int64 Id = 0;
+	Monster()
+	{
+		TypeId = IndexOf<Types, Monster>::Value;
+	}
+
+	~Monster() {}
+
+	using Types = ActorList;
+	int32 TypeId;
 };
 
 int main()
 {
-	Knight* Knights[100];
-	for (int32 i = 0; i < 100; ++i)
-	{
-		Knights[i] = TObjectPool<Knight>::Get();
-	}
+	//TypeList<Knight>::First SingleHead;
+	//TypeList<Knight, Monster>::First PairHead;
+	//TypeList<Knight, Monster>::Second PairTail;
+	//TypeList<Knight, TypeList<Monster, Monster>>::First DPHead;
+	//TypeList<Knight, TypeList<Monster, Monster>>::Second::First DPTailHead;
+	//TypeList<Knight, TypeList<Monster, Monster>>::Second::First DPTailTail;
 
-	for (int32 i = 0; i < 100; ++i)
-	{
-		TObjectPool<Knight>::Release(Knights[i]);
-		Knights[i] = nullptr;
-	}
+	//int64 Len = SizeOf<TypeList<Knight, Monster, Monster>>::Value;
+	//TypeAt<TypeList<Knight, Monster, Knight>, 2>::Value Type2;
+	//int64 Index = IndexOf<TypeList<Knight, Monster>, Knight>::Value;
 
-	shared_ptr<Knight> K = TObjectPool<Knight>::MakeShared();
-	shared_ptr<Knight> K2 = MakeShared<Knight>();
+	//bool canCastFromPlayerToKnight = Convert<Player, Knight>::Result;
+	//bool canCastFromKnightToPlayer = Convert<Knight, Player>::Result;
+	//bool canCastFromPlayerToMonster = Convert<Player, Monster>::Result;
+
+	{
+		shared_ptr<Knight> K = MakeShared<Knight>();
+		shared_ptr<Player> P = Cast<Player>(K);
+		bool CanCast = IsA<Player>(K);
+	}
 
 	return 0;
 }
