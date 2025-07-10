@@ -1,86 +1,83 @@
 ﻿#include "pch.h"
-#include <thread>
-#include "CoreGlobal.h"
-#include "Allocator.h"
-#include "Casts.h"
-#include "Memory.h"
-#include "MemoryBase.h"
-#include "RefCountBase.h"
-#include "ThreadManager.h"
-
 #include <WinSock2.h>	// for Socket Programming
-#include <MSWSock.h>
 #include <WS2tcpip.h>
 #pragma comment(lib, "ws2_32.lib")
 
+void HandleError(SOCKET SocketToClose, const char* Ftn)
+{
+	printf("Error at %s(): %ld\n", Ftn, ::WSAGetLastError());
+	//::closesocket(SocketToClose);
+	//::WSACleanup();
+}
+
 int main()
 {
-	uint16 VersionRequested = MAKEWORD(2, 2);
-	WSADATA OutData;
-	if (::WSAStartup(VersionRequested, /*거의 사용할 일 없음*/&OutData) != 0)
+	// Initialize Network
+	WSADATA Data;
+	int32 Result = ::WSAStartup(MAKEWORD(2, 2), /*거의 사용할 일 없음*/&Data);
+	if (Result != NO_ERROR)
 	{
-		cout << "[WSAStartup] function failed with error: " << ::WSAGetLastError() << endl;
+		printf("WSAStartup failed: %d\n", Result);
 		return 1;
 	}
 
-	uint16 AddressFamily = AF_INET;	// IPv4
-	int32 Type = SOCK_STREAM;	// AF_INET + TCP
-	int32 Protocol = 0;	// 내부적으로 알아서 프로토콜을 세팅해줌. 우리의 경우 TCP가 선택됨
-	uint64 Listen = ::socket(AddressFamily, Type, Protocol);	// 일종의 번호(Descriptor)
-	if (Listen == INVALID_SOCKET)
+	// UDP에서는 Listen Socket이 필요 없음
+	SOCKET ServerSocket = ::socket(AF_INET, SOCK_DGRAM, 0);
+	if (ServerSocket == INVALID_SOCKET)
 	{
-		cout << "[socket] function failed with error: " << ::WSAGetLastError() << endl;
+		HandleError(ServerSocket, "socket");
 		return 1;
 	}
 
-	uint16 HostPort = 7777;
-	SOCKADDR_IN MyAddress	// 서버 입장에서는 내 주소
+	SOCKADDR_IN ServerAddr
 	{
-		.sin_family = AddressFamily,
-		.sin_port = ::htons(HostPort),
+		.sin_family = AF_INET,
+		.sin_port = ::htons(7777),
 		.sin_addr = {},
 		.sin_zero = {},
 	};
+	ServerAddr.sin_addr.s_addr = ::htonl(INADDR_ANY);
 
-	IN_ADDR& AddressBuffer = MyAddress.sin_addr;
-	AddressBuffer.s_addr = ::htonl(INADDR_ANY);	// 고정된 주소가 아닌, 적절한 모든 주소에 연결됨
-
-	if (::bind(Listen, reinterpret_cast<SOCKADDR*>(&MyAddress), sizeof(MyAddress)) == SOCKET_ERROR)
+	if (::bind(ServerSocket, 
+		reinterpret_cast<SOCKADDR*>(&ServerAddr), 
+		sizeof(ServerAddr)) == SOCKET_ERROR)
 	{
-		cout << "[bind] function failed with error: " << ::WSAGetLastError() << endl;
+		HandleError(ServerSocket, "bind");
 		return 1;
 	}
 
-	int32 Backlog = 10;
-	if (::listen(Listen, Backlog) == SOCKET_ERROR)
+	do
 	{
-		cout << "[listen] function failed with error: " << ::WSAGetLastError() << endl;
-		return 1;
-	}
+		SOCKADDR_IN ClientAddr{};
+		int32 ClientAddrSize = sizeof(ClientAddr);
 
-	while (true)
-	{
-		SOCKADDR_IN ClientAddress{};
-		int32 AddressLength = sizeof(ClientAddress);
-		uint64 Client = ::accept(Listen, reinterpret_cast<SOCKADDR*>(&ClientAddress), &AddressLength);
-		if (Client == INVALID_SOCKET)
+		this_thread::sleep_for(1s);
+
+		char RecvBuf[1000];
+		Result = ::recvfrom(ServerSocket, RecvBuf, sizeof(RecvBuf), 0, 
+			reinterpret_cast<SOCKADDR*>(&ClientAddr), &ClientAddrSize);
+
+		if (Result == SOCKET_ERROR)
 		{
-			cout << "[accept] function failed with error: " << ::WSAGetLastError() << endl;
-			break;
+			HandleError(ServerSocket, "recvfrom");
+		}
+		else if (Result == 0)
+		{
+			printf("Connection Closed\n");
+		}
+		else
+		{
+			printf("Received bytes: %d\t[%s]\n", Result, RecvBuf);
+			if (::sendto(ServerSocket, RecvBuf, sizeof(RecvBuf), 0, 
+				reinterpret_cast<SOCKADDR*>(&ClientAddr), ClientAddrSize) == SOCKET_ERROR)
+			{
+				HandleError(ServerSocket, "sendto");
+			}
+
+			printf("Send bytes: %lld\n", sizeof(RecvBuf));
 		}
 
-		const uint16 StringBufferSize = INET_ADDRSTRLEN;
-		char StringBuffer[StringBufferSize]{};
-		if (::inet_ntop(AddressFamily, &ClientAddress.sin_addr, StringBuffer, StringBufferSize) == nullptr)
-		{
-			cout << "[inet_ntop] function failed with error: " << ::WSAGetLastError() << endl;
-			break;
-		}
-
-		cout << "Client Connected! IP = "<< StringBuffer << endl;
-
-		// TODO
-	}
+	} while (Result > 0);
 
 	::WSACleanup();
 
