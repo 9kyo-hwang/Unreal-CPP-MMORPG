@@ -29,55 +29,15 @@ int main()
 		return 1;
 	}
 
-	SOCKADDR_IN ServerAddr
-	{
-		.sin_family = AF_INET,
-		.sin_port = ::htons(7777),
-		.sin_addr = {},
-		.sin_zero = {},
-	};
-	ServerAddr.sin_addr.s_addr = ::htonl(INADDR_ANY);
+	int32 SendBufferSize;
+	int32 SndbufOptLen = sizeof(SendBufferSize);
+	::getsockopt(ServerSocket, SOL_SOCKET, SO_SNDBUF, reinterpret_cast<char*>(&SendBufferSize), &SndbufOptLen);
+	cout << "Send Buffer Size: " << SendBufferSize << endl;
 
-	if (::bind(ServerSocket, 
-		reinterpret_cast<SOCKADDR*>(&ServerAddr), 
-		sizeof(ServerAddr)) == SOCKET_ERROR)
-	{
-		HandleError(ServerSocket, "bind");
-		return 1;
-	}
-
-	do
-	{
-		SOCKADDR_IN ClientAddr{};
-		int32 ClientAddrSize = sizeof(ClientAddr);
-
-		this_thread::sleep_for(1s);
-
-		char RecvBuf[1000];
-		Result = ::recvfrom(ServerSocket, RecvBuf, sizeof(RecvBuf), 0, 
-			reinterpret_cast<SOCKADDR*>(&ClientAddr), &ClientAddrSize);
-
-		if (Result == SOCKET_ERROR)
-		{
-			HandleError(ServerSocket, "recvfrom");
-		}
-		else if (Result == 0)
-		{
-			printf("Connection Closed\n");
-		}
-		else
-		{
-			printf("Received bytes: %d\t[%s]\n", Result, RecvBuf);
-			if (::sendto(ServerSocket, RecvBuf, sizeof(RecvBuf), 0, 
-				reinterpret_cast<SOCKADDR*>(&ClientAddr), ClientAddrSize) == SOCKET_ERROR)
-			{
-				HandleError(ServerSocket, "sendto");
-			}
-
-			printf("Send bytes: %lld\n", sizeof(RecvBuf));
-		}
-
-	} while (Result > 0);
+	int32 RecvBufferSize;
+	int32 RcvbufOptLen = sizeof(RecvBufferSize);
+	::getsockopt(ServerSocket, SOL_SOCKET, SO_RCVBUF, reinterpret_cast<char*>(&RecvBufferSize), &RcvbufOptLen);
+	cout << "Receive Buffer Size: " << RecvBufferSize << endl;
 
 	::WSACleanup();
 
