@@ -19,3 +19,5 @@ using FCriticalSection = std::mutex;
 using FConditionVariable = std::condition_variable;
 using FUniqueLock = std::unique_lock<std::mutex>;
 using FScopeLock = std::lock_guard<std::mutex>;
+
+#define _STOMP
