@@ -3,109 +3,137 @@
 #include <WS2tcpip.h>
 #pragma comment(lib, "ws2_32.lib")
 
-struct FSession
+enum class ENetworkEvents : long
 {
-	static constexpr int32 BufferSize = 1024;
-
-	SOCKET Socket;
-	char Buffer[BufferSize];
-	int32 BytesSent;
-	int32 BytesRecv;
-
-	explicit FSession(SOCKET InSocket = INVALID_SOCKET)
-		: Socket(InSocket)
-		, Buffer{}
-		, BytesSent(0)
-		, BytesRecv(0)
-	{
-	}
-
-	void Clear()
-	{
-		BytesRecv = BytesSent = 0;
-	}
+	Accept = FD_ACCEPT,
+	Read = FD_READ,
+	Write = FD_WRITE,
+	Close = FD_CLOSE,
 };
 
-struct FSocketSet : fd_set
+inline ENetworkEvents operator|(ENetworkEvents Lhs, ENetworkEvents Rhs)
 {
-	FSocketSet()
+	return static_cast<ENetworkEvents>(static_cast<long>(Lhs) | static_cast<long>(Rhs));
+}
+
+constexpr int32 ErrorBit(ENetworkEvents E)
+{
+	switch (E)
 	{
-		Initialize();
+	case ENetworkEvents::Accept:	return FD_ACCEPT_BIT;
+	case ENetworkEvents::Read:		return FD_READ_BIT;
+	case ENetworkEvents::Write:		return FD_WRITE_BIT;
+	case ENetworkEvents::Close:		return FD_CLOSE_BIT;
 	}
 
-	void Initialize()
+	return -1;
+}
+
+class WSession
+{
+public:
+	static constexpr int32 BufferSize = 1024;
+
+	explicit WSession(SOCKET InSocket, ENetworkEvents InEventType)
+		: Socket(InSocket)
+		, Event(::WSACreateEvent())
+		, EventType(static_cast<long>(InEventType))
+		, NetworkEvents()
+		, Buffer{}
+		, BytesRecv(0)
+		, BytesSent(0)
 	{
-		FD_ZERO(this);
+		u_long Mode = 1;
+		::ioctlsocket(Socket, FIONBIO, &Mode);
+		::WSAEventSelect(Socket, Event, EventType);
 	}
 
-	void Clear(SOCKET Socket)
+	~WSession()
 	{
-		FD_CLR(Socket, this);
+		if (Socket != INVALID_SOCKET)
+		{
+			::closesocket(Socket);
+		}
+
+		if (Event != WSA_INVALID_EVENT)
+		{
+			::WSACloseEvent(Event);
+		}
 	}
 
-	bool Contains(SOCKET Socket)
+	SOCKET GetSocket() const { return Socket; }
+	WSAEVENT GetEvent() const { return Event; }
+
+	bool QueryEvents()
 	{
-		return FD_ISSET(Socket, this);
+		ZeroMemory(&NetworkEvents, sizeof(NetworkEvents));
+		return ::WSAEnumNetworkEvents(Socket, Event, &NetworkEvents) != SOCKET_ERROR;
 	}
 
-	// Accept할 소켓을 추가합니다.
-	void Add(SOCKET Socket)
+	bool Has(ENetworkEvents InEventType) const
 	{
-		FD_SET(Socket, this);
+		long Mask = static_cast<long>(InEventType);
+		if ((EventType & Mask) == 0)
+		{
+			return false;
+		}
+
+		int32 Bit = ErrorBit(InEventType);
+		return NetworkEvents.lNetworkEvents & Mask && NetworkEvents.iErrorCode[Bit] == 0;
 	}
+
+	int32 TryReceive()
+	{
+		if (BytesRecv != 0)
+		{
+			return 0;
+		}
+
+		int32 Bytes = ::recv(Socket, Buffer, BufferSize, 0);
+		if (Bytes == SOCKET_ERROR)
+		{
+			return ::WSAGetLastError() == WSAEWOULDBLOCK ? 0 : -1;
+		}
+
+		BytesRecv = Bytes;
+		return Bytes;
+	}
+
+	int32 TrySend()
+	{
+		if (BytesRecv <= BytesSent)
+		{
+			return 0;
+		}
+
+		int32 Bytes = ::send(Socket, &Buffer[BytesSent], BytesRecv - BytesSent, 0);
+		if (Bytes == SOCKET_ERROR)
+		{
+			return ::WSAGetLastError() == WSAEWOULDBLOCK ? 0 : -1;
+		}
+
+		BytesSent += Bytes;
+		if (BytesRecv == BytesSent)	// 다 보냈으면 Clear
+		{
+			BytesRecv = BytesSent = 0;
+		}
+
+		return Bytes;
+	}
+
+private:
+	SOCKET Socket;
+	WSAEVENT Event;
+	long EventType;
+	WSANETWORKEVENTS NetworkEvents;
+	char Buffer[BufferSize];
+	int32 BytesRecv;
+	int32 BytesSent;
 };
 
 void HandleError(const char* Ftn)
 {
 	printf("Error at %s(): %ld\n", Ftn, ::WSAGetLastError());
-}
-
-int TrySend(const SOCKET& ClientSocket, const char* SendBuffer, int32& OutSendLength)
-{
-	OutSendLength = ::send(ClientSocket, SendBuffer, sizeof(SendBuffer), 0);
-
-	if (OutSendLength == INVALID_SOCKET)
-	{
-		return ::WSAGetLastError() == WSAEWOULDBLOCK ? 0 : -1;
-	}
-	else
-	{
-		return 1;
-	}
-}
-
-int TryReceive(const SOCKET& ClientSocket, char* ReceiveBuffer, int32& OutReceiveLength)
-{
-	OutReceiveLength = ::recv(ClientSocket, ReceiveBuffer, sizeof(ReceiveBuffer), 0);
-
-	if (OutReceiveLength == SOCKET_ERROR)
-	{
-		return ::WSAGetLastError() == WSAEWOULDBLOCK ? 0 : -1;
-	}
-	else if (OutReceiveLength == 0)
-	{
-		return -1;
-	}
-	else
-	{
-		return 1;
-	}
-}
-
-int TryAccept(const SOCKET& ListenSocket, SOCKET& OutClientSocket)
-{
-	SOCKADDR_IN ClientAddress;
-	int32 AddressLength = sizeof(ClientAddress);
-	OutClientSocket = ::accept(ListenSocket, reinterpret_cast<SOCKADDR*>(&ClientAddress), &AddressLength);
-
-	if (OutClientSocket == INVALID_SOCKET)
-	{
-		return ::WSAGetLastError() == WSAEWOULDBLOCK ? 0 : -1;
-	}
-	else
-	{
-		return 1;
-	}
 }
 
 int main()
@@ -122,6 +150,7 @@ int main()
 	SOCKET ListenSocket = ::socket(AF_INET, SOCK_STREAM, 0);
 	if (ListenSocket == INVALID_SOCKET)
 	{
+		::WSACleanup();
 		return 1;
 	}
 
@@ -134,106 +163,96 @@ int main()
 	SOCKADDR_IN ServerAddress(AF_INET, ::htons(7777));
 	ServerAddress.sin_addr.s_addr = ::htonl(INADDR_ANY);
 
-	if (::bind(ListenSocket, reinterpret_cast<SOCKADDR*>(&ServerAddress), sizeof(ServerAddress)) == SOCKET_ERROR)
+	if (::bind(ListenSocket, reinterpret_cast<SOCKADDR*>(&ServerAddress), sizeof(ServerAddress)) == SOCKET_ERROR
+		|| ::listen(ListenSocket, SOMAXCONN) == SOCKET_ERROR)
 	{
+		::closesocket(ListenSocket);
+		::WSACleanup();
 		return 1;
 	}
 
-	if (::listen(ListenSocket, SOMAXCONN) == SOCKET_ERROR)
-	{
-		return 1;
-	}
+	cout << "Server 대기 중..." << endl;
 
-	cout << "Accept!" << endl;
-
-	vector<FSession> Sessions;
-	Sessions.reserve(100);
-
-	FSocketSet RecvSet, SendSet;
+	vector<unique_ptr<WSession>> Sessions;
+	Sessions.emplace_back(
+		make_unique<WSession>(
+			ListenSocket, 
+			ENetworkEvents::Accept | ENetworkEvents::Close
+		)
+	);
 
 	while (true)
 	{
-		RecvSet.Initialize();
-		SendSet.Initialize();
-
-		// Listen Socket 등록
-		RecvSet.Add(ListenSocket);
-
-		for (FSession& Session : Sessions)
+		vector<WSAEVENT> Events;
+		for (auto& Session : Sessions)
 		{
-			// Echo 서버를 구현하기 때문에, 수신/송신 바이트 수를 이용해 구분
-			if (Session.BytesRecv <= Session.BytesSent)
-			{
-				RecvSet.Add(Session.Socket);
-			}
-			else
-			{
-				SendSet.Add(Session.Socket);
-			}
+			Events.emplace_back(Session->GetEvent());
 		}
 
-		int32 NumReadySocketHandles = ::select(/*Windows에서는 사용하지 않음*/0, &RecvSet, &SendSet, nullptr, /*대기할 시간*/nullptr);
-		if (NumReadySocketHandles == SOCKET_ERROR)
+		DWORD Index = ::WSAWaitForMultipleEvents(
+			static_cast<DWORD>(Events.size()), 
+			Events.data(), 
+			false, 
+			WSA_INFINITE, 
+			false
+		);
+
+		if (Index == WSA_WAIT_FAILED)
 		{
-			break;
-		}
-		else if (NumReadySocketHandles == 0)
-		{
-			// time limit expired
-			// 우리는 timeout을 설정하지 않아 진입하지 않음
-			break;
+			continue;
 		}
 
-		if (RecvSet.Contains(ListenSocket))
+		Index -= WSA_WAIT_EVENT_0;
+
+		const auto Session = Sessions[Index].get();
+		if (Session->QueryEvents() == false)
 		{
-			// 소켓이 Set에 존재한다는 건 select 함수로부터 제거되지 않았다는 뜻 -> 클라이언트가 접속 요청을 한 것!
+			continue;
+		}
+
+		if (Session->Has(ENetworkEvents::Accept))
+		{
 			SOCKADDR_IN ClientAddr;
 			int32 AddrLen = sizeof(ClientAddr);
-
 			SOCKET ClientSocket = ::accept(ListenSocket, reinterpret_cast<SOCKADDR*>(&ClientAddr), &AddrLen);
-			// 원래는 INVALID_SOCKET를 체크해야 했으나, ReadSet을 이용해 들어온 것을 이미 확인
 			if (ClientSocket != INVALID_SOCKET)
 			{
 				cout << "Client Connected!" << endl;
-				Sessions.emplace_back(ClientSocket);
+				Sessions.emplace_back(
+					make_unique<WSession>(
+						ClientSocket,
+						ENetworkEvents::Read | ENetworkEvents::Write | ENetworkEvents::Close
+					)
+				);
 			}
 		}
 
-		// 나머지 소켓에 대해서도 Set에 포함됐는지 포함
-		for (FSession& Session : Sessions)
+		if (Session->Has(ENetworkEvents::Read) || Session->Has(ENetworkEvents::Write))
 		{
-			if (RecvSet.Contains(Session.Socket))
+			int32 BytesRecv = Session->TryReceive();
+			if (BytesRecv > 0)
 			{
-				int32 BytesRecv = ::recv(Session.Socket, Session.Buffer, FSession::BufferSize, 0);
-				if (BytesRecv <= 0)
-				{
-					// TODO: 해당 세션을 Set에서 제거
-					continue;
-				}
-
-				Session.BytesRecv = BytesRecv;
+				cout << "Recv Data = " << BytesRecv << endl;
+			}
+			else if (BytesRecv < 0)
+			{
+				// TODO: Erase Session
 			}
 
-			// OS의 송신 버퍼에 빈 공간이 있어 복사할 수 있음
-			if (SendSet.Contains(Session.Socket))
+			int32 BytesSent = Session->TrySend();
+			if (BytesSent > 0)
 			{
-				// 논블로킹 소켓은 상대방 수신 버퍼 상황에 따라 데이터를 일부만 보낼 수 있음(어지간하면 전체를 다 보내도록 설계돼있음)
-				// 따라서 남은 데이터만 전송하도록 설계(어지간하면 0부터 시작해서 전체 데이터)
-				int32 BytesSent = ::send(Session.Socket, &Session.Buffer[Session.BytesSent], Session.BytesRecv - Session.BytesSent, 0);
-				if (BytesSent == SOCKET_ERROR)
-				{
-					// TODO: 해당 세션을 Set에서 제거
-					continue;
-				}
-
-				Session.BytesSent += BytesSent;
-				if (Session.BytesRecv == Session.BytesSent)
-				{
-					// Echo 서버이므로 수신 크기 == 송신 크기 -> 데이터를 온전히 다 주고받음
-					// 따라서 송수신 데이터 크기를 0으로 초기화
-					Session.Clear();
-				}
+				cout << "Send Data = " << BytesSent << endl;
 			}
+			else if (BytesSent < 0)
+			{
+				// TODO: Erase session
+			}
+		}
+
+		if (Session->Has(ENetworkEvents::Close))
+		{
+			// TODO: Erase socket
 		}
 	}
 

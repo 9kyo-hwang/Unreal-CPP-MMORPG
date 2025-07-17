@@ -42,6 +42,9 @@ int TrySend(const SOCKET& ClientSocket, const char* SendBuffer, int32& OutSendLe
 
 int main()
 {
+	// Server보다 먼저 켜지지 않도록
+	this_thread::sleep_for(1s);
+
 	// Initialize Network
 	WSADATA Data;
 	int32 Result = ::WSAStartup(MAKEWORD(2, 2), /*거의 사용할 일 없음*/&Data);
