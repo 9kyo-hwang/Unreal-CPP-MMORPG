@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 #include <WinSock2.h>	// for Socket Programming
 #include <WS2tcpip.h>
+#include <chrono>
 #pragma comment(lib, "ws2_32.lib")	// 반드시 필요
 
 void HandleError(const char* Ftn)
@@ -43,7 +44,7 @@ int TrySend(const SOCKET& ClientSocket, const char* SendBuffer, int32& OutSendLe
 int main()
 {
 	// Server보다 먼저 켜지지 않도록
-	this_thread::sleep_for(1s);
+	std::this_thread::sleep_for(1s);
 
 	// Initialize Network
 	WSADATA Data;
@@ -92,39 +93,31 @@ int main()
 
 	cout << "Connected to server!" << endl;
 	char SendBuffer[100] = "Hello, Server!";
+	WSAEVENT Event = ::WSACreateEvent();
+	WSAOVERLAPPED Overlapped{};
+	Overlapped.hEvent = Event;
 
 	while (true)
 	{
-		int32 SendLen;
-		int32 SendResult = TrySend(ClientSocket, SendBuffer, SendLen);
-		if (SendResult == -1)	// Error
-		{
-			break;
-		}
-		else if (SendResult == 0)	// Would Block
-		{
-			continue;
-		}
+		WSABUF Buffer(100, SendBuffer);
+		DWORD BytesSent = 0;
+		DWORD Flags = 0;
 
-		cout << "Send Data! Len = " << SendLen << endl;
-
-		while (true)
+		if (::WSASend(ClientSocket, &Buffer, 1, &BytesSent, Flags, &Overlapped, nullptr) == SOCKET_ERROR)
 		{
-			char ReceiveBuffer[1000];
-			int32 ReceiveLength;
-			int32 ReceiveResult = TryReceive(ClientSocket, ReceiveBuffer, ReceiveLength);
-			if (ReceiveResult == -1)	// Error or Disconnected
+			if (::WSAGetLastError() == WSA_IO_PENDING)
 			{
+				::WSAWaitForMultipleEvents(1, &Event, true, WSA_INFINITE, false);
+				::WSAGetOverlappedResult(ClientSocket, &Overlapped, &BytesSent, false, &Flags);
+			}
+			else
+			{
+				// Error occurred
 				break;
 			}
-			else if (ReceiveResult == 0)	// WouldBlock
-			{
-				continue;
-			}
-
-			cout << "Recv Data Len = " << ReceiveLength << endl;
-			break;
 		}
+
+		cout << "Send Data! Len = " << sizeof(SendBuffer) << endl;
 
 		this_thread::sleep_for(1s);
 	}
