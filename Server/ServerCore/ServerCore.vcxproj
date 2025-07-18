@@ -165,6 +165,7 @@
     <ClInclude Include="CoreMacro.h" />
     <ClInclude Include="CorePCH.h" />
     <ClInclude Include="CoreTLS.h" />
+    <ClInclude Include="IPAddress.h" />
     <ClInclude Include="Lock.h" />
     <ClInclude Include="Allocator.h" />
     <ClInclude Include="MemoryBase.h" />
@@ -173,6 +174,8 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="Profiler.h" />
     <ClInclude Include="RefCountBase.h" />
+    <ClInclude Include="Sockets.h" />
+    <ClInclude Include="SocketSubsystem.h" />
     <ClInclude Include="ThreadManager.h" />
     <ClInclude Include="Types.h" />
   </ItemGroup>
@@ -181,6 +184,7 @@
     <ClCompile Include="CoreGlobal.cpp" />
     <ClCompile Include="CorePCH.cpp" />
     <ClCompile Include="CoreTLS.cpp" />
+    <ClCompile Include="IPAddress.cpp" />
     <ClCompile Include="Lock.cpp" />
     <ClCompile Include="Allocator.cpp" />
     <ClCompile Include="MemoryBase.cpp" />
@@ -193,6 +197,8 @@
     </ClCompile>
     <ClCompile Include="Profiler.cpp" />
     <ClCompile Include="RefCountBase.cpp" />
+    <ClCompile Include="Sockets.cpp" />
+    <ClCompile Include="SocketSubsystem.cpp" />
     <ClCompile Include="ThreadManager.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -20,4 +20,6 @@ using FConditionVariable = std::condition_variable;
 using FUniqueLock = std::unique_lock<std::mutex>;
 using FScopeLock = std::lock_guard<std::mutex>;
 
+#define countof(arr) static_cast<uint64>(sizeof(arr) / sizeof((arr)[0]))
+
 #define _STOMP

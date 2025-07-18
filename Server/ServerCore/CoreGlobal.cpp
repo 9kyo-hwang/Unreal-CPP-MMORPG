@@ -3,6 +3,7 @@
 
 #include "MemoryBase.h"
 #include "Profiler.h"
+#include "SocketSubsystem.h"
 #include "ThreadManager.h"
 
 FThreadManager* GThreadManager = nullptr;
@@ -18,6 +19,7 @@ public:
 		GThreadManager = new FThreadManager();
 		GMemory = new FMemory();
 		GDeadLockProfiler = new FDeadLockProfiler();
+		FSocketSubsystem::Init();
 	}
 
 	~CoreGlobal()
@@ -25,5 +27,6 @@ public:
 		delete GThreadManager;
 		delete GMemory;
 		delete GDeadLockProfiler;
+		FSocketSubsystem::Shutdown();
 	}
 } GCoreGlobal;

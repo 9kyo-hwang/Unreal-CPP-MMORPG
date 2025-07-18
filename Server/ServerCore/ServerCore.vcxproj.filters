@@ -66,6 +66,15 @@
     <ClInclude Include="Casts.h">
       <Filter>Memory</Filter>
     </ClInclude>
+    <ClInclude Include="SocketSubsystem.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="IPAddress.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="Sockets.h">
+      <Filter>Network</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CorePCH.cpp">
@@ -103,6 +112,15 @@
     </ClCompile>
     <ClCompile Include="MemoryPool.cpp">
       <Filter>Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="SocketSubsystem.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="IPAddress.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="Sockets.cpp">
+      <Filter>Network</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

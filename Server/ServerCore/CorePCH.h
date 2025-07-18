@@ -8,9 +8,14 @@
 
 #include <iostream>
 #include <windows.h>
-
 using namespace std;
+
+#include <WinSock2.h>	// for Socket Programming
+#include <WS2tcpip.h>
+#include <MSWSock.h>
+#pragma comment(lib, "ws2_32.lib")
 
 #include "Lock.h"
 #include "ObjectPool.h"
 #include "Casts.h"
+#include "MemoryBase.h"

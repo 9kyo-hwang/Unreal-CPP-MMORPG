@@ -1,8 +1,5 @@
 ﻿#include "pch.h"
-#include <WinSock2.h>	// for Socket Programming
-#include <WS2tcpip.h>
 #include <chrono>
-#pragma comment(lib, "ws2_32.lib")	// 반드시 필요
 
 void HandleError(const char* Ftn)
 {
