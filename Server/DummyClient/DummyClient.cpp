@@ -44,8 +44,8 @@ int main()
 	std::this_thread::sleep_for(1s);
 
 	// Initialize Network
-	WSADATA Data;
-	int32 Result = ::WSAStartup(MAKEWORD(2, 2), /*거의 사용할 일 없음*/&Data);
+	WSADATA WSAData;
+	int32 Result = ::WSAStartup(MAKEWORD(2, 2), /*거의 사용할 일 없음*/&WSAData);
 	if (Result != NO_ERROR)
 	{
 		printf("WSAStartup failed: %d\n", Result);

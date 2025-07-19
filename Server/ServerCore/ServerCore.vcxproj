@@ -165,7 +165,10 @@
     <ClInclude Include="CoreMacro.h" />
     <ClInclude Include="CorePCH.h" />
     <ClInclude Include="CoreTLS.h" />
+    <ClInclude Include="IOCPCore.h" />
+    <ClInclude Include="IOCPEvent.h" />
     <ClInclude Include="IPAddress.h" />
+    <ClInclude Include="Listener.h" />
     <ClInclude Include="Lock.h" />
     <ClInclude Include="Allocator.h" />
     <ClInclude Include="MemoryBase.h" />
@@ -174,6 +177,7 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="Profiler.h" />
     <ClInclude Include="RefCountBase.h" />
+    <ClInclude Include="Session.h" />
     <ClInclude Include="Sockets.h" />
     <ClInclude Include="SocketSubsystem.h" />
     <ClInclude Include="ThreadManager.h" />
@@ -184,7 +188,10 @@
     <ClCompile Include="CoreGlobal.cpp" />
     <ClCompile Include="CorePCH.cpp" />
     <ClCompile Include="CoreTLS.cpp" />
+    <ClCompile Include="IOCPCore.cpp" />
+    <ClCompile Include="IOCPEvent.cpp" />
     <ClCompile Include="IPAddress.cpp" />
+    <ClCompile Include="Listener.cpp" />
     <ClCompile Include="Lock.cpp" />
     <ClCompile Include="Allocator.cpp" />
     <ClCompile Include="MemoryBase.cpp" />
@@ -197,6 +204,7 @@
     </ClCompile>
     <ClCompile Include="Profiler.cpp" />
     <ClCompile Include="RefCountBase.cpp" />
+    <ClCompile Include="Session.cpp" />
     <ClCompile Include="Sockets.cpp" />
     <ClCompile Include="SocketSubsystem.cpp" />
     <ClCompile Include="ThreadManager.cpp" />

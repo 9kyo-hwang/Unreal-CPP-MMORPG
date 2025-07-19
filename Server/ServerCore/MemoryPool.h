@@ -28,8 +28,8 @@ struct FAllocationData : public FListEntry	// 메모리 구조 최상단에 두기 위해서 �
 
 	static FAllocationData* Detach(void* InPtr)
 	{
-		FAllocationData* Data = static_cast<FAllocationData*>(InPtr) - 1;
-		return Data;
+		FAllocationData* GetData = static_cast<FAllocationData*>(InPtr) - 1;
+		return GetData;
 	}
 
 	SIZE_T Size;

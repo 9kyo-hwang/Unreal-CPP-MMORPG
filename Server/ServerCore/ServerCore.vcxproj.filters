@@ -75,6 +75,18 @@
     <ClInclude Include="Sockets.h">
       <Filter>Network</Filter>
     </ClInclude>
+    <ClInclude Include="IOCPCore.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="IOCPEvent.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="Listener.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="Session.h">
+      <Filter>Network</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CorePCH.cpp">
@@ -120,6 +132,18 @@
       <Filter>Network</Filter>
     </ClCompile>
     <ClCompile Include="Sockets.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="IOCPCore.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="IOCPEvent.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="Listener.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="Session.cpp">
       <Filter>Network</Filter>
     </ClCompile>
   </ItemGroup>

@@ -12,13 +12,13 @@ public:
 public:
 	static void Init();
 	static void Shutdown();
-	static bool Bind(SOCKET Socket, GUID FunctionID, LPVOID* FunctionPointer);
+	static bool LoadSocketFunctions(SOCKET Socket);
 
-	static FSocket* CreateSocket();
+	static std::unique_ptr<FSocket> CreateSocket();
 };
 
 template<typename T>
 bool SetSockOpt(SOCKET Socket, int32 Level, int32 OptName, T OptVal)
 {
-	return ::setsockopt(Socket, Level, OptName, reinterpret_cast<const char*>(&OptVal), sizeof(T)) == 0;
+	return ::setsockopt(Socket, Level, OptName, reinterpret_cast<char*>(&OptVal), sizeof(T)) == 0;
 }

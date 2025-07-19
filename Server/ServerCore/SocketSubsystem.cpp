@@ -8,12 +8,9 @@ void FSocketSubsystem::Init()
 	WSADATA WSAData;
 	check(::WSAStartup(MAKEWORD(2, 2), &WSAData) == 0);
 
-	// ∑±≈∏¿”ø° ¡÷º“∏¶ æÚæÓø¿¥¬ API
-	FSocket* DummySocket = CreateSocket();
-	SOCKET Socket = DummySocket->GetNativeSocket();
-	check(Bind(Socket, WSAID_CONNECTEX, reinterpret_cast<LPVOID*>(&Connect)));
-	check(Bind(Socket, WSAID_DISCONNECTEX, reinterpret_cast<LPVOID*>(&Disconnect)));
-	check(Bind(Socket, WSAID_ACCEPTEX, reinterpret_cast<LPVOID*>(&Accept)));
+	// Îü∞ÌÉÄÏûÑÏóê Ï£ºÏÜåÎ•º Í∞ÄÏ†∏Ïò§Îäî API
+	auto DummySocket = CreateSocket();
+	check(LoadSocketFunctions(DummySocket->GetNativeSocket()));
 }
 
 void FSocketSubsystem::Shutdown()
@@ -21,25 +18,39 @@ void FSocketSubsystem::Shutdown()
 	::WSACleanup();
 }
 
-bool FSocketSubsystem::Bind(SOCKET Socket, GUID FunctionID, LPVOID* FunctionPointer)
+bool FSocketSubsystem::LoadSocketFunctions(SOCKET Socket)
 {
-	// ∑±≈∏¿”ø° ConnectEx, DisconnectEx, AcceptEx∏¶ ∞°¡ÆøÕº≠ ªÁøÎ«œ±‚ ¿ß«ÿ
+	// Îü∞ÌÉÄÏûÑÏóê ConnectEx, DisconnectEx, AcceptExÏùò Ìè¨Ïù∏ÌÑ∞Î•º ÏñªÏñ¥Ïò§Í∏∞ ÏúÑÌï®
+	GUID ConnectExId = WSAID_CONNECTEX;
+	GUID DisconnectExId = WSAID_DISCONNECTEX;
+	GUID AcceptExId = WSAID_ACCEPTEX;
 	DWORD Bytes = 0;
-	return SOCKET_ERROR != ::WSAIoctl(
-		Socket, 
-		SIO_GET_EXTENSION_FUNCTION_POINTER, 
-		&FunctionID, 
-		sizeof(FunctionID), 
-		FunctionPointer, 
-		sizeof(FunctionPointer), 
-		&Bytes, 
-		nullptr, 
-		nullptr
-	);
+
+	if (SOCKET_ERROR == ::WSAIoctl(Socket, SIO_GET_EXTENSION_FUNCTION_POINTER, &ConnectExId, sizeof(ConnectExId), &Connect, sizeof(Connect), &Bytes, nullptr, nullptr))
+	{
+		return false;
+	}
+
+	if (SOCKET_ERROR == ::WSAIoctl(Socket, SIO_GET_EXTENSION_FUNCTION_POINTER, &DisconnectExId, sizeof(DisconnectExId), &Disconnect, sizeof(Disconnect), &Bytes, nullptr, nullptr))
+	{
+		return false;
+	}
+
+	if (SOCKET_ERROR == ::WSAIoctl(Socket, SIO_GET_EXTENSION_FUNCTION_POINTER, &AcceptExId, sizeof(AcceptExId), &Accept, sizeof(Accept), &Bytes, nullptr, nullptr))
+	{
+		return false;
+	}
+
+	return true;
 }
 
-FSocket* FSocketSubsystem::CreateSocket()
+std::unique_ptr<FSocket> FSocketSubsystem::CreateSocket()
 {
 	SOCKET Socket = ::WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, nullptr, 0, WSA_FLAG_OVERLAPPED);
-	return new FSocket(Socket);
+	if (Socket == INVALID_SOCKET)
+	{
+		return nullptr;
+	}
+
+	return std::make_unique<FSocket>(Socket);
 }
