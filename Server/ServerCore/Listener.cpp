@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "Listener.h"
 #include "IOCPEvent.h"
+#include "Service.h"
 #include "Session.h"
 #include "Sockets.h"
 #include "SocketSubsystem.h"
@@ -15,7 +16,7 @@ FListener::~FListener()
 {
 	Socket->Close();
 
-	for (FOverlapped_Accept* Event : AcceptEvents)
+	for (FSocketAccept* Event : AcceptEvents)
 	{
 		// TODO
 
@@ -28,22 +29,35 @@ HANDLE FListener::GetHandle()
 	return reinterpret_cast<HANDLE>(Socket->GetNativeSocket());
 }
 
-void FListener::Dispatch(FOverlapped* Event, int32 NumBytes)
+void FListener::Dispatch(FSocketEvent* Event, int32 NumBytes)
 {
-	check(Event->GetEventType() == EIoEvent::Accept);
-	FOverlapped_Accept* AcceptEvent = static_cast<FOverlapped_Accept*>(Event);
+	check(Event->EventType == ESocketEventTypes::Accept);
+	FSocketAccept* AcceptEvent = static_cast<FSocketAccept*>(Event);
 	ProcessAccept(AcceptEvent);
 }
 
-bool FListener::Run(const FInternetAddr& Addr)
+bool FListener::Run(shared_ptr<FServerService> InServerService)
 {
+	if (!InServerService)
+	{
+		return false;
+	}
+
+	ServerService = InServerService;
+
 	Socket = FSocketSubsystem::CreateSocket();
 	if (!Socket)
 	{
 		return false;
 	}
 
-	if (GCompletionPort.Enqueue(this) == false)
+	if (ServerService.expired())
+	{
+		return false;
+	}
+
+	// 전역 Completion Port를 사용하지 않고, Service가 들고 있는 CP에 접근
+	if (ServerService.lock()->GetEventQueue()->Enqueue(AsShared()) == false)
 	{
 		return false;
 	}
@@ -58,7 +72,7 @@ bool FListener::Run(const FInternetAddr& Addr)
 		return false;
 	}
 
-	if (Socket->Bind(Addr) == false)
+	if (Socket->Bind(ServerService.lock()->GetAddr()) == false)
 	{
 		return false;
 	}
@@ -68,10 +82,11 @@ bool FListener::Run(const FInternetAddr& Addr)
 		return false;
 	}
 
-	const int32 NumAccepts = 1;
+	const int32 NumAccepts = ServerService.lock()->GetNumMaxSessions();
 	for (int32 i = 0; i < NumAccepts; ++i)
 	{
-		FOverlapped_Accept* Event = New<FOverlapped_Accept>();
+		FSocketAccept* Event = New<FSocketAccept>();
+		Event->Owner = AsShared();
 		AcceptEvents.emplace_back(Event);
 		RegisterAccept(Event);
 	}
@@ -84,12 +99,13 @@ void FListener::Stop()
 	Socket->Close();
 }
 
-void FListener::RegisterAccept(FOverlapped_Accept* Event)
+void FListener::RegisterAccept(FSocketAccept* Event)
 {
-	FSession* Session = New<FSession>();
+	// Session을 Create할 때 서비스의 CP에 자동으로 등록도 수행해줌
+	auto Session = ServerService.lock()->CreateSession();
 
 	Event->Init();
-	Event->SetSession(Session);
+	Event->Session = Session;
 
 	DWORD BytesReceived = 0;
 
@@ -114,9 +130,9 @@ void FListener::RegisterAccept(FOverlapped_Accept* Event)
 	}
 }
 
-void FListener::ProcessAccept(FOverlapped_Accept* Event)
+void FListener::ProcessAccept(FSocketAccept* Event)
 {
-	FSession* Session = Event->GetSession();
+	auto Session = Event->Session;
 	if (false == Session->GetSocket()->SetUpdateAcceptSocket(Socket))
 	{
 		RegisterAccept(Event);

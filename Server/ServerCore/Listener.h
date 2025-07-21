@@ -3,26 +3,28 @@
 
 class FInternetAddr;
 class FSocket;
-class FOverlapped_Accept;
+class FSocketAccept;
+class FServerService;
 
-class FListener : public ICompletion
+class FListener : public ISocketEventable
 {
 public:
 	FListener();
 	~FListener();
 
 	HANDLE GetHandle() override;
-	void Dispatch(FOverlapped* Event, int32 NumBytes = 0) override;
+	void Dispatch(FSocketEvent* Event, int32 NumBytes = 0) override;
 
-	bool Run(const FInternetAddr& Addr);
+	bool Run(shared_ptr<FServerService> InServerService);
 	void Stop();
 
 private:
-	void RegisterAccept(FOverlapped_Accept* Event);
-	void ProcessAccept(FOverlapped_Accept* Event);
+	void RegisterAccept(FSocketAccept* Event);
+	void ProcessAccept(FSocketAccept* Event);
 
 protected:
 	unique_ptr<FSocket> Socket;
-	TArray<FOverlapped_Accept*> AcceptEvents;
+	TArray<FSocketAccept*> AcceptEvents;
+	weak_ptr<FServerService> ServerService;	// Listener가 속한 서비스
 };
 

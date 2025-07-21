@@ -1,6 +1,6 @@
 #pragma once
 
-enum class EIoEvent : uint8
+enum class ESocketEventTypes : uint8
 {
 	Connect,
 	Accept,
@@ -9,59 +9,52 @@ enum class EIoEvent : uint8
 	Send
 };
 
-class FOverlapped : public OVERLAPPED
+class FSocketEvent : public OVERLAPPED
 {
 	using Super = OVERLAPPED;
 
 public:
-	FOverlapped(EIoEvent InEventType);
+	FSocketEvent(ESocketEventTypes InEventType);
 
 	void Init();
-	EIoEvent GetEventType() const
-	{
-		return EventType;
-	}
 
-private:
-	EIoEvent EventType;
+	ESocketEventTypes EventType;
+	shared_ptr<class ISocketEventable> Owner;
 };
 
 // Warning: OVERLAPPED 구조체가 메모리 최상단에 위치하도록 virtual 선언을 해서는 안됨!
-class FOverlapped_Connect : public FOverlapped
+class FSocketConnect : public FSocketEvent
 {
-	using Super = FOverlapped;
+	using Super = FSocketEvent;
 
 public:
-	FOverlapped_Connect();
+	FSocketConnect();
 };
 
 class FSession;
-class FOverlapped_Accept : public FOverlapped
+class FSocketAccept : public FSocketEvent
 {
-	using Super = FOverlapped;
+	using Super = FSocketEvent;
 
 public:
-	FOverlapped_Accept();
-	FSession* GetSession();
-	void SetSession(FSession* InSession);
+	FSocketAccept();
 
-private:
 	// TODO: AcceptEx가 필요로 하는 추가 정보(Session)
-	FSession* Session;
+	shared_ptr<FSession> Session;
 };
 
-class FOverlapped_Recv : public FOverlapped
+class FSocketRecv : public FSocketEvent
 {
-	using Super = FOverlapped;
+	using Super = FSocketEvent;
 
 public:
-	FOverlapped_Recv();
+	FSocketRecv();
 };
 
-class FOverlapped_Send : public FOverlapped
+class FSocketSend : public FSocketEvent
 {
-	using Super = FOverlapped;
+	using Super = FSocketEvent;
 
 public:
-	FOverlapped_Send();
+	FSocketSend();
 };

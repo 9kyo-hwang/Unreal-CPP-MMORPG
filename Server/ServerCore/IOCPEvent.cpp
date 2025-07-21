@@ -1,13 +1,13 @@
 #include "pch.h"
 #include "IOCPEvent.h"
 
-FOverlapped::FOverlapped(EIoEvent InEventType)
+FSocketEvent::FSocketEvent(ESocketEventTypes InEventType)
 	: EventType(InEventType)
 {
 	Init();
 }
 
-void FOverlapped::Init()
+void FSocketEvent::Init()
 {
 	Super::Internal = 0;
 	Super::InternalHigh = 0;
@@ -17,33 +17,23 @@ void FOverlapped::Init()
 	Super::hEvent = nullptr; // hEvent는 사용하지 않음
 }
 
-FOverlapped_Connect::FOverlapped_Connect()
-	: Super(EIoEvent::Connect)
+FSocketConnect::FSocketConnect()
+	: Super(ESocketEventTypes::Connect)
 {
 }
 
-FOverlapped_Accept::FOverlapped_Accept()
-	: Super(EIoEvent::Accept)
+FSocketAccept::FSocketAccept()
+	: Super(ESocketEventTypes::Accept)
 	, Session(nullptr)
 {
 }
 
-FSession* FOverlapped_Accept::GetSession()
-{
-	return Session;
-}
-
-void FOverlapped_Accept::SetSession(FSession* InSession)
-{
-	Session = InSession;
-}
-
-FOverlapped_Recv::FOverlapped_Recv()
-	: Super(EIoEvent::Recv)
+FSocketRecv::FSocketRecv()
+	: Super(ESocketEventTypes::Recv)
 {
 }
 
-FOverlapped_Send::FOverlapped_Send()
-	: Super(EIoEvent::Send)
+FSocketSend::FSocketSend()
+	: Super(ESocketEventTypes::Send)
 {
 }

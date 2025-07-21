@@ -6,14 +6,14 @@ class FSocket;
 class FInternetAddr;
 
 // 클라이언트의 모든 정보를 들고 있는 클래스(CP에 등록될 객체)
-class FSession : public ICompletion
+class FSession : public ISocketEventable
 {
 public:
 	FSession();
 	virtual ~FSession();
 
 	HANDLE GetHandle() override;
-	void Dispatch(FOverlapped* Event, int32 NumBytes = 0) override;
+	void Dispatch(FSocketEvent* Event, int32 NumBytes = 0) override;
 
 	// Session 정보 관련
 	void SetIpAddress(FInternetAddr InAddr) { Addr = InAddr; }

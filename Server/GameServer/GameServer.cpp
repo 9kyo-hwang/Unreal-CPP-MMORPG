@@ -1,13 +1,25 @@
 ﻿#include "pch.h"
 
-#include "IPAddress.h"
-#include "Listener.h"
+#include "Service.h"
+#include "Session.h"
 #include "ThreadManager.h"
+
+// TODO
+class FGameSession : public FSession
+{
+	
+};
 
 int main()
 {
-	FListener Listener;
-	Listener.Run({ TEXT("127.0.0.1"), 7777 });
+	auto ServerService = MakeShared<FServerService>(
+		FInternetAddr(TEXT("127.0.0.1"), 7777),
+		MakeShared<FSocketEventQueue>(),
+		MakeShared<FSession>,	// ()를 붙이면 안됨. 추후 SessionManager 등에서 관리
+		100
+	);
+
+	check(ServerService->Run());
 
 	// 보통 스레드 개수는 코어 개수 ~ 코어 개수 * 1.5
 	for (int32 i = 0; i < 5; ++i)
@@ -16,7 +28,7 @@ int main()
 			{
 				while (true)
 				{
-					GCompletionPort.Dequeue();
+					ServerService->GetEventQueue()->Dequeue();
 				}
 			});
 	}

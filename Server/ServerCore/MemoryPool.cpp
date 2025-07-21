@@ -11,7 +11,7 @@ FMemoryPool::~FMemoryPool()
 {
 	while (FAllocationData* AllocDataPtr = static_cast<FAllocationData*>(::InterlockedPopEntrySList(&ListHead)))
 	{
-		AlignedFree(AllocDataPtr);
+		::_aligned_free(AllocDataPtr);
 	}
 }
 
@@ -32,7 +32,7 @@ FAllocationData* FMemoryPool::Get()
 	if (!AllocDataPtr)
 	{
 		// TEMP
-		AllocDataPtr = static_cast<FAllocationData*>(AlignedMalloc(MallocSize, Alignment));
+		AllocDataPtr = static_cast<FAllocationData*>(::_aligned_malloc(MallocSize, Alignment));
 	}
 	else
 	{

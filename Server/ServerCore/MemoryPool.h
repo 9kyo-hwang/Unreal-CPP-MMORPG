@@ -3,8 +3,6 @@
 constexpr uint64 Alignment = 16;
 using FListEntry = SLIST_ENTRY;
 using FListHeader = SLIST_HEADER;
-const auto AlignedMalloc = ::_aligned_malloc;
-const auto AlignedFree = ::_aligned_free;
 
 /**
  *	같은 크기를 가지는 인스턴스끼리 Pool에 묶어 줌
@@ -28,8 +26,8 @@ struct FAllocationData : public FListEntry	// 메모리 구조 최상단에 두기 위해서 �
 
 	static FAllocationData* Detach(void* InPtr)
 	{
-		FAllocationData* GetData = static_cast<FAllocationData*>(InPtr) - 1;
-		return GetData;
+		FAllocationData* Data = static_cast<FAllocationData*>(InPtr) - 1;
+		return Data;
 	}
 
 	SIZE_T Size;

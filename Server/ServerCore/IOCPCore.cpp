@@ -1,58 +1,55 @@
 #include "pch.h"
 #include "IOCPCore.h"
+#include "IOCPEvent.h"
 
-FCompletionPort GCompletionPort;
-
-FCompletionPort::FCompletionPort()
+FSocketEventQueue::FSocketEventQueue()
+	: Data(::CreateIoCompletionPort(INVALID_HANDLE_VALUE, nullptr, 0, 0))
 {
-	Handle = ::CreateIoCompletionPort(INVALID_HANDLE_VALUE, nullptr, 0, 0);
-	check(Handle != INVALID_HANDLE_VALUE);
+	check(Data != INVALID_HANDLE_VALUE);
 }
 
-FCompletionPort::~FCompletionPort()
+FSocketEventQueue::~FSocketEventQueue()
 {
-	::CloseHandle(Handle);
+	::CloseHandle(Data);
 }
 
-// ϰ ϴ ( == Handle) CP 
-bool FCompletionPort::Enqueue(ICompletion* Completion)
+// ϰ ϴ ( == Data) CP 
+bool FSocketEventQueue::Enqueue(shared_ptr<ISocketEventable> Socket)
 {
 	return ::CreateIoCompletionPort(
-		Completion->GetHandle(), 
-		Handle, 
-		reinterpret_cast<ULONG_PTR>(Completion), 
+		Socket->GetHandle(), 
+		Data, 
+		/*Key*/0,
 		0
 	);
 }
 
-// Worker Thread ش ޼带  CP  Task  õ
-bool FCompletionPort::Dequeue(uint32 TimeoutMilliseconds)
+// Worker threads pop event
+bool FSocketEventQueue::Dequeue(uint32 TimeoutMilliseconds)
 {
 	DWORD NumberOfBytesTransferred = 0;
-	ICompletion* Completion = nullptr;
-	FOverlapped* Overlapped = nullptr;
+	ULONG_PTR CompletionKey = 0;
+	FSocketEvent* Event = nullptr;
 
-	if (::GetQueuedCompletionStatus(
-		Handle,
-		&NumberOfBytesTransferred,
-		reinterpret_cast<PULONG_PTR>(&Completion),
-		reinterpret_cast<LPOVERLAPPED*>(&Overlapped),
+	if (::GetQueuedCompletionStatus(Data, &NumberOfBytesTransferred, &CompletionKey,
+		reinterpret_cast<LPOVERLAPPED*>(&Event),
 		TimeoutMilliseconds))
 	{
-		Completion->Dispatch(Overlapped, NumberOfBytesTransferred);
+		auto Socket = Event->Owner;
+		Socket->Dispatch(Event, NumberOfBytesTransferred);
 	}
 	else
 	{
 		if (::WSAGetLastError() == WAIT_TIMEOUT)
 		{
-			return false; // ŸӾƿ
+			return false;
 		}
 		else
 		{
-			if (Completion)
+			if (auto Socket = Event->Owner)
 			{
 				// TODO: α 
-				Completion->Dispatch(Overlapped, NumberOfBytesTransferred);
+				Socket->Dispatch(Event, NumberOfBytesTransferred);
 			}
 		}
 	}

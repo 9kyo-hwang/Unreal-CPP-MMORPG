@@ -177,6 +177,7 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="Profiler.h" />
     <ClInclude Include="RefCountBase.h" />
+    <ClInclude Include="Service.h" />
     <ClInclude Include="Session.h" />
     <ClInclude Include="Sockets.h" />
     <ClInclude Include="SocketSubsystem.h" />
@@ -204,6 +205,7 @@
     </ClCompile>
     <ClCompile Include="Profiler.cpp" />
     <ClCompile Include="RefCountBase.cpp" />
+    <ClCompile Include="Service.cpp" />
     <ClCompile Include="Session.cpp" />
     <ClCompile Include="Sockets.cpp" />
     <ClCompile Include="SocketSubsystem.cpp" />

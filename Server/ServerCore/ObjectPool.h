@@ -31,9 +31,10 @@ public:
 #endif
 	}
 
-	static shared_ptr<T> MakeShared()
+	template<typename... SharedArgs>
+	static shared_ptr<T> MakeShared(SharedArgs&&... Args)
 	{
-		return shared_ptr<T>{ Get(), Release };
+		return shared_ptr<T>{ Get(forward<SharedArgs>(Args)...), Release };
 	}
 
 private:

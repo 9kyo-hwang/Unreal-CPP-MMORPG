@@ -45,8 +45,56 @@ void Delete(T* Object)
 	FMallocPool::Free(Object);
 }
 
-template<typename T>
-shared_ptr<T> MakeShared()
+template<typename T, typename... SharedArgs>
+shared_ptr<T> MakeShared(SharedArgs&&... Args)
 {
-	return shared_ptr<T>{New<T>(), Delete<T>};
+	return shared_ptr<T>{New<T>(forward<SharedArgs>(Args)...), Delete<T>};
 }
+
+template<typename T>
+class TSharedFromThis : public std::enable_shared_from_this<T>
+{
+public:
+    std::shared_ptr<T> AsShared()
+    {
+        return this->shared_from_this();
+    }
+    std::shared_ptr<const T> AsShared() const
+    {
+        return this->shared_from_this();
+    }
+    /** :contentReference[oaicite:0]{index=0} */
+
+    template<typename U>
+    std::shared_ptr<U> SharedThis(U* /*ThisPtr*/)
+    {
+        return std::static_pointer_cast<U>(this->shared_from_this());
+    }
+    template<typename U>
+    std::shared_ptr<const U> SharedThis(const U* /*ThisPtr*/) const
+    {
+        return std::static_pointer_cast<const U>(this->shared_from_this());
+    }
+    /** :contentReference[oaicite:1]{index=1} */
+
+    std::weak_ptr<T> AsWeak() noexcept
+    {
+        return this->weak_from_this();
+    }
+    std::weak_ptr<const T> AsWeak() const noexcept
+    {
+        return this->weak_from_this();
+    }
+    /** :contentReference[oaicite:2]{index=2} */
+
+    bool DoesSharedInstanceExist() const noexcept
+    {
+        return !this->weak_from_this().expired();
+    }
+
+protected:
+    TSharedFromThis() noexcept = default;
+    TSharedFromThis(const TSharedFromThis&) noexcept = default;
+    TSharedFromThis& operator=(const TSharedFromThis&) noexcept = default;
+    ~TSharedFromThis() = default;
+};
