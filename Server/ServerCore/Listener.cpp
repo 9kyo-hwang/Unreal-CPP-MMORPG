@@ -31,7 +31,7 @@ HANDLE FListener::GetHandle()
 
 void FListener::Dispatch(FSocketEvent* Event, int32 NumBytes)
 {
-	check(Event->EventType == ESocketEventTypes::Accept);
+	check(Event->Type == ESocketEventTypes::Accept);
 	FSocketAccept* AcceptEvent = static_cast<FSocketAccept*>(Event);
 	ProcessAccept(AcceptEvent);
 }
@@ -152,7 +152,9 @@ void FListener::ProcessAccept(FSocketAccept* Event)
 
 	Session->SetIpAddress(Addr);
 	cout << "Client Connected!" << endl;
-	// TODO
+
+	// TODO: Recv & Send
+	Session->ProcessConnect();
 
 	RegisterAccept(Event);
 }

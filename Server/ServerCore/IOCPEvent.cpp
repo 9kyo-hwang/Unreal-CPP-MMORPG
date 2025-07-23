@@ -1,8 +1,8 @@
 #include "pch.h"
 #include "IOCPEvent.h"
 
-FSocketEvent::FSocketEvent(ESocketEventTypes InEventType)
-	: EventType(InEventType)
+FSocketEvent::FSocketEvent(ESocketEventTypes InType)
+	: Type(InType)
 {
 	Init();
 }

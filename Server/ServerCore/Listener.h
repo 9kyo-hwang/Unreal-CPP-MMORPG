@@ -19,6 +19,7 @@ public:
 	void Stop();
 
 private:
+	// 수신 관련
 	void RegisterAccept(FSocketAccept* Event);
 	void ProcessAccept(FSocketAccept* Event);
 

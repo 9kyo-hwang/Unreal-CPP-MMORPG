@@ -4,9 +4,9 @@
 #include "Listener.h"
 #include "Session.h"
 
-FService::FService(EServiceType InServiceType, FInternetAddr InAddr, shared_ptr<FSocketEventQueue> InEventQueue,
+FService::FService(EServiceType InType, FInternetAddr InAddr, shared_ptr<FSocketEventQueue> InEventQueue,
                    FSessionFactory InSessionFactory, int32 InNumMaxSessions)
-	: ServiceType(InServiceType)
+	: Type(InType)
 	, Addr(InAddr)
 	, EventQueue(InEventQueue)
 	, NumSessions(0)
@@ -22,6 +22,7 @@ FService::~FService()
 shared_ptr<FSession> FService::CreateSession()
 {
 	shared_ptr<FSession> NewSession = SessionFactory();
+	NewSession->SetService(AsShared());
 	if (EventQueue->Enqueue(NewSession) == false)
 	{
 		return nullptr;

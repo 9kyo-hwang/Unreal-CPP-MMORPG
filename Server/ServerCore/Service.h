@@ -17,7 +17,7 @@ class FService : public TSharedFromThis<FService>
 {
 public:
 	FService(
-		EServiceType InServiceType,
+		EServiceType InType,
 		FInternetAddr InAddr,
 		shared_ptr<FSocketEventQueue> InEventQueue,
 		FSessionFactory InSessionFactory,
@@ -36,7 +36,7 @@ public:
 	void AddSession(shared_ptr<FSession> InSession);
 	void RemoveSession(shared_ptr<FSession> InSession);
 
-	EServiceType GetServiceType() const { return ServiceType; }
+	EServiceType GetType() const { return Type; }
 	FInternetAddr GetAddr() const { return Addr; }
 	shared_ptr<FSocketEventQueue>& GetEventQueue() { return EventQueue; }
 
@@ -47,7 +47,7 @@ public:
 protected:
 	USE_LOCK;
 
-	EServiceType ServiceType;
+	EServiceType Type;
 	FInternetAddr Addr;
 	shared_ptr<FSocketEventQueue> EventQueue;
 

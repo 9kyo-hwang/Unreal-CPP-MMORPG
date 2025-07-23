@@ -14,11 +14,11 @@ class FSocketEvent : public OVERLAPPED
 	using Super = OVERLAPPED;
 
 public:
-	FSocketEvent(ESocketEventTypes InEventType);
+	FSocketEvent(ESocketEventTypes InType);
 
 	void Init();
 
-	ESocketEventTypes EventType;
+	ESocketEventTypes Type;
 	shared_ptr<class ISocketEventable> Owner;
 };
 
