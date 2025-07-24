@@ -16,6 +16,18 @@ FSession::~FSession()
 	Socket->Close();
 }
 
+void FSession::Send(BYTE* Buffer, int32 Length)
+{
+	// TEMP
+	FSocketSend* SendEvent = New<FSocketSend>();
+	SendEvent->Owner = AsShared();	// NumRefs += 1
+	SendEvent->Buffer.resize(Length);
+	::memcpy(SendEvent->Buffer.data(), Buffer, Length);
+
+	WRITE_LOCK;
+	RegisterSend(SendEvent);
+}
+
 void FSession::Disconnect(const TCHAR* Msg)
 {
 	// false로 바꾸고 기존 값을 반환받았는데, 기존 값이 이미 false라면 추가로 처리할 게 없음
@@ -51,7 +63,7 @@ void FSession::Dispatch(FSocketEvent* Event, int32 NumOfBytes)
 		ProcessRecv(NumOfBytes);
 		break;
 	case ESocketEventTypes::Send:
-		ProcessSend(NumOfBytes);
+		ProcessSend(static_cast<FSocketSend*>(Event), NumOfBytes);
 		break;
 	}
 }
@@ -71,7 +83,7 @@ void FSession::RegisterRecv()
 	RecvEvent.Init();
 	RecvEvent.Owner = AsShared();	// NumRefs += 1
 
-	WSABUF Buf(countof(RecvBuf), RecvBuf);
+	WSABUF Buf(countof(RecvBuf), reinterpret_cast<char*>(RecvBuf));
 	DWORD NumberOfBytesRecvd = 0;
 	DWORD Flags = 0;
 	if (SOCKET_ERROR == ::WSARecv(Socket->GetNativeSocket(), &Buf, 1, &NumberOfBytesRecvd, &Flags, &RecvEvent, nullptr))
@@ -85,8 +97,25 @@ void FSession::RegisterRecv()
 	}
 }
 
-void FSession::RegisterSend()
+void FSession::RegisterSend(FSocketSend* SendEvent)
 {
+	if (!IsConnected())
+	{
+		return;
+	}
+
+	WSABUF Buffer(SendEvent->Buffer.size(), reinterpret_cast<char*>(SendEvent->Buffer.data()));
+	DWORD NumberOfBytesSent = 0;
+	if (SOCKET_ERROR == ::WSASend(Socket->GetNativeSocket(), &Buffer, 1, &NumberOfBytesSent, 0, SendEvent, nullptr))
+	{
+		int32 Error = ::WSAGetLastError();
+		if (Error != WSA_IO_PENDING)
+		{
+			HandleError(Error);
+			SendEvent->Owner = nullptr;	// NumRefs -= 1
+			Delete(SendEvent);
+		}
+	}
 }
 
 void FSession::ProcessConnect()
@@ -115,15 +144,26 @@ void FSession::ProcessRecv(int32 BytesRecvd)
 		return;
 	}
 
-	// TODO: 추후 Recv Buffer를 사용
-	cout << "Recv Data Len = " << BytesRecvd << endl;
+	// 컨텐츠 코드에서 오버로딩
+	OnRecv(RecvBuf, BytesRecvd);
 
 	// 다시 이벤트를 받을 준비
 	RegisterRecv();
 }
 
-void FSession::ProcessSend(int32 BytesSent)
+void FSession::ProcessSend(FSocketSend* SendEvent, int32 BytesSent)
 {
+	SendEvent->Owner = nullptr;	// NumRefs -= 1
+	Delete(SendEvent);	// SendEvent는 더 이상 사용하지 않음
+
+	if (BytesSent == 0)
+	{
+		Disconnect(TEXT("Send 0"));
+		return;
+	}
+
+	// 컨텐츠 코드에서 오버로딩(딱히 할 일은 없을 것)
+	OnSend(BytesSent);
 }
 
 void FSession::HandleError(int32 Error)

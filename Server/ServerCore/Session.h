@@ -28,6 +28,7 @@ public:
 	bool IsConnected() const { return bIsConnected; }
 	void SetService(shared_ptr<FService> InService) { Service = InService; }
 
+	void Send(BYTE* Buffer, int32 Length);
 	void Disconnect(const TCHAR* Msg);
 
 private:
@@ -37,24 +38,24 @@ private:
 	// 전송 관련 메서드
 	void RegisterConnect();	// Client Server 단에서 Connect를 등록할 수 있음
 	void RegisterRecv();
-	void RegisterSend();
+	void RegisterSend(FSocketSend* SendEvent);
 
 	void ProcessConnect();
 	void ProcessRecv(int32 BytesRecvd);
-	void ProcessSend(int32 BytesSent);
+	void ProcessSend(FSocketSend* SendEvent, int32 BytesSent);
 
 	void HandleError(int32 Error);
 
 protected:
 	// 컨텐츠 단에서 오버로딩해서 사용할 것
 	virtual void OnConnected() {}
-	virtual int32 OnRecv(BYTE* Buffer, int32 BufferLength) { return BufferLength; }
+	virtual int32 OnRecv(BYTE* Buffer, int32 Length) { return Length; }
 	virtual void OnSend(int32 BytesSent) {}
 	virtual void OnDisconnected() {}
 
 public:
 	// TEMP: 임시로 Send/Receive 버퍼 정의
-	char RecvBuf[1000];
+	BYTE RecvBuf[1000];
 
 private:
 	weak_ptr<FService> Service;	// Session이 속한 서비스
