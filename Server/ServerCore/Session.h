@@ -29,6 +29,7 @@ public:
 	void SetService(shared_ptr<FService> InService) { Service = InService; }
 
 	void Send(BYTE* Buffer, int32 Length);
+	bool Connect();
 	void Disconnect(const TCHAR* Msg);
 
 private:
@@ -36,18 +37,20 @@ private:
 	void Dispatch(FSocketEvent* Event, int32 NumOfBytes = 0) override;
 
 	// 전송 관련 메서드
-	void RegisterConnect();	// Client Server 단에서 Connect를 등록할 수 있음
+	bool RegisterConnect();	// Client Server 단에서 Connect를 등록할 수 있음
+	bool RegisterDisconnect();
 	void RegisterRecv();
 	void RegisterSend(FSocketSend* SendEvent);
 
 	void ProcessConnect();
+	void ProcessDisconnect();
 	void ProcessRecv(int32 BytesRecvd);
 	void ProcessSend(FSocketSend* SendEvent, int32 BytesSent);
 
 	void HandleError(int32 Error);
 
 protected:
-	// 컨텐츠 단에서 오버로딩해서 사용할 것
+	// 컨텐츠단에서 재정의해서 사용
 	virtual void OnConnected() {}
 	virtual int32 OnRecv(BYTE* Buffer, int32 Length) { return Length; }
 	virtual void OnSend(int32 BytesSent) {}
@@ -71,6 +74,8 @@ private:
 	// Send
 
 private:  // Event Reuse
+	FSocketConnect ConnectEvent;
+	FSocketDisconnect DisconnectEvent;
 	FSocketRecv RecvEvent;
 };
 

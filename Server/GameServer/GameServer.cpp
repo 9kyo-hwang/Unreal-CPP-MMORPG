@@ -4,8 +4,8 @@
 #include "Session.h"
 #include "ThreadManager.h"
 
-// TODO
-class FGameSession : public FSession
+// 상대방을 대표하는 세션
+class FClientSession : public FSession
 {
 public:
 	int32 OnRecv(BYTE* Buffer, int32 Length) override
@@ -26,7 +26,7 @@ int main()
 	auto Service = MakeShared<FServerService>(
 		FInternetAddr(TEXT("127.0.0.1"), 7777),
 		MakeShared<FSocketEventQueue>(),
-		MakeShared<FGameSession>,	// ()를 붙이면 안됨. 추후 SessionManager 등에서 관리
+		MakeShared<FClientSession>,	// ()를 붙이면 안됨. 추후 SessionManager 등에서 관리
 		100
 	);
 

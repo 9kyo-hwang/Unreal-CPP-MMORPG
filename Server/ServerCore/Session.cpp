@@ -28,6 +28,11 @@ void FSession::Send(BYTE* Buffer, int32 Length)
 	RegisterSend(SendEvent);
 }
 
+bool FSession::Connect()
+{
+	return RegisterConnect();
+}
+
 void FSession::Disconnect(const TCHAR* Msg)
 {
 	// false로 바꾸고 기존 값을 반환받았는데, 기존 값이 이미 false라면 추가로 처리할 게 없음
@@ -38,10 +43,11 @@ void FSession::Disconnect(const TCHAR* Msg)
 
 	// 여기로 왔다는 건 bIsConnected가 true였다는 뜻
 	wcout << "Disconnect: " << Msg << endl;
-	OnDisconnected();	// 컨텐츠단에서 오버로딩해서 사용
 
-	Socket->Close();
+	OnDisconnected();	// 컨텐츠단에서 재정의해서 사용
 	GetService()->RemoveSession(GetSession());
+
+	RegisterDisconnect();
 }
 
 HANDLE FSession::GetHandle()
@@ -57,6 +63,9 @@ void FSession::Dispatch(FSocketEvent* Event, int32 NumOfBytes)
 	case ESocketEventTypes::Connect:
 		ProcessConnect();
 		break;
+	case ESocketEventTypes::Disconnect:
+		ProcessDisconnect();
+		break;
 	case ESocketEventTypes::Accept:
 		break;
 	case ESocketEventTypes::Recv:
@@ -68,8 +77,81 @@ void FSession::Dispatch(FSocketEvent* Event, int32 NumOfBytes)
 	}
 }
 
-void FSession::RegisterConnect()
+bool FSession::RegisterConnect()
 {
+	if (IsConnected())
+	{
+		return false;
+	}
+
+	// 본인이 클라이언트가 아니라면 Connect를 등록할 수 없음
+	if (GetService()->GetType() != EServiceType::Client)
+	{
+		return false;
+	}
+
+	if (!Socket->SetReuseAddr())
+	{
+		return false;
+	}
+
+	Addr.SetAnyAddress();
+	Addr.SetPort(0);	// Port는 0으로 설정하면 OS가 자동으로 할당함
+	if (!Socket->Bind(Addr))
+	{
+		return false;
+	}
+
+	ConnectEvent.Init();
+	ConnectEvent.Owner = AsShared();	// NumRefs += 1
+
+	DWORD BytesSent = 0;
+	auto TargetAddr = GetService()->GetAddr().GetRawAddr();
+
+	bool bResult = FSocketSubsystem::Connect(
+		Socket->GetNativeSocket(), 
+		reinterpret_cast<const SOCKADDR*>(TargetAddr), 
+		sizeof(SOCKADDR_IN),
+		nullptr, 
+		0, 
+		&BytesSent, 
+		&ConnectEvent
+	);
+
+	if (bResult == false)
+	{
+		int32 Error = ::WSAGetLastError();
+		if (Error != WSA_IO_PENDING)
+		{
+			ConnectEvent.Owner = nullptr;	// NumRefs -= 1
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool FSession::RegisterDisconnect()
+{
+	DisconnectEvent.Init();
+	DisconnectEvent.Owner = AsShared();	// NumRefs += 1
+
+	if (!FSocketSubsystem::Disconnect(
+		Socket->GetNativeSocket(), 
+		&DisconnectEvent, 
+		TF_REUSE_SOCKET, 
+		0
+	))
+	{
+		int32 Error = ::WSAGetLastError();
+		if (Error != WSA_IO_PENDING)
+		{
+			DisconnectEvent.Owner = nullptr;	// NumRefs -= 1
+			return false;
+		}
+	}
+
+	return true;
 }
 
 void FSession::RegisterRecv()
@@ -120,16 +202,22 @@ void FSession::RegisterSend(FSocketSend* SendEvent)
 
 void FSession::ProcessConnect()
 {
+	ConnectEvent.Owner = nullptr;
 	bIsConnected.store(true);
 
 	// Session 등록
 	GetService()->AddSession(GetSession());
 
-	// 컨텐츠 코드에서 오버로딩
+	// 컨텐츠단에서 재정의해서 사용
 	OnConnected();
 
 	// Receive 등록(반드시 호출해야 이벤트를 탐지할 수 있음)
 	RegisterRecv();
+}
+
+void FSession::ProcessDisconnect()
+{
+	DisconnectEvent.Owner = nullptr;	// NumRefs -= 1
 }
 
 void FSession::ProcessRecv(int32 BytesRecvd)
@@ -144,7 +232,7 @@ void FSession::ProcessRecv(int32 BytesRecvd)
 		return;
 	}
 
-	// 컨텐츠 코드에서 오버로딩
+	// 컨텐츠단에서 재정의해서 사용
 	OnRecv(RecvBuf, BytesRecvd);
 
 	// 다시 이벤트를 받을 준비
@@ -162,7 +250,7 @@ void FSession::ProcessSend(FSocketSend* SendEvent, int32 BytesSent)
 		return;
 	}
 
-	// 컨텐츠 코드에서 오버로딩(딱히 할 일은 없을 것)
+	// 컨텐츠단에서 재정의해서 사용(딱히 할 일은 없을 것)
 	OnSend(BytesSent);
 }
 

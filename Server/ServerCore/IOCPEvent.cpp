@@ -22,6 +22,13 @@ FSocketConnect::FSocketConnect()
 {
 }
 
+FSocketDisconnect::FSocketDisconnect()
+	: Super(ESocketEventTypes::Disconnect)
+{
+	// Disconnect 이벤트는 Owner를 nullptr로 설정하지 않음
+	// Owner는 반드시 Session이 해제될 때까지 유지되어야 함
+}
+
 FSocketAccept::FSocketAccept()
 	: Super(ESocketEventTypes::Accept)
 	, Session(nullptr)

@@ -3,6 +3,7 @@
 enum class ESocketEventTypes : uint8
 {
 	Connect,
+	Disconnect,
 	Accept,
 	// PreRecv,
 	Recv,
@@ -29,6 +30,14 @@ class FSocketConnect : public FSocketEvent
 
 public:
 	FSocketConnect();
+};
+
+class FSocketDisconnect : public FSocketEvent
+{
+	using Super = FSocketEvent;
+
+public:
+	FSocketDisconnect();
 };
 
 class FSession;

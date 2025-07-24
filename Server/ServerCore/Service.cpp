@@ -57,7 +57,21 @@ FClientService::~FClientService()
 
 bool FClientService::Run()
 {
-	// TODO
+	if (!CanRun())
+	{
+		return false;
+	}
+
+	const int32 NumSessions = GetNumMaxSessions();
+	for (int32 i = 0; i < NumSessions; ++i)
+	{
+		shared_ptr<FSession> NewSession = CreateSession();
+		if (NewSession->Connect() == false)
+		{
+			return false;
+		}
+	}
+
 	return true;
 }
 
