@@ -112,7 +112,7 @@ void FListener::RegisterAccept(FSocketAccept* Event)
 	bool Result = FSocketSubsystem::Accept(
 		Socket->GetNativeSocket(),
 		Session->GetSocket()->GetNativeSocket(),
-		/*first block of data sent on a new connection*/Session->RecvBuf,
+		/*first block of data sent on a new connection*/Session->RecvBuffer.GetWritePosition(),
 		0,
 		sizeof(SOCKADDR_IN) + 16,
 		sizeof(SOCKADDR_IN) + 16,

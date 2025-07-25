@@ -2,6 +2,7 @@
 #include "IOCPCore.h"
 #include "IOCPEvent.h"
 #include "IPAddress.h"
+#include "RecvBuffer.h"
 
 class FSocket;
 class FInternetAddr;
@@ -12,6 +13,8 @@ class FSession : public ISocketEventable
 	friend class FListener;
 	friend class FSocketEventQueue;
 	friend class FService;
+
+	static constexpr int32 BufferSize = 0x10000; // 64KB
 
 public:
 	FSession();
@@ -56,10 +59,6 @@ protected:
 	virtual void OnSend(int32 BytesSent) {}
 	virtual void OnDisconnected() {}
 
-public:
-	// TEMP: 임시로 Send/Receive 버퍼 정의
-	BYTE RecvBuf[1000];
-
 private:
 	weak_ptr<FService> Service;	// Session이 속한 서비스
 	unique_ptr<FSocket> Socket;
@@ -70,6 +69,7 @@ private:
 	USE_LOCK;
 
 	// Recv
+	FRecvBuffer RecvBuffer;
 
 	// Send
 

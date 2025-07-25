@@ -6,7 +6,7 @@
 #include "SocketSubsystem.h"
 
 FSession::FSession()
-	: RecvBuf{}
+	: RecvBuffer(BufferSize)
 {
 	Socket = FSocketSubsystem::CreateSocket();
 }
@@ -165,7 +165,7 @@ void FSession::RegisterRecv()
 	RecvEvent.Init();
 	RecvEvent.Owner = AsShared();	// NumRefs += 1
 
-	WSABUF Buf(countof(RecvBuf), reinterpret_cast<char*>(RecvBuf));
+	WSABUF Buf(RecvBuffer.GetFreeSize(), reinterpret_cast<char*>(RecvBuffer.GetWritePosition()));
 	DWORD NumberOfBytesRecvd = 0;
 	DWORD Flags = 0;
 	if (SOCKET_ERROR == ::WSARecv(Socket->GetNativeSocket(), &Buf, 1, &NumberOfBytesRecvd, &Flags, &RecvEvent, nullptr))
@@ -232,8 +232,26 @@ void FSession::ProcessRecv(int32 BytesRecvd)
 		return;
 	}
 
-	// 컨텐츠단에서 재정의해서 사용
-	OnRecv(RecvBuf, BytesRecvd);
+	if (!RecvBuffer.AdvanceWritePosition(BytesRecvd))
+	{
+		Disconnect(TEXT("RecvBuffer Overflow: AdvanceWritePosition"));
+		return;
+	}
+
+	// 실제 데이터 시작 위치부터 누적된 데이터 크기만큼
+	int32 DataSize = RecvBuffer.GetDataSize();
+
+	// 해당 함수에서 반환하는 길이값은 "실제로 처리한 데이터 길이"
+	int32 BytesProcess = OnRecv(RecvBuffer.GetReadPosition(), DataSize);
+
+	// 따라서 처리한 데이터 길이만큼 다시 수신 버퍼의 커서를 옮겨줘야 함
+	if (BytesProcess < 0 || BytesProcess > DataSize || !RecvBuffer.AdvanceReadPosition(BytesProcess))
+	{
+		Disconnect(TEXT("RecvBuffer Overflow: AdvanceReadPosition"));
+		return;
+	}
+
+	RecvBuffer.Clear();
 
 	// 다시 이벤트를 받을 준비
 	RegisterRecv();
