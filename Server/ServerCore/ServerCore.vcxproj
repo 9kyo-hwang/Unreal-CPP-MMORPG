@@ -165,6 +165,7 @@
     <ClInclude Include="CoreMacro.h" />
     <ClInclude Include="CorePCH.h" />
     <ClInclude Include="CoreTLS.h" />
+    <ClInclude Include="GameSession.h" />
     <ClInclude Include="IOCPCore.h" />
     <ClInclude Include="IOCPEvent.h" />
     <ClInclude Include="IPAddress.h" />
@@ -178,8 +179,10 @@
     <ClInclude Include="Profiler.h" />
     <ClInclude Include="RecvBuffer.h" />
     <ClInclude Include="RefCountBase.h" />
+    <ClInclude Include="SendBuffer.h" />
     <ClInclude Include="Service.h" />
     <ClInclude Include="Session.h" />
+    <ClInclude Include="SessionManager.h" />
     <ClInclude Include="Sockets.h" />
     <ClInclude Include="SocketSubsystem.h" />
     <ClInclude Include="ThreadManager.h" />
@@ -190,6 +193,7 @@
     <ClCompile Include="CoreGlobal.cpp" />
     <ClCompile Include="CorePCH.cpp" />
     <ClCompile Include="CoreTLS.cpp" />
+    <ClCompile Include="GameSession.cpp" />
     <ClCompile Include="IOCPCore.cpp" />
     <ClCompile Include="IOCPEvent.cpp" />
     <ClCompile Include="IPAddress.cpp" />
@@ -207,8 +211,10 @@
     <ClCompile Include="Profiler.cpp" />
     <ClCompile Include="RecvBuffer.cpp" />
     <ClCompile Include="RefCountBase.cpp" />
+    <ClCompile Include="SendBuffer.cpp" />
     <ClCompile Include="Service.cpp" />
     <ClCompile Include="Session.cpp" />
+    <ClCompile Include="SessionManager.cpp" />
     <ClCompile Include="Sockets.cpp" />
     <ClCompile Include="SocketSubsystem.cpp" />
     <ClCompile Include="ThreadManager.cpp" />

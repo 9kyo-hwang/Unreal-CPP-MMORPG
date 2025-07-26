@@ -16,16 +16,20 @@ FSession::~FSession()
 	Socket->Close();
 }
 
-void FSession::Send(BYTE* Buffer, int32 Length)
+void FSession::Send(shared_ptr<FSendBuffer> SendBuffer)
 {
-	// TEMP
-	FSocketSend* SendEvent = New<FSocketSend>();
-	SendEvent->Owner = AsShared();	// NumRefs += 1
-	SendEvent->Buffer.resize(Length);
-	::memcpy(SendEvent->Buffer.data(), Buffer, Length);
+	/**
+	 *	현재 예약된 Send 이벤트가 없다면 전송 이벤트 예약
+	 *	아니라면 Queue에 저장
+	 */
 
 	WRITE_LOCK;
-	RegisterSend(SendEvent);
+
+	SendQueue.push(SendBuffer);	// 추후 lock-free 방식 queue로 사용할 수도 있어서 LOCK + TAtomic 사용
+	if (bIsSending.exchange(true) == false)
+	{
+		RegisterSend();
+	}
 }
 
 bool FSession::Connect()
@@ -72,7 +76,7 @@ void FSession::Dispatch(FSocketEvent* Event, int32 NumOfBytes)
 		ProcessRecv(NumOfBytes);
 		break;
 	case ESocketEventTypes::Send:
-		ProcessSend(static_cast<FSocketSend*>(Event), NumOfBytes);
+		ProcessSend(NumOfBytes);
 		break;
 	}
 }
@@ -179,23 +183,55 @@ void FSession::RegisterRecv()
 	}
 }
 
-void FSession::RegisterSend(FSocketSend* SendEvent)
+void FSession::RegisterSend()
 {
+	// bIsSending Atomic 변수 덕에 한 번에 한 스레드만 들어오는 것이 보장
+
 	if (!IsConnected())
 	{
 		return;
 	}
 
-	WSABUF Buffer(SendEvent->Buffer.size(), reinterpret_cast<char*>(SendEvent->Buffer.data()));
+	SendEvent.Init();
+	SendEvent.Owner = AsShared();	// NumRefs += 1
+
+	{
+		WRITE_LOCK;	// 나중에 코드가 바뀔 수도 있어서 다시 Lock을 걸어줌
+
+		int32 WriteSize = 0;
+		while (!SendQueue.empty())
+		{
+			auto SendBuffer = SendQueue.front();
+			WriteSize += SendBuffer->Num();
+
+			// TODO: 크기가 너무 크면 더 이상 전송하지 않도록 break
+
+			SendQueue.pop();
+			SendEvent.SendBuffers.push_back(SendBuffer);
+		}
+	}
+
+	// Scatter-Gather
+	DWORD BufferCount = SendEvent.SendBuffers.size();
+	TArray<WSABUF> Buffers(BufferCount);
+	for (int32 i = 0; i < BufferCount; ++i)
+	{
+		Buffers[i] = WSABUF(
+			SendEvent.SendBuffers[i]->Num(),
+			reinterpret_cast<char*>(SendEvent.SendBuffers[i]->GetData())
+		);
+	}
+
 	DWORD NumberOfBytesSent = 0;
-	if (SOCKET_ERROR == ::WSASend(Socket->GetNativeSocket(), &Buffer, 1, &NumberOfBytesSent, 0, SendEvent, nullptr))
+	if (SOCKET_ERROR == ::WSASend(Socket->GetNativeSocket(), Buffers.data(), BufferCount, &NumberOfBytesSent, 0, &SendEvent, nullptr))
 	{
 		int32 Error = ::WSAGetLastError();
 		if (Error != WSA_IO_PENDING)
 		{
 			HandleError(Error);
-			SendEvent->Owner = nullptr;	// NumRefs -= 1
-			Delete(SendEvent);
+			SendEvent.Owner = nullptr;	// NumRefs -= 1
+			SendEvent.SendBuffers.clear();	// 전송 버퍼들을 지워서 참조 횟수를 날림
+			bIsSending.store(false);
 		}
 	}
 }
@@ -220,19 +256,19 @@ void FSession::ProcessDisconnect()
 	DisconnectEvent.Owner = nullptr;	// NumRefs -= 1
 }
 
-void FSession::ProcessRecv(int32 BytesRecvd)
+void FSession::ProcessRecv(int32 BytesToRecv)
 {
 	// 여기에 진입했다는 건 WSARecv가 성공했다는 뜻
 	RecvEvent.Owner = nullptr;	// NumRefs -= 1
 
-	if (BytesRecvd == 0)
+	if (BytesToRecv == 0)
 	{
 		// 연결 끊김
 		Disconnect(TEXT("Recv 0"));
 		return;
 	}
 
-	if (!RecvBuffer.AdvanceWritePosition(BytesRecvd))
+	if (!RecvBuffer.AdvanceWritePosition(BytesToRecv))
 	{
 		Disconnect(TEXT("RecvBuffer Overflow: AdvanceWritePosition"));
 		return;
@@ -257,19 +293,30 @@ void FSession::ProcessRecv(int32 BytesRecvd)
 	RegisterRecv();
 }
 
-void FSession::ProcessSend(FSocketSend* SendEvent, int32 BytesSent)
+void FSession::ProcessSend(int32 BytesToSend)
 {
-	SendEvent->Owner = nullptr;	// NumRefs -= 1
-	Delete(SendEvent);	// SendEvent는 더 이상 사용하지 않음
+	SendEvent.Owner = nullptr;	// NumRefs -= 1
+	SendEvent.SendBuffers.clear();  // 전송 버퍼들을 지워서 참조 횟수를 날림
 
-	if (BytesSent == 0)
+	if (BytesToSend == 0)
 	{
 		Disconnect(TEXT("Send 0"));
 		return;
 	}
 
 	// 컨텐츠단에서 재정의해서 사용(딱히 할 일은 없을 것)
-	OnSend(BytesSent);
+	OnSend(BytesToSend);
+
+	WRITE_LOCK;
+	if (SendQueue.empty())
+	{
+		bIsSending.store(false);
+	}
+	else
+	{
+		// 큐가 비어있지 않다는 건 다른 스레드에서 Send를 호출해 데이터를 추가한 것
+		RegisterSend();
+	}
 }
 
 void FSession::HandleError(int32 Error)

@@ -31,7 +31,7 @@ public:
 	bool IsConnected() const { return bIsConnected; }
 	void SetService(shared_ptr<FService> InService) { Service = InService; }
 
-	void Send(BYTE* Buffer, int32 Length);
+	void Send(shared_ptr<FSendBuffer> SendBuffer);
 	bool Connect();
 	void Disconnect(const TCHAR* Msg);
 
@@ -43,12 +43,12 @@ private:
 	bool RegisterConnect();	// Client Server 단에서 Connect를 등록할 수 있음
 	bool RegisterDisconnect();
 	void RegisterRecv();
-	void RegisterSend(FSocketSend* SendEvent);
+	void RegisterSend();
 
 	void ProcessConnect();
 	void ProcessDisconnect();
-	void ProcessRecv(int32 BytesRecvd);
-	void ProcessSend(FSocketSend* SendEvent, int32 BytesSent);
+	void ProcessRecv(int32 BytesToRecv);
+	void ProcessSend(int32 BytesToSend);
 
 	void HandleError(int32 Error);
 
@@ -70,6 +70,8 @@ private:
 
 	// Recv
 	FRecvBuffer RecvBuffer;
+	TQueue<shared_ptr<FSendBuffer>> SendQueue;	// Send 이벤트가 여러 개 등록될 수 있으므로 Queue로 관리
+	TAtomic<bool> bIsSending;	// 현재 Send 이벤트가 진행 중인지 여부
 
 	// Send
 
@@ -77,5 +79,6 @@ private:  // Event Reuse
 	FSocketConnect ConnectEvent;
 	FSocketDisconnect DisconnectEvent;
 	FSocketRecv RecvEvent;
+	FSocketSend SendEvent;
 };
 

@@ -67,6 +67,5 @@ class FSocketSend : public FSocketEvent
 public:
 	FSocketSend();
 
-	// TEMP
-	vector<BYTE> Buffer;
+	TArray<shared_ptr<FSendBuffer>> SendBuffers;
 };

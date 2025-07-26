@@ -4,7 +4,7 @@
 
 #include "ThreadManager.h"
 
-BYTE SendBuffer[] = "Hello, World!";
+BYTE SendData[] = "Hello, World!";
 
 // 상대방을 대표하는 세션
 class FServerSession : public FSession
@@ -12,8 +12,11 @@ class FServerSession : public FSession
 public:
 	void OnConnected() override
 	{
-		cout << "Connected" << endl;
-		Send(SendBuffer, sizeof(SendBuffer));	// Send initial message
+		cout << "Connected To Server" << endl;
+
+		shared_ptr<FSendBuffer> SendBuffer = MakeShared<FSendBuffer>(4096);
+		SendBuffer->PushData(SendData, sizeof(SendData));
+		Send(SendBuffer);	// Send initial message
 	}
 
 	int32 OnRecv(BYTE* Buffer, int32 Length) override
@@ -21,7 +24,9 @@ public:
 		cout << "OnRecv Len = " << Length << endl;
 		this_thread::sleep_for(1s);
 
-		Send(SendBuffer, sizeof(SendBuffer));	// Echo
+		shared_ptr<FSendBuffer> SendBuffer = MakeShared<FSendBuffer>(4096);
+		SendBuffer->PushData(SendData, sizeof(SendData));
+		Send(SendBuffer);	// Echo
 		return Length;
 	}
 
@@ -44,7 +49,7 @@ int main()
 		FInternetAddr(TEXT("127.0.0.1"), 7777),
 		MakeShared<FSocketEventQueue>(),
 		MakeShared<FServerSession>,	// ()를 붙이면 안됨. 추후 SessionManager 등에서 관리
-		1
+		5
 	);
 
 	check(Service->Run());

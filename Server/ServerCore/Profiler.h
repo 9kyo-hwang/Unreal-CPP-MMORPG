@@ -13,8 +13,7 @@ private:
 private:
 	unordered_map<const char*, int32> NameToId;
 	unordered_map<int32, const char*> IdToName;
-	stack<int32> LockStack;
-	map<int32, set<int32>> Graph;
+	map<int32, set<int32>> HistoryGraph;
 
 	FCriticalSection Mutex;
 

@@ -18,41 +18,40 @@ void FDeadLockProfiler::Add(const char* Name)
 		IdToName.emplace(Id, Name);
 	}
 
-	// TODO: 스레드마다 잡고 있는 Lock이 다르기 때문에, LockStack 또한 스레드마다 들고 있어야 함
-	if (!LockStack.empty())
+	if (!LLockStack.empty())
 	{
 		// 새로운 Lock이라면 데드락 여부 재확인
-		const int32 PrevId = LockStack.top();
+		const int32 PrevId = LLockStack.top();
 		if (Id != PrevId)
 		{
-			set<int32>& AdjacentLocks = Graph[PrevId];
-			if (!AdjacentLocks.contains(Id))
+			set<int32>& History = HistoryGraph[PrevId];
+			if (!History.contains(Id))
 			{
-				AdjacentLocks.emplace(Id);
+				History.emplace(Id);
 				CheckCycle();
 			}
 		}
 	}
 
-	LockStack.emplace(Id);
+	LLockStack.emplace(Id);
 }
 
 void FDeadLockProfiler::Remove(const char* Name)
 {
 	FScopeLock Lock(Mutex);
 
-	if (LockStack.empty())
+	if (LLockStack.empty())
 	{
 		CRASH("Multiple Unlock");
 	}
 
 	int32 Id = NameToId.at(Name);
-	if (LockStack.top() != Id)
+	if (LLockStack.top() != Id)
 	{
 		CRASH("Invalid Unlock");
 	}
 
-	LockStack.pop();
+	LLockStack.pop();
 }
 
 void FDeadLockProfiler::CheckCycle()
@@ -82,7 +81,7 @@ void FDeadLockProfiler::DFS(int32 From)
 	}
 
 	OrderList[From] = Order++;
-	for (int32 To : Graph[From])
+	for (int32 To : HistoryGraph[From])
 	{
 		if (OrderList[To] == -1)	// 방문한 적 없으면 재귀 호출
 		{
