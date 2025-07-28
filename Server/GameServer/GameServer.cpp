@@ -1,9 +1,7 @@
 ﻿#include "pch.h"
 
 #include "GameSession.h"
-#include "SendBuffer.h"
 #include "Service.h"
-#include "Session.h"
 #include "ThreadManager.h"
 
 int main()

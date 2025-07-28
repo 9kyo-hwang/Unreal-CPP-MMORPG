@@ -28,14 +28,14 @@ public:
     template <typename U>
     TAllocator(const TAllocator<U>&) noexcept {}
 
-    T* allocate(size_t Count)
+    T* allocate(size_t NumBytes)
 	{
-        int32 Size = static_cast<int32>(Count * sizeof(T));
+        int32 Size = static_cast<int32>(NumBytes * sizeof(T));
         return static_cast<T*>(FMallocPool::Malloc(Size));
     }
 
-    void deallocate(T* InPtr, size_t) noexcept
+    void deallocate(T* Memory, size_t) noexcept
 	{
-        FMallocPool::Free(InPtr);
+        FMallocPool::Free(Memory);
     }
 };

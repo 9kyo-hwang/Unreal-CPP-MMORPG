@@ -3,6 +3,7 @@
 #include "Types.h"
 #include "Allocator.h"
 #include <vector>
+#include <array>
 #include <list>
 #include <stack>
 #include <queue>
@@ -13,34 +14,37 @@
 
 using namespace std;
 
-template<typename T>
-using TArray = vector<T, TAllocator<T>>;
+template<typename ElementType>
+using TArray = vector<ElementType, TAllocator<ElementType>>;
 
-template<typename T>
-using TList = list<T, TAllocator<T>>;
+template<typename InElementType, uint32 NumElements>
+using TStaticArray = array<InElementType, NumElements>;
 
-template<typename Key, typename Type, typename Pred = less<Key>>
-using TSortedMap = map<Key, Type, Pred, TAllocator<pair<const Key, Type>>>;
+template<typename ElementType>
+using TList = list<ElementType, TAllocator<ElementType>>;
 
-template<typename Key, typename Pred = less<Key>>
-using TSortedSet = set<Key, Pred, TAllocator<Key>>;
+template<typename InKeyType, typename InValueType, typename SortPredicate = less<InKeyType>>
+using TSortedMap = map<InKeyType, InValueType, SortPredicate, TAllocator<pair<const InKeyType, InValueType>>>;
 
-template<typename Key, typename Type, typename Hasher = hash<Key>, typename KeyEq = equal_to<Key>>
-using TMap = unordered_map<Key, Type, Hasher, KeyEq, TAllocator<pair<const Key, Type>>>;
+template<typename InElementType, typename SortPredicate = less<InElementType>>
+using TSortedSet = set<InElementType, SortPredicate, TAllocator<InElementType>>;
 
-template<typename Key, typename Hasher = hash<Key>, typename KeyEq = equal_to<Key>>
-using TSet = unordered_set<Key, Hasher, KeyEq, TAllocator<Key>>;
+template<typename InKeyType, typename InValueType, typename Hasher = hash<InKeyType>, typename KeyFuncs = equal_to<InKeyType>>
+using TMap = unordered_map<InKeyType, InValueType, Hasher, KeyFuncs, TAllocator<pair<const InKeyType, InValueType>>>;
 
-template<typename T>
-using TDeque = deque<T, TAllocator<T>>;
+template<typename InElementType, typename Hasher = hash<InElementType>, typename KeyFuncs = equal_to<InElementType>>
+using TSet = unordered_set<InElementType, Hasher, KeyFuncs, TAllocator<InElementType>>;
 
-template<typename T, typename Container = TDeque<T>>
-using TQueue = queue<T, Container>;
+template<typename InElementType>
+using TDeque = deque<InElementType, TAllocator<InElementType>>;
 
-template<typename T, typename Container = TDeque<T>>
-using TStack = stack<T, Container>;
+template<typename InElementType, typename Container = TDeque<InElementType>>
+using TQueue = queue<InElementType, Container>;
 
-template<typename T, typename Container = TArray<T>, typename Pred = less<typename Container::value_type>>
-using TPriorityQueue = priority_queue<T, Container, Pred>;
+template<typename InElementType, typename Container = TDeque<InElementType>>
+using TStack = stack<InElementType, Container>;
+
+template<typename InElementType, typename Container = TArray<InElementType>, typename SortPredicate = less<typename Container::value_type>>
+using TPriorityQueue = priority_queue<InElementType, Container, SortPredicate>;
 
 using FString = basic_string<wchar_t, char_traits<wchar_t>, TAllocator<wchar_t>>;

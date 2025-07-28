@@ -202,7 +202,7 @@ void FSession::RegisterSend()
 		while (!SendQueue.empty())
 		{
 			auto SendBuffer = SendQueue.front();
-			WriteSize += SendBuffer->Num();
+			WriteSize += SendBuffer->GetUsedSize();
 
 			// TODO: 크기가 너무 크면 더 이상 전송하지 않도록 break
 
@@ -217,7 +217,7 @@ void FSession::RegisterSend()
 	for (int32 i = 0; i < BufferCount; ++i)
 	{
 		Buffers[i] = WSABUF(
-			SendEvent.SendBuffers[i]->Num(),
+			SendEvent.SendBuffers[i]->GetUsedSize(),
 			reinterpret_cast<char*>(SendEvent.SendBuffers[i]->GetData())
 		);
 	}

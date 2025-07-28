@@ -17,8 +17,9 @@ int32 FGameSession::OnRecv(BYTE* Buffer, int32 Length)
 {
 	cout << "OnRecv Len = " << Length << endl;
 
-	shared_ptr<FSendBuffer> SendBuffer = MakeShared<FSendBuffer>(4096);
-	SendBuffer->PushData(Buffer, Length);
+	shared_ptr<FSendBuffer> SendBuffer = GSendBufferPool->Open(4096);
+	::memcpy(SendBuffer->GetData(), Buffer, Length);
+	SendBuffer->Close(Length);
 
 	GSessionManager.Broadcast(SendBuffer); // Broadcast to all sessions
 

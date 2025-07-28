@@ -14,8 +14,9 @@ public:
 	{
 		cout << "Connected To Server" << endl;
 
-		shared_ptr<FSendBuffer> SendBuffer = MakeShared<FSendBuffer>(4096);
-		SendBuffer->PushData(SendData, sizeof(SendData));
+		shared_ptr<FSendBuffer> SendBuffer = GSendBufferPool->Open(4096);
+		::memcpy(SendBuffer->GetData(), SendData, sizeof(SendData));
+		SendBuffer->Close(sizeof(SendData));
 		Send(SendBuffer);	// Send initial message
 	}
 
@@ -24,8 +25,10 @@ public:
 		cout << "OnRecv Len = " << Length << endl;
 		this_thread::sleep_for(1s);
 
-		shared_ptr<FSendBuffer> SendBuffer = MakeShared<FSendBuffer>(4096);
-		SendBuffer->PushData(SendData, sizeof(SendData));
+		shared_ptr<FSendBuffer> SendBuffer = GSendBufferPool->Open(4096);
+		::memcpy(SendBuffer->GetData(), SendData, sizeof(SendData));
+		SendBuffer->Close(sizeof(SendData));
+
 		Send(SendBuffer);	// Echo
 		return Length;
 	}

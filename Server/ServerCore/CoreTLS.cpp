@@ -3,3 +3,4 @@
 
 thread_local uint32 LThreadID = 0;
 thread_local TStack<int32> LLockStack;
+thread_local shared_ptr<FSendBufferChunk> LSendBufferChunk = nullptr;

@@ -96,12 +96,6 @@
     <ClInclude Include="SendBuffer.h">
       <Filter>Network</Filter>
     </ClInclude>
-    <ClInclude Include="GameSession.h">
-      <Filter>Network</Filter>
-    </ClInclude>
-    <ClInclude Include="SessionManager.h">
-      <Filter>Network</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CorePCH.cpp">
@@ -168,12 +162,6 @@
       <Filter>Network</Filter>
     </ClCompile>
     <ClCompile Include="SendBuffer.cpp">
-      <Filter>Network</Filter>
-    </ClCompile>
-    <ClCompile Include="GameSession.cpp">
-      <Filter>Network</Filter>
-    </ClCompile>
-    <ClCompile Include="SessionManager.cpp">
       <Filter>Network</Filter>
     </ClCompile>
   </ItemGroup>
