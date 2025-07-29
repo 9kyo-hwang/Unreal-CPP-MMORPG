@@ -82,3 +82,25 @@ private:  // Event Reuse
 	FSocketSend SendEvent;
 };
 
+struct FPacketHeader
+{
+	// uint32로 4byte x 2 해도 가능
+	uint16 Size;	// Total Packet Size
+	uint16 Id;		// Protocol Id(1=Login, 2=Move, ...)
+};
+
+// 컨텐츠 단에서는 반드시 이 패킷 세션을 상속받아 사용해야 함
+class FPacketSession : public FSession
+{
+	using Super = FSession;
+
+public:
+	FPacketSession();
+	~FPacketSession() override;
+
+	shared_ptr<FPacketSession> SharedThisSession() { return SharedThis(this); }
+
+protected:
+	int32 OnRecv(BYTE* Buffer, int32 Length) sealed;	// 하위 클래스에서 사용하지 못하도록
+	virtual int32 OnReceive(BYTE* Buffer, int32 Length) = 0;
+};

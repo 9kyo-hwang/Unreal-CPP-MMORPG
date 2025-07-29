@@ -2,6 +2,7 @@
 
 #include "GameSession.h"
 #include "Service.h"
+#include "SessionManager.h"
 #include "ThreadManager.h"
 
 int main()
@@ -25,6 +26,21 @@ int main()
 					Service->GetEventQueue()->Dequeue();
 				}
 			});
+	}
+
+	BYTE SendData[1024] = "Hello, World!";
+	while (true)
+	{
+		shared_ptr<FSendBuffer> SendBuffer = GSendBufferPool->Open(4096);
+		BYTE* Buffer = SendBuffer->GetData();
+		reinterpret_cast<FPacketHeader*>(Buffer)->Size = sizeof(SendData) + sizeof(FPacketHeader);
+		reinterpret_cast<FPacketHeader*>(Buffer)->Id = 1;
+		::memcpy(&Buffer[4], SendData, sizeof(SendData));
+		SendBuffer->Close(sizeof(SendData) + sizeof(FPacketHeader));
+
+		GSessionManager.Broadcast(SendBuffer); // Broadcast to all sessions
+
+		this_thread::sleep_for(250ms);
 	}
 
 	GThreadManager->WaitForCompletion();

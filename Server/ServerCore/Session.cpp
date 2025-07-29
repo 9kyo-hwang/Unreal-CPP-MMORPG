@@ -18,15 +18,28 @@ FSession::~FSession()
 
 void FSession::Send(shared_ptr<FSendBuffer> SendBuffer)
 {
+	if (!IsConnected())
+	{
+		return;
+	}
+
 	/**
 	 *	현재 예약된 Send 이벤트가 없다면 전송 이벤트 예약
 	 *	아니라면 Queue에 저장
 	 */
 
-	WRITE_LOCK;
+	bool bShouldRegister = false;
+	{
+		WRITE_LOCK;
 
-	SendQueue.push(SendBuffer);	// 추후 lock-free 방식 queue로 사용할 수도 있어서 LOCK + TAtomic 사용
-	if (bIsSending.exchange(true) == false)
+		SendQueue.push(SendBuffer);	// 추후 lock-free 방식 queue로 사용할 수도 있어서 LOCK + TAtomic 사용
+		if (bIsSending.exchange(true) == false)
+		{
+			bShouldRegister = true;
+		}
+	}
+
+	if (bShouldRegister)
 	{
 		RegisterSend();
 	}
@@ -47,9 +60,6 @@ void FSession::Disconnect(const TCHAR* Msg)
 
 	// 여기로 왔다는 건 bIsConnected가 true였다는 뜻
 	wcout << "Disconnect: " << Msg << endl;
-
-	OnDisconnected();	// 컨텐츠단에서 재정의해서 사용
-	GetService()->RemoveSession(GetSession());
 
 	RegisterDisconnect();
 }
@@ -254,6 +264,8 @@ void FSession::ProcessConnect()
 void FSession::ProcessDisconnect()
 {
 	DisconnectEvent.Owner = nullptr;	// NumRefs -= 1
+	OnDisconnected();	// 컨텐츠단에서 재정의해서 사용
+	GetService()->RemoveSession(GetSession());
 }
 
 void FSession::ProcessRecv(int32 BytesToRecv)
@@ -278,10 +290,10 @@ void FSession::ProcessRecv(int32 BytesToRecv)
 	int32 DataSize = RecvBuffer.GetDataSize();
 
 	// 해당 함수에서 반환하는 길이값은 "실제로 처리한 데이터 길이"
-	int32 BytesProcess = OnRecv(RecvBuffer.GetReadPosition(), DataSize);
+	int32 BytesProcessed = OnRecv(RecvBuffer.GetReadPosition(), DataSize);
 
 	// 따라서 처리한 데이터 길이만큼 다시 수신 버퍼의 커서를 옮겨줘야 함
-	if (BytesProcess < 0 || BytesProcess > DataSize || !RecvBuffer.AdvanceReadPosition(BytesProcess))
+	if (BytesProcessed < 0 || BytesProcessed > DataSize || !RecvBuffer.AdvanceReadPosition(BytesProcessed))
 	{
 		Disconnect(TEXT("RecvBuffer Overflow: AdvanceReadPosition"));
 		return;
@@ -333,4 +345,38 @@ void FSession::HandleError(int32 Error)
 		printf("Handle Error: %d\n", Error);
 		break;
 	}
+}
+
+FPacketSession::FPacketSession()
+{
+}
+
+FPacketSession::~FPacketSession()
+{
+}
+
+int32 FPacketSession::OnRecv(BYTE* Buffer, int32 Length)
+{
+	int32 BytesProcessed = 0;
+	while (true)
+	{
+		int32 DataSize = Length - BytesProcessed;
+		if (DataSize < sizeof(FPacketHeader))
+		{
+			// 헤더 크기보다 작으면 패킷이 완성되지 않았으므로 종료
+			break;
+		}
+
+		FPacketHeader PacketHeader = *reinterpret_cast<FPacketHeader*>(&Buffer[BytesProcessed]);
+		if (DataSize < PacketHeader.Size)  // 전체 패킷 크기
+		{
+			break;
+		}
+
+		// 패킷 조립 성공
+		OnReceive(&Buffer[BytesProcessed], PacketHeader.Size);
+		BytesProcessed += PacketHeader.Size;
+	}
+
+	return BytesProcessed;
 }

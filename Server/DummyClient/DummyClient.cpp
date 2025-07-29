@@ -7,40 +7,35 @@
 BYTE SendData[] = "Hello, World!";
 
 // 상대방을 대표하는 세션
-class FServerSession : public FSession
+class FServerSession : public FPacketSession
 {
 public:
 	void OnConnected() override
 	{
-		cout << "Connected To Server" << endl;
+		// cout << "Connected To Server" << endl;
 
-		shared_ptr<FSendBuffer> SendBuffer = GSendBufferPool->Open(4096);
-		::memcpy(SendBuffer->GetData(), SendData, sizeof(SendData));
-		SendBuffer->Close(sizeof(SendData));
-		Send(SendBuffer);	// Send initial message
+
 	}
 
-	int32 OnRecv(BYTE* Buffer, int32 Length) override
+	int32 OnReceive(BYTE* Buffer, int32 Length) override
 	{
-		cout << "OnRecv Len = " << Length << endl;
-		this_thread::sleep_for(1s);
+		FPacketHeader PacketHeader = *reinterpret_cast<FPacketHeader*>(Buffer);
 
-		shared_ptr<FSendBuffer> SendBuffer = GSendBufferPool->Open(4096);
-		::memcpy(SendBuffer->GetData(), SendData, sizeof(SendData));
-		SendBuffer->Close(sizeof(SendData));
+		char RecvBuffer[4096];
+		::memcpy(RecvBuffer, &Buffer[4], PacketHeader.Size - sizeof(FPacketHeader));
+		printf("%s\n", RecvBuffer);
 
-		Send(SendBuffer);	// Echo
 		return Length;
 	}
 
 	void OnSend(int32 BytesSent) override
 	{
-		cout << "OnSend Len = " << BytesSent << endl;
+		// cout << "OnSend Len = " << BytesSent << endl;
 	}
 
 	void OnDisconnected() override
 	{
-		cout << "Disconnected" << endl;
+		// cout << "Disconnected" << endl;
 	}
 };
 
@@ -52,7 +47,7 @@ int main()
 		FInternetAddr(TEXT("127.0.0.1"), 7777),
 		MakeShared<FSocketEventQueue>(),
 		MakeShared<FServerSession>,	// ()를 붙이면 안됨. 추후 SessionManager 등에서 관리
-		5
+		1000
 	);
 
 	check(Service->Run());

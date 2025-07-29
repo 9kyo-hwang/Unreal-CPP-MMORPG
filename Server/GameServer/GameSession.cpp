@@ -13,20 +13,18 @@ void FGameSession::OnDisconnected()
 	GSessionManager.Remove(SharedThis(this));
 }
 
-int32 FGameSession::OnRecv(BYTE* Buffer, int32 Length)
+int32 FGameSession::OnReceive(BYTE* Buffer, int32 Length)
 {
-	cout << "OnRecv Len = " << Length << endl;
+	// 여기에 진입했다는 것은 온전한 패킷이 보장됨
+	FPacketHeader PacketHeader = *reinterpret_cast<FPacketHeader*>(Buffer);
+	printf("ID: %d\tSize: %d\n", PacketHeader.Id, PacketHeader.Size);
 
-	shared_ptr<FSendBuffer> SendBuffer = GSendBufferPool->Open(4096);
-	::memcpy(SendBuffer->GetData(), Buffer, Length);
-	SendBuffer->Close(Length);
 
-	GSessionManager.Broadcast(SendBuffer); // Broadcast to all sessions
 
 	return Length;
 }
 
 void FGameSession::OnSend(int32 BytesSent)
 {
-	cout << "OnSend Len = " << BytesSent << endl;
+
 }

@@ -83,6 +83,7 @@ shared_ptr<FSendBuffer> FSendBufferPool::Open(int32 Size)
 
 shared_ptr<FSendBufferChunk> FSendBufferPool::Get()
 {
+	printf("FSendBufferPool::Get()\n");
 	{
 		WRITE_LOCK;
 		if (!Chunks.empty())
@@ -105,5 +106,6 @@ void FSendBufferPool::Return(shared_ptr<FSendBufferChunk> Chunk)
 
 void FSendBufferPool::OnDelete(FSendBufferChunk* Chunk)
 {
+	printf("FSendBufferPool::OnDelete()\n");
 	GSendBufferPool->Return(shared_ptr<FSendBufferChunk>(Chunk, OnDelete));
 }
