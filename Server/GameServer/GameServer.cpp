@@ -1,5 +1,6 @@
 ﻿#include "pch.h"
 
+#include "BufferWriter.h"
 #include "GameSession.h"
 #include "Service.h"
 #include "SessionManager.h"
@@ -32,11 +33,18 @@ int main()
 	while (true)
 	{
 		shared_ptr<FSendBuffer> SendBuffer = GSendBufferPool->Open(4096);
-		BYTE* Buffer = SendBuffer->GetData();
-		reinterpret_cast<FPacketHeader*>(Buffer)->Size = sizeof(SendData) + sizeof(FPacketHeader);
-		reinterpret_cast<FPacketHeader*>(Buffer)->Id = 1;
-		::memcpy(&Buffer[4], SendData, sizeof(SendData));
-		SendBuffer->Close(sizeof(SendData) + sizeof(FPacketHeader));
+
+		FBufferWriter Writer(SendBuffer->GetData(), SendBuffer->GetCapacity());
+		FPacketHeader* PacketHeader = Writer.Reserve<FPacketHeader>();
+
+		// id(uint64), hp(uint32), atk(uint16)
+		Writer << static_cast<uint64>(1001) << static_cast<uint32>(100) << static_cast<uint16>(10);
+		Writer.Write(SendData, sizeof(SendData));
+
+		PacketHeader->Size = Writer.GetWriteSize();
+		PacketHeader->Id = 1;	// TODO: Protocol Id
+
+		SendBuffer->Close(Writer.GetWriteSize());
 
 		GSessionManager.Broadcast(SendBuffer); // Broadcast to all sessions
 

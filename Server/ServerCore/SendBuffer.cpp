@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "SendBuffer.h"
 
-FSendBuffer::FSendBuffer(shared_ptr<FSendBufferChunk> InOwner, BYTE* InData, int32 InCapacity)
+FSendBuffer::FSendBuffer(shared_ptr<FSendBufferChunk> InOwner, BYTE* InData, uint32 InCapacity)
 	: Owner(InOwner)
 	, Data(InData)
 	, UsedSize(0)
@@ -13,7 +13,7 @@ FSendBuffer::~FSendBuffer()
 {
 }
 
-void FSendBuffer::Close(int32 InUsedSize)
+void FSendBuffer::Close(uint32 InUsedSize)
 {
 	check(Capacity >= InUsedSize);
 	UsedSize = InUsedSize;

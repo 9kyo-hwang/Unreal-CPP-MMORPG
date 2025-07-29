@@ -3,12 +3,13 @@
 class FSendBuffer
 {
 public:
-	FSendBuffer(shared_ptr<FSendBufferChunk> InOwner, BYTE* InData, int32 InCapacity);
+	FSendBuffer(shared_ptr<FSendBufferChunk> InOwner, BYTE* InData, uint32 InCapacity);
 	~FSendBuffer();
 
 	BYTE* GetData() const { return Data; }
 	uint32 GetUsedSize() const { return UsedSize; }
-	void Close(int32 InUsedSize);
+	uint32 GetCapacity() const { return Capacity; }
+	void Close(uint32 InUsedSize);
 
 private:
 	shared_ptr<FSendBufferChunk> Owner;	// 버퍼 공간을 제공한 청크

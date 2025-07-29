@@ -159,6 +159,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="BufferReader.h" />
+    <ClInclude Include="BufferWriter.h" />
     <ClInclude Include="Casts.h" />
     <ClInclude Include="Container.h" />
     <ClInclude Include="CoreGlobal.h" />
@@ -187,6 +189,8 @@
     <ClInclude Include="Types.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BufferReader.cpp" />
+    <ClCompile Include="BufferWriter.cpp" />
     <ClCompile Include="Container.cpp" />
     <ClCompile Include="CoreGlobal.cpp" />
     <ClCompile Include="CorePCH.cpp" />

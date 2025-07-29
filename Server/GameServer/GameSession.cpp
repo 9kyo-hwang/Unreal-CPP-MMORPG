@@ -18,9 +18,6 @@ int32 FGameSession::OnReceive(BYTE* Buffer, int32 Length)
 	// 여기에 진입했다는 것은 온전한 패킷이 보장됨
 	FPacketHeader PacketHeader = *reinterpret_cast<FPacketHeader*>(Buffer);
 	printf("ID: %d\tSize: %d\n", PacketHeader.Id, PacketHeader.Size);
-
-
-
 	return Length;
 }
 
