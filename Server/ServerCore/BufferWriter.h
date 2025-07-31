@@ -14,7 +14,6 @@ public:
 	template<typename T> bool Write(T* Src) { return Write(Src, sizeof(T)); }
 	bool Write(void* Src, uint32 InSize);
 
-	template<typename T> FBufferWriter& operator<<(const T& Src);
 	template<typename T> FBufferWriter& operator<<(T&& Src);
 	template<typename T> T* Reserve();
 
@@ -24,19 +23,18 @@ private:
 	uint32 WriterSize;
 };
 
-template <typename T>
-FBufferWriter& FBufferWriter::operator<<(const T& Src)
-{
-	// Memcpy와 동일한 역할이나, 작은 데이터의 경우 이 코드가 더 성능이 좋음
-	*reinterpret_cast<T*>(&WriterData[WriterPos]) = Src;
-	WriterPos += sizeof(T);
-	return *this;
-}
+/** 템플릿이 붙는 순간 오른값 참조가 아닌 보편 참조 -> 다른 형태를 전부 무시하고 무조건 해당 호출로 귀결됨
+ *	- 왼값이 들어오면 const T&로, 오른값이 들어오면 T&&로 처리
+ *	- 우리의 경우 uint64 등을 넘겨주고 있는데 이 경우 *reinterpret_cast<const uint64&*>를 시도
+ *	- 따라서 참조가 붙은 채 넘어왔으면 이를 떼주는 작업 수행
+ */
 
 template <typename T>
 FBufferWriter& FBufferWriter::operator<<(T&& Src)
 {
-	*reinterpret_cast<T*>(&WriterData[WriterPos]) = move(Src);
+	using ValueType = std::remove_reference_t<T>;
+
+	*reinterpret_cast<ValueType*>(&WriterData[WriterPos]) = std::forward<ValueType>(Src);
 	WriterPos += sizeof(T);
 	return *this;
 }

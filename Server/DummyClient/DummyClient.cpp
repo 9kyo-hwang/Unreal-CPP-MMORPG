@@ -3,6 +3,7 @@
 #include <Session.h>
 
 #include "BufferReader.h"
+#include "ClientPacketHandler.h"
 #include "ThreadManager.h"
 
 BYTE SendData[] = "Hello, World!";
@@ -16,27 +17,10 @@ public:
 		// cout << "Connected To Server" << endl;
 	}
 
-	int32 OnReceive(BYTE* Buffer, int32 Length) override
+	void OnReceive(BYTE* Buffer, int32 Length) override
 	{
 		// 여기에 진입했다는 것은 온전한 패킷이 보장됨
-		FBufferReader br(Buffer, Length);
-		FPacketHeader PacketHeader; br >> PacketHeader;
-
-		// Server Main에서 보낸 패킷 데이터 순서대로 꺼내야 함
-		uint64 Id;
-		uint32 Hp;
-		uint16 Atk;
-		br >> Id >> Hp >> Atk;
-
-		printf("ID: %llu, HP: %u, ATK: %u\n", Id, Hp, Atk);
-
-		char RecvBuffer[4096];
-		// 헤더에 명시된 [헤더 + 데이터] 크기 - [헤더] 크기 - [id] 크기 - [hp] 크기 - [atk] 크기
-		// 추후 가변 길이 데이터에 대한 크기 정보도 보내게 될 것
-		br.Read(RecvBuffer, PacketHeader.Size - sizeof(FPacketHeader) - 8 - 4 - 2);
-		printf("%s\n", RecvBuffer);
-
-		return Length;
+		ClientPacketHandler::HandlePacket(Buffer, Length);
 	}
 
 	void OnSend(int32 BytesSent) override
@@ -58,7 +42,7 @@ int main()
 		FInternetAddr(TEXT("127.0.0.1"), 7777),
 		MakeShared<FSocketEventQueue>(),
 		MakeShared<FServerSession>,	// ()를 붙이면 안됨. 추후 SessionManager 등에서 관리
-		1000
+		1
 	);
 
 	check(Service->Run());

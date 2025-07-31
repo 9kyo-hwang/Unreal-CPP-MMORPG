@@ -7,6 +7,6 @@ class FGameSession : public FPacketSession
 public:
 	void OnConnected() override;
 	void OnDisconnected() override;
-	int32 OnReceive(BYTE* Buffer, int32 Length) override;
+	void OnReceive(BYTE* Buffer, int32 Length) override;
 	void OnSend(int32 BytesSent) override;
 };

@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "GameSession.h"
 
+#include "ServerPacketHandler.h"
 #include "SessionManager.h"
 
 void FGameSession::OnConnected()
@@ -13,12 +14,10 @@ void FGameSession::OnDisconnected()
 	GSessionManager.Remove(SharedThis(this));
 }
 
-int32 FGameSession::OnReceive(BYTE* Buffer, int32 Length)
+void FGameSession::OnReceive(BYTE* Buffer, int32 Length)
 {
 	// 여기에 진입했다는 것은 온전한 패킷이 보장됨
-	FPacketHeader PacketHeader = *reinterpret_cast<FPacketHeader*>(Buffer);
-	printf("ID: %d\tSize: %d\n", PacketHeader.Id, PacketHeader.Size);
-	return Length;
+	ServerPacketHandler::HandlePacket(Buffer, Length);
 }
 
 void FGameSession::OnSend(int32 BytesSent)
