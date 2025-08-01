@@ -32,8 +32,35 @@ int main()
 
 	while (true)
 	{
-		TArray<FBuffData> Buffs{ {100, 1.5f}, {200, 2.3f}, {300, 0.7f} };
-		shared_ptr<FSendBuffer> SendBuffer = ServerPacketHandler::CreatePacket_Test(1001, 100, 10, Buffs, TEXT("안녕하세요"));
+		// [ServerPacket_Test]
+		ServerPacketWriter_Test PacketWriter(1001, 100, 10);
+
+		// [ServerPacket_Test][FBuffData FBuffData FBuffData]
+		ServerPacketWriter_Test::FBuffDataArray BuffDataArray = PacketWriter.ReserveBuffs(3);
+		BuffDataArray[0] = { 100, 1.5f };
+		BuffDataArray[1] = { 200, 2.3f };
+		BuffDataArray[2] = { 300, 0.7f };
+
+		// [ServerPacket_Test][FBuffData FBuffData FBuffData][Victim Victim Victim][Victim][Victim Victim]
+		auto VictimArray1 = PacketWriter.ReserveVictims(&BuffDataArray[0], 3);
+		{
+			VictimArray1[0] = 1001; // Victim Ids
+			VictimArray1[1] = 1002;
+			VictimArray1[2] = 1003;
+		}
+
+		auto VictimArray2 = PacketWriter.ReserveVictims(&BuffDataArray[1], 1);
+		{
+			VictimArray2[0] = 2001; // Victim Ids
+		}
+
+		auto VictimArray3 = PacketWriter.ReserveVictims(&BuffDataArray[2], 2);
+		{
+			VictimArray3[0] = 3001; // Victim Ids
+			VictimArray3[1] = 3002;
+		}
+
+		shared_ptr<FSendBuffer> SendBuffer = PacketWriter.Close();
 		GSessionManager.Broadcast(SendBuffer); // Broadcast to all sessions
 
 		this_thread::sleep_for(250ms);

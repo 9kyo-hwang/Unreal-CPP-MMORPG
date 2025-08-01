@@ -15,7 +15,7 @@ public:
 	bool Write(void* Src, uint32 InSize);
 
 	template<typename T> FBufferWriter& operator<<(T&& Src);
-	template<typename T> T* Reserve();
+	template<typename T> T* Reserve(uint16 Number = 1);
 
 private:
 	BYTE* WriterData;
@@ -40,14 +40,14 @@ FBufferWriter& FBufferWriter::operator<<(T&& Src)
 }
 
 template <typename T>
-T* FBufferWriter::Reserve()
+T* FBufferWriter::Reserve(uint16 Number)
 {
-	if (GetFreeSize() < sizeof(T))
+	if (GetFreeSize() < sizeof(T) * Number)
 	{
 		return nullptr;
 	}
 
 	T* Ptr = reinterpret_cast<T*>(&WriterData[WriterPos]);
-	WriterPos += sizeof(T);
+	WriterPos += sizeof(T) * Number;
 	return Ptr;
 }
