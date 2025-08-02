@@ -2,7 +2,7 @@
 
 #include "BufferWriter.h"
 #include "GameSession.h"
-#include "ServerPacketHandler.h"
+#include "ClientPacketHandler.h"
 #include "Service.h"
 #include "SessionManager.h"
 #include "ThreadManager.h"
@@ -10,7 +10,7 @@
 
 int main()
 {
-	ServerPacketHandler::Initialize();
+	ClientPacketHandler::Initialize();
 
 	auto Service = MakeShared<FServerService>(
 		FInternetAddr(TEXT("127.0.0.1"), 7777),
@@ -54,7 +54,7 @@ int main()
 			Buff->add_victims(2000);
 		}
 
-		auto SendBuffer = ServerPacketHandler::CreateSendBuffer(Packet);
+		auto SendBuffer = ClientPacketHandler::CreateSendBuffer(Packet);
 		GSessionManager.Broadcast(SendBuffer); // Broadcast to all sessions
 
 		this_thread::sleep_for(250ms);
