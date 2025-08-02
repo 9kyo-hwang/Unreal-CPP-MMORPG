@@ -1,156 +1,81 @@
 #pragma once
-#include "BufferWriter.h"
+#include "Protocol.pb.h"
+#include "Session.h"
 
-enum EPacketId
+using FIncomingPacketSignature = function<bool(shared_ptr<FPacketSession>&, BYTE*, int32)>;
+extern FIncomingPacketSignature GPacketHandlers[UINT16_MAX];
+
+// TODO: 자동화(.proto 파일을 보고 자동으로 Id Enum 값을 생성해주는 작업을 수행할 예정)
+enum EPacketId : uint16
 {
 	Test = 1,
+	Login = 2,
 };
+
+// TODO: 자동화
+bool Handle_INVALID(shared_ptr<FPacketSession>& Session, BYTE* Buffer, int32 Length);
+bool Handle_S_TEST(shared_ptr<FPacketSession>& Session, Protocol::S_TEST& Packet);
 
 class ServerPacketHandler
 {
 public:
-	static void HandlePacket(BYTE* Buffer, int32 Length);
-};
-
-template<typename ElementType, typename ContainerType>
-class TPacketIterator
-{
-public:
-	TPacketIterator(ContainerType& InContainer, uint16 InIndex)
-		: Container(InContainer)
-		, Index(InIndex)
+	// TODO: 자동화
+	static void Initialize()
 	{
+		for (int32 i = 0; i < UINT16_MAX; ++i)
+		{
+			GPacketHandlers[i] = Handle_INVALID;
+		}
+
+		GPacketHandlers[EPacketId::Test] = [](shared_ptr<FPacketSession>& Session, BYTE* Buffer, int32 Length)
+			{
+				return Incoming_Internal<Protocol::S_TEST>(Handle_S_TEST, Session, Buffer, Length);
+			};
 	}
 
-	ElementType& operator*()
+	static bool Incoming(shared_ptr<FPacketSession>& Session, BYTE* Buffer, int32 Length)
 	{
-		check(Index < Container.Num());
-		return Container[Index];
+		FPacketHeader* PacketHeader = reinterpret_cast<FPacketHeader*>(Buffer);
+		return GPacketHandlers[PacketHeader->Id](Session, Buffer, Length);
 	}
 
-	const ElementType& operator*() const
+	// TODO: 자동화
+	static shared_ptr<FSendBuffer> CreateSendBuffer(Protocol::S_TEST& Packet)
 	{
-		check(Index < Container.Num());
-		return Container[Index];
-	}
-
-	ElementType* operator->()
-	{
-		check(Index < Container.Num());
-		return &Container[Index];
-	}
-
-	bool operator==(const TPacketIterator& Other) const
-	{
-		return Index == Other.Index;
-	}
-
-	bool operator!=(const TPacketIterator& Other) const
-	{
-		return !(*this == Other);
-	}
-
-	TPacketIterator& operator++()
-	{
-		check(Index < Container.Num());
-		++Index;
-		return *this;
-	}
-
-	TPacketIterator operator++(int32)
-	{
-		TPacketIterator Temp = *this;
-		++Index;
-		return Temp;
+		return CreateSendBuffer_Internal<Protocol::S_TEST>(Packet, EPacketId::Test);
 	}
 
 private:
-	ContainerType& Container;
-	uint16 Index;
+	template<typename InPacketType, typename InHandlerType>
+	static bool Incoming_Internal(InHandlerType Handler, shared_ptr<FPacketSession>& Session, BYTE* Buffer, int32 Length)
+	{
+		InPacketType Packet;
+		if (!Packet.ParseFromArray(Buffer + sizeof(FPacketHeader), Length - sizeof(FPacketHeader)))
+		{
+			return false;
+		}
+
+		return Handler(Session, Packet);
+	}
+
+	template<typename PacketType>
+	static shared_ptr<FSendBuffer> CreateSendBuffer_Internal(PacketType& Packet, uint16 PacketId)
+	{
+		const uint16 DataSize = static_cast<uint16>(Packet.ByteSizeLong());
+		const uint16 PacketSize = DataSize + sizeof(FPacketHeader);
+
+		// 패킷 사이즈를 미리 알 수 있으므로 SendBuffer를 할당받을 때도 그 크기 정보를 이용
+		shared_ptr<FSendBuffer> SendBuffer = GSendBufferPool->Open(PacketSize);
+
+		// 단순히 헤더 정보만 채우면 돼서 Writer를 쓰지 않고 형변환을 이용해 작성
+		FPacketHeader* PacketHeader = reinterpret_cast<FPacketHeader*>(SendBuffer->GetData());
+		PacketHeader->Size = PacketSize;
+		PacketHeader->Id = PacketId;
+
+		// 패킷 헤더의 끝부분부터 데이터를 담는 공간, 헤더가 정확히 4바이트라 1번 인덱스의 주소를 넘겨주면 됨
+		check(Packet.SerializeToArray(&PacketHeader[1], DataSize));
+
+		SendBuffer->Close(PacketSize);
+		return SendBuffer;
+	}
 };
-
-template<typename DataType>
-class TPacketArray
-{
-public:
-	TPacketArray()
-		: Data(nullptr)
-		, ArrayNum(0)
-	{
-	}
-
-	TPacketArray(DataType* InData, uint16 InNum)
-		: Data(InData)
-		, ArrayNum(InNum)
-	{
-	}
-
-	DataType& operator[](uint16 Index)
-	{
-		check(Index < ArrayNum);
-		return Data[Index];
-	}
-
-	DataType* GetData() { return Data; }
-	uint16 Num() const { return ArrayNum; }
-
-	TPacketIterator<DataType, TPacketArray<DataType>> begin()
-	{
-		return TPacketIterator<DataType, TPacketArray>(*this, 0);
-	}
-
-	TPacketIterator<DataType, TPacketArray<DataType>> end()
-	{
-		return TPacketIterator<DataType, TPacketArray>(*this, ArrayNum);
-	}
-
-private:
-	DataType* Data;	// 시작 주소
-	uint16 ArrayNum;	// 현재 개수
-};
-
-#pragma pack(1)
-// [ ServerPacket_Test ][ FBuffData FBuffData FBuffData ... ] [ Victim Victim ] [ Victim Victim ] ..
-struct ServerPacket_Test
-{
-	struct FBuffData
-	{
-		uint64 BuffId;
-		float RemainTime;
-
-		// Victims List
-		uint16 VictimsOffset;
-		uint16 NumVictims;
-	};
-
-	uint16 PacketId;
-	uint16 PacketSize;
-
-	uint64 Id;
-	uint32 Hp;
-	uint16 Attack;
-
-	uint16 BuffsOffset;	// 앞에 붙어있는 패킷만큼 건너뛰어야 FBuffData 배열이 시작됨
-	uint16 NumBuff;
-};
-
-class ServerPacketWriter_Test
-{
-public:
-	using FPacket = ServerPacket_Test;
-	using FBuffData = FPacket::FBuffData;
-	using FBuffDataArray = TPacketArray<FBuffData>;
-	using FBuffDataVictimArray = TPacketArray<uint64>; // Victim Ids
-
-	ServerPacketWriter_Test(uint64 Id, uint32 Hp, uint16 Attack);
-	FBuffDataArray ReserveBuffs(uint16 NumBuff);
-	FBuffDataVictimArray ReserveVictims(FBuffData* Buff, uint16 NumVictim);
-	shared_ptr<FSendBuffer> Close();
-
-private:
-	FPacket* Packet;
-	shared_ptr<FSendBuffer> SendBuffer;
-	FBufferWriter Writer;
-};
-
-#pragma pack()

@@ -6,9 +6,12 @@
 #include "Service.h"
 #include "SessionManager.h"
 #include "ThreadManager.h"
+#include "Protocol.pb.h"
 
 int main()
 {
+	ServerPacketHandler::Initialize();
+
 	auto Service = MakeShared<FServerService>(
 		FInternetAddr(TEXT("127.0.0.1"), 7777),
 		MakeShared<FSocketEventQueue>(),
@@ -32,35 +35,26 @@ int main()
 
 	while (true)
 	{
-		// [ServerPacket_Test]
-		ServerPacketWriter_Test PacketWriter(1001, 100, 10);
+		Protocol::S_TEST Packet;	// 세션이 해당 정보를 들고 있게 해도 됨
+		Packet.set_id(1001);
+		Packet.set_hp(100);
+		Packet.set_attack(10);
 
-		// [ServerPacket_Test][FBuffData FBuffData FBuffData]
-		ServerPacketWriter_Test::FBuffDataArray BuffDataArray = PacketWriter.ReserveBuffs(3);
-		BuffDataArray[0] = { 100, 1.5f };
-		BuffDataArray[1] = { 200, 2.3f };
-		BuffDataArray[2] = { 300, 0.7f };
-
-		// [ServerPacket_Test][FBuffData FBuffData FBuffData][Victim Victim Victim][Victim][Victim Victim]
-		auto VictimArray1 = PacketWriter.ReserveVictims(&BuffDataArray[0], 3);
 		{
-			VictimArray1[0] = 1001; // Victim Ids
-			VictimArray1[1] = 1002;
-			VictimArray1[2] = 1003;
+			Protocol::BuffData* Buff = Packet.add_buffs();
+			Buff->set_buffid(100);
+			Buff->set_remaintime(1.2f);
+			Buff->add_victims(4000);
+		}
+		{
+			Protocol::BuffData* Buff = Packet.add_buffs();
+			Buff->set_buffid(200);
+			Buff->set_remaintime(2.5f);
+			Buff->add_victims(1000);
+			Buff->add_victims(2000);
 		}
 
-		auto VictimArray2 = PacketWriter.ReserveVictims(&BuffDataArray[1], 1);
-		{
-			VictimArray2[0] = 2001; // Victim Ids
-		}
-
-		auto VictimArray3 = PacketWriter.ReserveVictims(&BuffDataArray[2], 2);
-		{
-			VictimArray3[0] = 3001; // Victim Ids
-			VictimArray3[1] = 3002;
-		}
-
-		shared_ptr<FSendBuffer> SendBuffer = PacketWriter.Close();
+		auto SendBuffer = ServerPacketHandler::CreateSendBuffer(Packet);
 		GSessionManager.Broadcast(SendBuffer); // Broadcast to all sessions
 
 		this_thread::sleep_for(250ms);

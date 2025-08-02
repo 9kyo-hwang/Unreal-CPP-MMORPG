@@ -1,0 +1,9 @@
+syntax = "proto3";
+package Protocol;
+
+message BuffData
+{
+	uint64 BuffId = 1;
+	float RemainTime = 2;
+	repeated uint64 Victims = 3;
+}

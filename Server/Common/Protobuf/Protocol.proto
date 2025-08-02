@@ -1,0 +1,12 @@
+syntax = "proto3";
+package Protocol;
+import "Enum.proto";
+import "Struct.proto";
+
+message S_TEST
+{
+	uint64 Id = 1;	// order
+	uint32 Hp = 2;
+	uint32 Attack = 3;  // 16비트 자료형이 존재하지 않음
+	repeated BuffData Buffs = 4;
+}
