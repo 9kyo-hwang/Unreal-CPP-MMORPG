@@ -45,6 +45,15 @@ void FService::RemoveSession(shared_ptr<FSession> InSession)
 	--NumSessions;
 }
 
+void FService::Broadcast(shared_ptr<FSendBuffer> SendBuffer)
+{
+	WRITE_LOCK;
+	for (const auto& Session : Sessions)
+	{
+		Session->Send(SendBuffer);
+	}
+}
+
 FClientService::FClientService(FInternetAddr TargetAddr, shared_ptr<FSocketEventQueue> InEventQueue, FSessionFactory InSessionFactory, int32 InNumMaxSessions)
 	: Super(EServiceType::Client, TargetAddr, InEventQueue, InSessionFactory, InNumMaxSessions)
 {

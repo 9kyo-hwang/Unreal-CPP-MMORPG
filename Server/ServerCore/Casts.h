@@ -90,25 +90,25 @@ template<typename From, typename To>
 class Convert
 {
 private:
-	// ¾Æ¹« °ªÀÌ³ª »ó°ü¾øÀ½
+	// ì•„ë¬´ ê°’ì´ë‚˜ ìƒê´€ì—†ìŒ
 	using Small = int8;
 	using Big = int32;
 
-	// ÀÇ¹Ì ¾ø´Â ¹İÈ¯°ª
+	// ì˜ë¯¸ ì—†ëŠ” ë°˜í™˜ê°’
 	static Small Test(const To&) { return 0; }
 	static Big Test(...) { return 0; }
 	static From MakeFrom() { return 0; }
 
 public:
-	// MakeFromÀ¸·Î FromÀ» Test¿¡ ³Ñ°åÀ» ¶§, SmallÀÌ ¹İÈºµÇ³Ä BigÀÌ ¹İÈ¯µÇ³Ä¿¡ µû¶ó °á°ú °áÁ¤
-	// SmallÀÌ ¹İÈ¯µÇ¸é To·Î Ä³½ºÆÃ °¡´ÉÇÑ °Í, BigÀÌ ¹İÈ¯µÇ¸é Ä³½ºÆÃ ºÒ°¡´ÉÇÑ °Í
+	// MakeFromìœ¼ë¡œ Fromì„ Testì— ë„˜ê²¼ì„ ë•Œ, Smallì´ ë°˜íšë˜ëƒ Bigì´ ë°˜í™˜ë˜ëƒì— ë”°ë¼ ê²°ê³¼ ê²°ì •
+	// Smallì´ ë°˜í™˜ë˜ë©´ Toë¡œ ìºìŠ¤íŒ… ê°€ëŠ¥í•œ ê²ƒ, Bigì´ ë°˜í™˜ë˜ë©´ ìºìŠ¤íŒ… ë¶ˆê°€ëŠ¥í•œ ê²ƒ
 	static constexpr size_t Result = sizeof(Test(MakeFrom())) == sizeof(Small);
 };
 #pragma endregion
 
 #pragma region Multi Conversion
 
-// Á¤¼ö°ªÀ» ÀÏÁ¾ÀÇ ÅÛÇÃ¸´ Å¬·¡½ºÃ³·³ Ãë±ŞÇÏµµ·Ï
+// ì •ìˆ˜ê°’ì„ ì¼ì¢…ì˜ í…œí”Œë¦¿ í´ë˜ìŠ¤ì²˜ëŸ¼ ì·¨ê¸‰í•˜ë„ë¡
 template<int32 Value>
 struct Integer
 {
@@ -217,4 +217,16 @@ template<typename To, typename From>
 bool IsA(shared_ptr<From> InPtr)
 {
 	return IsA<To, From>(InPtr);
+}
+
+template<typename To, typename From>
+shared_ptr<To> StaticCastSharedPtr(const shared_ptr<From>& InPtr)
+{
+	return static_pointer_cast<To>(InPtr);
+}
+
+template<typename To, typename From>
+shared_ptr<To> ConstCastSharedPtr(const shared_ptr<From>& InPtr)
+{
+	return const_pointer_cast<To>(InPtr);
 }

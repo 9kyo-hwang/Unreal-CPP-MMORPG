@@ -1,9 +1,12 @@
 syntax = "proto3";
 package Protocol;
+import "Enum.proto";
 
-message BuffData
+message Player
 {
-	uint64 BuffId = 1;
-	float RemainTime = 2;
-	repeated uint64 Victims = 3;
+	uint64 id = 1;
+	string name = 2;
+	EPlayerType Type = 3;
+
+	// Stat...
 }

@@ -35,6 +35,7 @@ public:
 	shared_ptr<FSession> CreateSession();
 	void AddSession(shared_ptr<FSession> InSession);
 	void RemoveSession(shared_ptr<FSession> InSession);
+	void Broadcast(shared_ptr<FSendBuffer> SendBuffer);
 
 	EServiceType GetType() const { return Type; }
 	FInternetAddr GetAddr() const { return Addr; }

@@ -76,8 +76,6 @@ shared_ptr<FSendBuffer> FSendBufferPool::Open(int32 Size)
 		LSendBufferChunk->Clear();
 	}
 
-	cout << "FREE: " << LSendBufferChunk->GetFreeSize() << endl;
-
 	return LSendBufferChunk->Open(Size);
 }
 

@@ -1,17 +1,17 @@
 #include "pch.h"
 #include "SessionManager.h"
 
-#include "GameSession.h"
+#include "ClientSession.h"
 
 FSessionManager GSessionManager;
 
-void FSessionManager::Add(shared_ptr<FGameSession> Session)
+void FSessionManager::Add(shared_ptr<FClientSession> Session)
 {
 	WRITE_LOCK;
 	Sessions.insert(Session);
 }
 
-void FSessionManager::Remove(shared_ptr<FGameSession> Session)
+void FSessionManager::Remove(shared_ptr<FClientSession> Session)
 {
 	WRITE_LOCK;
 	Sessions.erase(Session);

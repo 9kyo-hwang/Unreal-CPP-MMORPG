@@ -7,14 +7,18 @@ extern FIncomingPacketSignature GPacketHandlers[UINT16_MAX];
 
 enum EPacketId : uint16
 {
-	C_TEST = 1000,
-	S_TEST = 1001,
-	S_LOGIN = 1002,
+	C_LOGIN = 1000,
+	S_LOGIN = 1001,
+	C_ENTER = 1002,
+	S_ENTER = 1003,
+	C_CHAT = 1004,
+	S_CHAT = 1005,
 };
 
 bool Handle_INVALID(shared_ptr<FPacketSession>& Session, BYTE* Buffer, int32 Length);
-bool Handle_S_TEST(shared_ptr<FPacketSession>& Session, Protocol::S_TEST& Packet);
 bool Handle_S_LOGIN(shared_ptr<FPacketSession>& Session, Protocol::S_LOGIN& Packet);
+bool Handle_S_ENTER(shared_ptr<FPacketSession>& Session, Protocol::S_ENTER& Packet);
+bool Handle_S_CHAT(shared_ptr<FPacketSession>& Session, Protocol::S_CHAT& Packet);
 
 class ServerPacketHandler
 {
@@ -25,13 +29,17 @@ public:
 		{
 			GPacketHandlers[i] = Handle_INVALID;
 		}
-		GPacketHandlers[EPacketId::S_TEST] = [](shared_ptr<FPacketSession>& Session, BYTE* Buffer, int32 Length)
-			{
-				return Incoming_Internal<Protocol::S_TEST>(Handle_S_TEST, Session, Buffer, Length);
-			};
 		GPacketHandlers[EPacketId::S_LOGIN] = [](shared_ptr<FPacketSession>& Session, BYTE* Buffer, int32 Length)
 			{
 				return Incoming_Internal<Protocol::S_LOGIN>(Handle_S_LOGIN, Session, Buffer, Length);
+			};
+		GPacketHandlers[EPacketId::S_ENTER] = [](shared_ptr<FPacketSession>& Session, BYTE* Buffer, int32 Length)
+			{
+				return Incoming_Internal<Protocol::S_ENTER>(Handle_S_ENTER, Session, Buffer, Length);
+			};
+		GPacketHandlers[EPacketId::S_CHAT] = [](shared_ptr<FPacketSession>& Session, BYTE* Buffer, int32 Length)
+			{
+				return Incoming_Internal<Protocol::S_CHAT>(Handle_S_CHAT, Session, Buffer, Length);
 			};
 	}
 
@@ -40,9 +48,17 @@ public:
 		FPacketHeader* PacketHeader = reinterpret_cast<FPacketHeader*>(Buffer);
 		return GPacketHandlers[PacketHeader->Id](Session, Buffer, Length);
 	}
-	static shared_ptr<FSendBuffer> CreateSendBuffer(Protocol::C_TEST& Packet)
+	static shared_ptr<FSendBuffer> CreateSendBuffer(Protocol::C_LOGIN& Packet)
 	{
-		return CreateSendBuffer_Internal(Packet, EPacketId::C_TEST);
+		return CreateSendBuffer_Internal(Packet, EPacketId::C_LOGIN);
+	}
+	static shared_ptr<FSendBuffer> CreateSendBuffer(Protocol::C_ENTER& Packet)
+	{
+		return CreateSendBuffer_Internal(Packet, EPacketId::C_ENTER);
+	}
+	static shared_ptr<FSendBuffer> CreateSendBuffer(Protocol::C_CHAT& Packet)
+	{
+		return CreateSendBuffer_Internal(Packet, EPacketId::C_CHAT);
 	}
 
 private:

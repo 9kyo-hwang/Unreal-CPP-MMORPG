@@ -11,3 +11,4 @@
 #endif
 
 #include "CorePCH.h"	// Link to ServerCore Library
+#include "Enum.pb.h"

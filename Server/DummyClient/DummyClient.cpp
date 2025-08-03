@@ -14,7 +14,13 @@ class FServerSession : public FPacketSession
 public:
 	void OnConnected() override
 	{
-		// cout << "Connected To Server" << endl;
+		/*
+		* 1. 연결 성공 시 로그인 요청
+		* 원래는 인증 서버가 ID/PW를 처리하는 것도 해야 함
+		*/
+		Protocol::C_LOGIN Packet;
+		auto SendBuffer = ServerPacketHandler::CreateSendBuffer(Packet);
+		Send(SendBuffer);
 	}
 
 	void OnReceive(BYTE* Buffer, int32 Length) override
@@ -50,7 +56,7 @@ int main()
 		FInternetAddr(TEXT("127.0.0.1"), 7777),
 		MakeShared<FSocketEventQueue>(),
 		MakeShared<FServerSession>,	// ()를 붙이면 안됨. 추후 SessionManager 등에서 관리
-		1
+		100
 	);
 
 	check(Service->Run());
@@ -64,6 +70,16 @@ int main()
 					Service->GetEventQueue()->Dequeue();
 				}
 			});
+	}
+
+	Protocol::C_CHAT Packet;
+	Packet.set_msg("Hello, World!");
+	auto SendBuffer = ServerPacketHandler::CreateSendBuffer(Packet);
+
+	while (true)
+	{
+		Service->Broadcast(SendBuffer);
+		this_thread::sleep_for(1s);
 	}
 
 	GThreadManager->WaitForCompletion();
