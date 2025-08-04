@@ -16,6 +16,9 @@
     <Filter Include="Memory">
       <UniqueIdentifier>{60227770-71c6-4cc8-96a8-ac74403edecb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Task">
+      <UniqueIdentifier>{5eddfe23-4c17-4286-95ba-6ee14a8943cc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Types.h">
@@ -102,6 +105,15 @@
     <ClInclude Include="BufferWriter.h">
       <Filter>Utils</Filter>
     </ClInclude>
+    <ClInclude Include="Task.h">
+      <Filter>Task</Filter>
+    </ClInclude>
+    <ClInclude Include="TasksSystem.h">
+      <Filter>Task</Filter>
+    </ClInclude>
+    <ClInclude Include="TaskArchive.h">
+      <Filter>Task</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CorePCH.cpp">
@@ -175,6 +187,15 @@
     </ClCompile>
     <ClCompile Include="BufferWriter.cpp">
       <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Task.cpp">
+      <Filter>Task</Filter>
+    </ClCompile>
+    <ClCompile Include="TasksSystem.cpp">
+      <Filter>Task</Filter>
+    </ClCompile>
+    <ClCompile Include="TaskArchive.cpp">
+      <Filter>Task</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

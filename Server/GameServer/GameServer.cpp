@@ -1,12 +1,13 @@
 ﻿#include "pch.h"
 
-#include "BufferWriter.h"
 #include "ClientSession.h"
 #include "ClientPacketHandler.h"
 #include "Service.h"
-#include "SessionManager.h"
 #include "ThreadManager.h"
 #include "Protocol.pb.h"
+#include <functional>
+
+#include "GameMode.h"
 
 int main()
 {
@@ -31,6 +32,12 @@ int main()
 					Service->GetEventQueue()->Dequeue();
 				}
 			});
+	}
+
+	while (true)
+	{
+		GGameMode->Flush();
+		this_thread::sleep_for(1s);
 	}
 
 	GThreadManager->WaitForCompletion();

@@ -185,6 +185,9 @@
     <ClInclude Include="Session.h" />
     <ClInclude Include="Sockets.h" />
     <ClInclude Include="SocketSubsystem.h" />
+    <ClInclude Include="Task.h" />
+    <ClInclude Include="TaskArchive.h" />
+    <ClInclude Include="TasksSystem.h" />
     <ClInclude Include="ThreadManager.h" />
     <ClInclude Include="Types.h" />
   </ItemGroup>
@@ -217,6 +220,9 @@
     <ClCompile Include="Session.cpp" />
     <ClCompile Include="Sockets.cpp" />
     <ClCompile Include="SocketSubsystem.cpp" />
+    <ClCompile Include="Task.cpp" />
+    <ClCompile Include="TaskArchive.cpp" />
+    <ClCompile Include="TasksSystem.cpp" />
     <ClCompile Include="ThreadManager.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

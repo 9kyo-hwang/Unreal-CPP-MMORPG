@@ -1,17 +1,20 @@
 #pragma once
+#include "TaskArchive.h"
 
 class UPlayer;
 
-class AGameModeBase
+class AGameModeBase : public FTaskArchive
 {
 public:
 	void Login(shared_ptr<UPlayer> NewPlayer);
 	void Logout(shared_ptr<UPlayer> Exiting);
 	void Broadcast(shared_ptr<FSendBuffer> SendBuffer);
 
+	void Flush() override;
+
 private:
-	USE_LOCK;
 	TMap<uint64, shared_ptr<UPlayer>> Players;
+	// FTaskArchive를 상속받아 자동으로 TaskQueue를 들고 있음
 };
 
-extern AGameModeBase GGameMode;
+extern shared_ptr<AGameModeBase> GGameMode;
