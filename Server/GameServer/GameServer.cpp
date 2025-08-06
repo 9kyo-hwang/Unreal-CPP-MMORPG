@@ -34,11 +34,7 @@ int main()
 			});
 	}
 
-	while (true)
-	{
-		GGameMode->Flush();
-		this_thread::sleep_for(1s);
-	}
+	// 더 이상 Flush 할 필요 없음
 
 	GThreadManager->WaitForCompletion();
 

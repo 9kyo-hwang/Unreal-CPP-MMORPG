@@ -1,19 +1,19 @@
 #pragma once
 #include <functional>
 
-using CallbackType = function<void()>;
+using CallableType = function<void()>;
 
 class FTask
 {
 public:
-	FTask(CallbackType&& InCallback)
-		: Callback(move(InCallback))
+	FTask(CallableType&& InCallable)
+		: Callable(move(InCallable))
 	{}
 
 	template<typename ClassType, typename ReturnType, typename... CallbackArgs>
 	FTask(shared_ptr<ClassType> Owner, ReturnType(ClassType::*Method)(CallbackArgs...), CallbackArgs&&... Args)
 	{
-		Callback = [Owner, Method, Args...]()
+		Callable = [Owner, Method, Args...]()
 			{
 				(Owner.get()->*Method)(Args...);
 			};
@@ -21,10 +21,10 @@ public:
 
 	void Launch() const
 	{
-		Callback();
+		Callable();
 	}
 
 private:
-	CallbackType Callback;
+	CallableType Callable;
 };
 

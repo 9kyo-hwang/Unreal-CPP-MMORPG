@@ -1,16 +1,14 @@
 #pragma once
-#include "TaskArchive.h"
+#include "AsyncTaskManager.h"
 
 class UPlayer;
 
-class AGameModeBase : public FTaskArchive
+class AGameModeBase : public FAsyncTaskManager
 {
 public:
 	void Login(shared_ptr<UPlayer> NewPlayer);
 	void Logout(shared_ptr<UPlayer> Exiting);
 	void Broadcast(shared_ptr<FSendBuffer> SendBuffer);
-
-	void Flush() override;
 
 private:
 	TMap<uint64, shared_ptr<UPlayer>> Players;

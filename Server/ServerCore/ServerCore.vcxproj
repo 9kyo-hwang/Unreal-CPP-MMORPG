@@ -186,8 +186,7 @@
     <ClInclude Include="Sockets.h" />
     <ClInclude Include="SocketSubsystem.h" />
     <ClInclude Include="Task.h" />
-    <ClInclude Include="TaskArchive.h" />
-    <ClInclude Include="TasksSystem.h" />
+    <ClInclude Include="AsyncTaskManager.h" />
     <ClInclude Include="ThreadManager.h" />
     <ClInclude Include="Types.h" />
   </ItemGroup>
@@ -221,8 +220,7 @@
     <ClCompile Include="Sockets.cpp" />
     <ClCompile Include="SocketSubsystem.cpp" />
     <ClCompile Include="Task.cpp" />
-    <ClCompile Include="TaskArchive.cpp" />
-    <ClCompile Include="TasksSystem.cpp" />
+    <ClCompile Include="AsyncTaskManager.cpp" />
     <ClCompile Include="ThreadManager.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

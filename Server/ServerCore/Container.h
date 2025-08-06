@@ -12,6 +12,8 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "Lock.h"
+
 using namespace std;
 
 template<typename ElementType>
@@ -38,8 +40,58 @@ using TSet = unordered_set<InElementType, Hasher, KeyFuncs, TAllocator<InElement
 template<typename InElementType>
 using TDeque = deque<InElementType, TAllocator<InElementType>>;
 
-template<typename InElementType, typename Container = TDeque<InElementType>>
-using TQueue = queue<InElementType, Container>;
+template<typename T, typename Container = TDeque<T>>
+class TQueue
+{
+public:
+	TQueue()
+	{
+		
+	}
+
+	~TQueue()
+	{
+		
+	}
+
+	void Enqueue(T Item)
+	{
+		WRITE_LOCK;
+		Data.push(Item);
+	}
+
+	T Dequeue()
+	{
+		WRITE_LOCK;
+		if (Data.empty())
+		{
+			return T();
+		}
+
+		T Item = Data.front();
+		Data.pop();
+		return Item;
+	}
+
+	void Dequeue(TArray<T>& OutItems)
+	{
+		WRITE_LOCK;
+		while (T Item = Dequeue())
+		{
+			OutItems.push_back(Item);
+		}
+	}
+
+	void Empty()
+	{
+		WRITE_LOCK;
+		Data = queue<T, Container>();
+	}
+
+private:
+	USE_LOCK;
+	queue<T, Container> Data;
+};
 
 template<typename InElementType, typename Container = TDeque<InElementType>>
 using TStack = stack<InElementType, Container>;

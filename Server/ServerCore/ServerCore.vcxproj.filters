@@ -108,10 +108,7 @@
     <ClInclude Include="Task.h">
       <Filter>Task</Filter>
     </ClInclude>
-    <ClInclude Include="TasksSystem.h">
-      <Filter>Task</Filter>
-    </ClInclude>
-    <ClInclude Include="TaskArchive.h">
+    <ClInclude Include="AsyncTaskManager.h">
       <Filter>Task</Filter>
     </ClInclude>
   </ItemGroup>
@@ -191,10 +188,7 @@
     <ClCompile Include="Task.cpp">
       <Filter>Task</Filter>
     </ClCompile>
-    <ClCompile Include="TasksSystem.cpp">
-      <Filter>Task</Filter>
-    </ClCompile>
-    <ClCompile Include="TaskArchive.cpp">
+    <ClCompile Include="AsyncTaskManager.cpp">
       <Filter>Task</Filter>
     </ClCompile>
   </ItemGroup>

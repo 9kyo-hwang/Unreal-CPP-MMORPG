@@ -75,7 +75,7 @@ bool Handle_C_ENTER(shared_ptr<FPacketSession>& Session, Protocol::C_ENTER& InPa
 
 	// thread-safe -> readonly &&Players를 건드리는 건 Handle_C_LOGIN 밖에 없기 때문
 	shared_ptr<UPlayer> Player = ClientSession->Players[Index];
-	GGameMode->Serialize(&AGameModeBase::Login, Player);
+	GGameMode->Add(&AGameModeBase::Login, Player);
 
 	Protocol::S_ENTER Packet;
 	Packet.set_success(true);
@@ -95,7 +95,7 @@ bool Handle_C_CHAT(shared_ptr<FPacketSession>& Session, Protocol::C_CHAT& InPack
 	auto SendBuffer = ClientPacketHandler::CreateSendBuffer(Packet);
 	Session->Send(SendBuffer);
 
-	GGameMode->Serialize(&AGameModeBase::Broadcast, SendBuffer);
+	GGameMode->Add(&AGameModeBase::Broadcast, SendBuffer);
 
 	return true;
 }

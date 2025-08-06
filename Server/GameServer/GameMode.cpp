@@ -23,17 +23,3 @@ void AGameModeBase::Broadcast(shared_ptr<FSendBuffer> SendBuffer)
 		Player->OwnerSession->Send(SendBuffer);
 	}
 }
-
-void AGameModeBase::Flush()
-{
-	while (true)
-	{
-		auto Task = Queue.Dequeue();
-		if (Task == nullptr)
-		{
-			break;
-		}
-
-		Task->Launch();
-	}
-}

@@ -70,7 +70,7 @@ private:
 
 	// Recv
 	FRecvBuffer RecvBuffer;
-	TQueue<shared_ptr<FSendBuffer>> SendQueue;	// Send 이벤트가 여러 개 등록될 수 있으므로 Queue로 관리
+	queue<shared_ptr<FSendBuffer>> SendQueue;	// Send 이벤트가 여러 개 등록될 수 있으므로 Queue로 관리
 	TAtomic<bool> bIsSending;	// 현재 Send 이벤트가 진행 중인지 여부
 
 	// Send
