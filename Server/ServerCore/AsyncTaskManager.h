@@ -1,10 +1,10 @@
 #pragma once
 #include "Task.h"
 
-class FAsyncTaskManager : public TSharedFromThis<FAsyncTaskManager>
+class FAsyncTaskQueue : public TSharedFromThis<FAsyncTaskQueue>
 {
 public:
-	virtual ~FAsyncTaskManager() = default;
+	virtual ~FAsyncTaskQueue() = default;
 
 	void Add(CallableType&& InCallable)
 	{
@@ -22,6 +22,8 @@ public:
 
 private:
 	void Add(shared_ptr<FTask>&& Task);
+
+public:
 	void Launch();
 
 protected:

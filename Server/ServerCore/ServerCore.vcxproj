@@ -167,6 +167,7 @@
     <ClInclude Include="CoreMacro.h" />
     <ClInclude Include="CorePCH.h" />
     <ClInclude Include="CoreTLS.h" />
+    <ClInclude Include="GlobalAsyncTaskManager.h" />
     <ClInclude Include="IOCPCore.h" />
     <ClInclude Include="IOCPEvent.h" />
     <ClInclude Include="IPAddress.h" />
@@ -197,6 +198,7 @@
     <ClCompile Include="CoreGlobal.cpp" />
     <ClCompile Include="CorePCH.cpp" />
     <ClCompile Include="CoreTLS.cpp" />
+    <ClCompile Include="GlobalAsyncTaskManager.cpp" />
     <ClCompile Include="IOCPCore.cpp" />
     <ClCompile Include="IOCPEvent.cpp" />
     <ClCompile Include="IPAddress.cpp" />

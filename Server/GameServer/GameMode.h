@@ -3,7 +3,7 @@
 
 class UPlayer;
 
-class AGameModeBase : public FAsyncTaskManager
+class AGameModeBase : public FAsyncTaskQueue
 {
 public:
 	void Login(shared_ptr<UPlayer> NewPlayer);

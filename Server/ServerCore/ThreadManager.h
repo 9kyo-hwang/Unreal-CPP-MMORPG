@@ -14,6 +14,7 @@ public:
 
 	static void SetTls();
 	static void FreeTls();
+	static void QueueAsyncTask();
 
 private:
 	FCriticalSection Mutex;

@@ -9,6 +9,22 @@
 
 #include "GameMode.h"
 
+static constexpr uint64 WorkerTimeoutTick = 64;
+
+void WorkerThreadMain(shared_ptr<FServerService>& Service)
+{
+	while (true)
+	{
+		LEndTick = ::GetTickCount64() + WorkerTimeoutTick;
+
+		// Network IO + InGame Logic(by Packet Handler)
+		Service->GetEventQueue()->Dequeue(10);
+
+		// 작업 처리 Tick이 남았다면, Global AsyncTaskQueue도 처리해버림
+		FThreadManager::QueueAsyncTask();
+	}
+}
+
 int main()
 {
 	ClientPacketHandler::Initialize();
@@ -25,16 +41,16 @@ int main()
 	// 보통 스레드 개수는 코어 개수 ~ 코어 개수 * 1.5
 	for (int32 i = 0; i < 5; ++i)
 	{
-		GThreadManager->AddThread([=]()
+		GThreadManager->AddThread([&Service]()
 			{
 				while (true)
 				{
-					Service->GetEventQueue()->Dequeue();
+					WorkerThreadMain(Service);
 				}
 			});
 	}
 
-	// 더 이상 Flush 할 필요 없음
+	WorkerThreadMain(Service);
 
 	GThreadManager->WaitForCompletion();
 

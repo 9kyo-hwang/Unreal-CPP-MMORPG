@@ -1,6 +1,9 @@
 #include "pch.h"
 #include "ThreadManager.h"
 
+#include "AsyncTaskManager.h"
+#include "GlobalAsyncTaskManager.h"
+
 FThreadManager::FThreadManager()
 {
 	// Main Thread
@@ -45,4 +48,25 @@ void FThreadManager::SetTls()
 void FThreadManager::FreeTls()
 {
 
+}
+
+void FThreadManager::QueueAsyncTask()
+{
+	while (true)
+	{
+		uint64 Tick = ::GetTickCount64();
+		if (Tick > LEndTick)
+		{
+			break;
+		}
+
+		shared_ptr<FAsyncTaskQueue> TaskQueue = GAsyncTaskQueueManager->RemoveQueue();
+		if (TaskQueue == nullptr)
+		{
+			break;
+		}
+
+		TaskQueue->Launch();
+		LEndTick += Tick;
+	}
 }

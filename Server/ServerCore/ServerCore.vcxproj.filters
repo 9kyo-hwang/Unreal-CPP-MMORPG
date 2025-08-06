@@ -111,6 +111,9 @@
     <ClInclude Include="AsyncTaskManager.h">
       <Filter>Task</Filter>
     </ClInclude>
+    <ClInclude Include="GlobalAsyncTaskManager.h">
+      <Filter>Task</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CorePCH.cpp">
@@ -189,6 +192,9 @@
       <Filter>Task</Filter>
     </ClCompile>
     <ClCompile Include="AsyncTaskManager.cpp">
+      <Filter>Task</Filter>
+    </ClCompile>
+    <ClCompile Include="GlobalAsyncTaskManager.cpp">
       <Filter>Task</Filter>
     </ClCompile>
   </ItemGroup>
