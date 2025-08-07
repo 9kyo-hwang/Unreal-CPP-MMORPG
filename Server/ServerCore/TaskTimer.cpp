@@ -3,7 +3,7 @@
 
 #include "AsyncTaskQueue.h"
 
-void FTaskTimerManager::SetTimer(uint64 InRate, weak_ptr<FAsyncTaskQueue> InOwner, shared_ptr<FTask> InTask)
+void FTaskTimerManager::SetTimer(uint64 InRate, weak_ptr<FAsyncTaskQueue> InOwner, shared_ptr<ITask> InTask)
 {
 	const uint64 ExecuteTick = ::GetTickCount64() + InRate;	// 경합 X
 	FTaskData* TaskData = TObjectPool<FTaskData>::Get(InOwner, InTask);	// 이미 Lock

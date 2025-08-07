@@ -1,16 +1,16 @@
 #pragma once
 
-class FTask;
+__interface ITask;
 
 struct FTaskData
 {
-	FTaskData(weak_ptr<FAsyncTaskQueue> InOwner, shared_ptr<FTask> InTask)
+	FTaskData(weak_ptr<FAsyncTaskQueue> InOwner, shared_ptr<ITask> InTask)
 		: Owner(InOwner)
 		, Task(InTask)
 	{}
 
 	weak_ptr<FAsyncTaskQueue> Owner;	// no shared_ptr: Timer 대기 시간동안 소멸되지 못하는 단점을 회피
-	shared_ptr<FTask> Task;
+	shared_ptr<ITask> Task;
 };
 
 struct FTimerHandle
@@ -33,7 +33,7 @@ struct FTimerHandle
 class FTaskTimerManager
 {
 public:
-	void SetTimer(uint64 InRate, weak_ptr<FAsyncTaskQueue> InOwner, shared_ptr<FTask> InTask);
+	void SetTimer(uint64 InRate, weak_ptr<FAsyncTaskQueue> InOwner, shared_ptr<ITask> InTask);
 	void Distribute(uint64 Now);	// ExecuteTick이 된 Item들을 OwnerQueue에다가 Task를 넣어주는 역할
 	void Clear();
 

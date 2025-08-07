@@ -1,30 +1,25 @@
 #pragma once
-#include <functional>
 
-using CallableType = function<void()>;
+__interface ITask
+{
+	void Execute();
+};
 
-class FTask
+template<typename InCallableType>
+class TTask : public ITask
 {
 public:
-	FTask(CallableType&& InCallable)
+	TTask(InCallableType&& InCallable)
 		: Callable(move(InCallable))
 	{}
 
-	template<typename ClassType, typename ReturnType, typename... CallbackArgs>
-	FTask(shared_ptr<ClassType> Owner, ReturnType(ClassType::*Method)(CallbackArgs...), CallbackArgs&&... Args)
-	{
-		Callable = [Owner, Method, Args...]()
-			{
-				(Owner.get()->*Method)(Args...);
-			};
-	}
-
-	void Launch() const
+	void Execute() override
 	{
 		Callable();
 	}
 
 private:
-	CallableType Callable;
+	InCallableType Callable;
 };
 
+using FTask = TTask<void>;

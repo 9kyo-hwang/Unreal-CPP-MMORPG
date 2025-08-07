@@ -27,7 +27,11 @@ void FClientSession::OnDisconnected()
 	{
 		if (auto GameMode = BelongTo.lock())
 		{
-			GameMode->Add(&AGameModeBase::Logout, CurrentPlayer);
+			// GameMode->Add(&AGameModeBase::Logout, CurrentPlayer);
+			GameMode->Add([Player = CurrentPlayer, GameMode]()
+				{
+					GameMode->Logout(Player);
+				});
 		}
 	}
 

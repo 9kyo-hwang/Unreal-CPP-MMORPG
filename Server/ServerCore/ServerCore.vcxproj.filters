@@ -48,9 +48,6 @@
     <ClInclude Include="Profiler.h">
       <Filter>Thread</Filter>
     </ClInclude>
-    <ClInclude Include="RefCountBase.h">
-      <Filter>Memory</Filter>
-    </ClInclude>
     <ClInclude Include="MemoryBase.h">
       <Filter>Memory</Filter>
     </ClInclude>
@@ -99,12 +96,6 @@
     <ClInclude Include="SendBuffer.h">
       <Filter>Network</Filter>
     </ClInclude>
-    <ClInclude Include="BufferReader.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="BufferWriter.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
     <ClInclude Include="Task.h">
       <Filter>Task</Filter>
     </ClInclude>
@@ -139,9 +130,6 @@
     </ClCompile>
     <ClCompile Include="Profiler.cpp">
       <Filter>Thread</Filter>
-    </ClCompile>
-    <ClCompile Include="RefCountBase.cpp">
-      <Filter>Memory</Filter>
     </ClCompile>
     <ClCompile Include="MemoryBase.cpp">
       <Filter>Memory</Filter>
@@ -184,12 +172,6 @@
     </ClCompile>
     <ClCompile Include="SendBuffer.cpp">
       <Filter>Network</Filter>
-    </ClCompile>
-    <ClCompile Include="BufferReader.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
-    <ClCompile Include="BufferWriter.cpp">
-      <Filter>Utils</Filter>
     </ClCompile>
     <ClCompile Include="Task.cpp">
       <Filter>Task</Filter>

@@ -74,9 +74,15 @@ bool Handle_C_ENTER(shared_ptr<FPacketSession>& Session, Protocol::C_ENTER& InPa
 	// TODO: Validation
 
 	// thread-safe -> readonly &&Players를 건드리는 건 Handle_C_LOGIN 밖에 없기 때문
-	ClientSession->CurrentPlayer = ClientSession->Players[Index];
+	auto Player = ClientSession->Players[Index];
+	ClientSession->CurrentPlayer = Player;
 	ClientSession->BelongTo = GGameMode;
-	GGameMode->Add(&AGameModeBase::Login, ClientSession->CurrentPlayer);
+
+	// GGameMode->Add(&AGameModeBase::Login, ClientSession->CurrentPlayer);
+	GGameMode->Add([GameMode = GGameMode, Player]()
+		{
+			GameMode->Login(Player);
+		});
 
 	Protocol::S_ENTER Packet;
 	Packet.set_success(true);
@@ -96,7 +102,11 @@ bool Handle_C_CHAT(shared_ptr<FPacketSession>& Session, Protocol::C_CHAT& InPack
 	auto SendBuffer = ClientPacketHandler::CreateSendBuffer(Packet);
 	Session->Send(SendBuffer);
 
-	GGameMode->Add(&AGameModeBase::Broadcast, SendBuffer);
+	// GGameMode->Add(&AGameModeBase::Broadcast, SendBuffer);
+	GGameMode->Add([GameMode = GGameMode, SendBuffer]()
+		{
+			GameMode->Broadcast(SendBuffer);
+		});
 
 	return true;
 }
