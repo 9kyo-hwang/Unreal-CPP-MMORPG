@@ -1,8 +1,8 @@
 #include "pch.h"
 #include "ThreadManager.h"
 
-#include "AsyncTaskManager.h"
-#include "GlobalAsyncTaskManager.h"
+#include "AsyncTaskQueue.h"
+#include "AsyncTaskQueueManager.h"
 
 FThreadManager::FThreadManager()
 {
@@ -69,4 +69,10 @@ void FThreadManager::QueueAsyncTask()
 		TaskQueue->Launch();
 		LEndTick += Tick;
 	}
+}
+
+void FThreadManager::DistributeReservedTasks()
+{
+	const uint64 Tick = ::GetTickCount64();
+	GTaskTimerManager->Distribute(Tick);
 }

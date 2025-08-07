@@ -5,10 +5,15 @@
 class FClientSession : public FPacketSession
 {
 public:
+	FClientSession();
+	~FClientSession() override;
+
 	void OnConnected() override;
 	void OnDisconnected() override;
 	void OnReceive(BYTE* Buffer, int32 Length) override;
 	void OnSend(int32 BytesSent) override;
 
 	TArray<shared_ptr<class UPlayer>> Players;
+	shared_ptr<UPlayer> CurrentPlayer;
+	weak_ptr<class AGameModeBase> BelongTo;
 };

@@ -56,7 +56,7 @@ int main()
 		FInternetAddr(TEXT("127.0.0.1"), 7777),
 		MakeShared<FSocketEventQueue>(),
 		MakeShared<FServerSession>,	// ()를 붙이면 안됨. 추후 SessionManager 등에서 관리
-		100
+		1
 	);
 
 	check(Service->Run());

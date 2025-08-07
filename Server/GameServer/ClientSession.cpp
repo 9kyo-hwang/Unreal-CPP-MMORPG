@@ -2,7 +2,17 @@
 #include "ClientSession.h"
 
 #include "ClientPacketHandler.h"
+#include "GameMode.h"
 #include "SessionManager.h"
+
+FClientSession::FClientSession()
+{
+}
+
+FClientSession::~FClientSession()
+{
+	printf("FClientSession::~FClientSession()\n");
+}
 
 void FClientSession::OnConnected()
 {
@@ -12,6 +22,17 @@ void FClientSession::OnConnected()
 void FClientSession::OnDisconnected()
 {
 	GSessionManager.Remove(SharedThis(this));
+
+	if (CurrentPlayer)
+	{
+		if (auto GameMode = BelongTo.lock())
+		{
+			GameMode->Add(&AGameModeBase::Logout, CurrentPlayer);
+		}
+	}
+
+	CurrentPlayer = nullptr;
+	Players.clear();
 }
 
 void FClientSession::OnReceive(BYTE* Buffer, int32 Length)

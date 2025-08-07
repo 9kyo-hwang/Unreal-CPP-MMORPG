@@ -108,10 +108,13 @@
     <ClInclude Include="Task.h">
       <Filter>Task</Filter>
     </ClInclude>
-    <ClInclude Include="AsyncTaskManager.h">
+    <ClInclude Include="AsyncTaskQueue.h">
       <Filter>Task</Filter>
     </ClInclude>
-    <ClInclude Include="GlobalAsyncTaskManager.h">
+    <ClInclude Include="AsyncTaskQueueManager.h">
+      <Filter>Task</Filter>
+    </ClInclude>
+    <ClInclude Include="TaskTimer.h">
       <Filter>Task</Filter>
     </ClInclude>
   </ItemGroup>
@@ -191,10 +194,13 @@
     <ClCompile Include="Task.cpp">
       <Filter>Task</Filter>
     </ClCompile>
-    <ClCompile Include="AsyncTaskManager.cpp">
+    <ClCompile Include="AsyncTaskQueue.cpp">
       <Filter>Task</Filter>
     </ClCompile>
-    <ClCompile Include="GlobalAsyncTaskManager.cpp">
+    <ClCompile Include="AsyncTaskQueueManager.cpp">
+      <Filter>Task</Filter>
+    </ClCompile>
+    <ClCompile Include="TaskTimer.cpp">
       <Filter>Task</Filter>
     </ClCompile>
   </ItemGroup>

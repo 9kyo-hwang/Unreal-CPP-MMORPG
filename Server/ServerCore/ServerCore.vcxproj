@@ -167,7 +167,7 @@
     <ClInclude Include="CoreMacro.h" />
     <ClInclude Include="CorePCH.h" />
     <ClInclude Include="CoreTLS.h" />
-    <ClInclude Include="GlobalAsyncTaskManager.h" />
+    <ClInclude Include="AsyncTaskQueueManager.h" />
     <ClInclude Include="IOCPCore.h" />
     <ClInclude Include="IOCPEvent.h" />
     <ClInclude Include="IPAddress.h" />
@@ -187,7 +187,8 @@
     <ClInclude Include="Sockets.h" />
     <ClInclude Include="SocketSubsystem.h" />
     <ClInclude Include="Task.h" />
-    <ClInclude Include="AsyncTaskManager.h" />
+    <ClInclude Include="AsyncTaskQueue.h" />
+    <ClInclude Include="TaskTimer.h" />
     <ClInclude Include="ThreadManager.h" />
     <ClInclude Include="Types.h" />
   </ItemGroup>
@@ -198,7 +199,7 @@
     <ClCompile Include="CoreGlobal.cpp" />
     <ClCompile Include="CorePCH.cpp" />
     <ClCompile Include="CoreTLS.cpp" />
-    <ClCompile Include="GlobalAsyncTaskManager.cpp" />
+    <ClCompile Include="AsyncTaskQueueManager.cpp" />
     <ClCompile Include="IOCPCore.cpp" />
     <ClCompile Include="IOCPEvent.cpp" />
     <ClCompile Include="IPAddress.cpp" />
@@ -222,7 +223,8 @@
     <ClCompile Include="Sockets.cpp" />
     <ClCompile Include="SocketSubsystem.cpp" />
     <ClCompile Include="Task.cpp" />
-    <ClCompile Include="AsyncTaskManager.cpp" />
+    <ClCompile Include="AsyncTaskQueue.cpp" />
+    <ClCompile Include="TaskTimer.cpp" />
     <ClCompile Include="ThreadManager.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -20,6 +20,9 @@ void WorkerThreadMain(shared_ptr<FServerService>& Service)
 		// Network IO + InGame Logic(by Packet Handler)
 		Service->GetEventQueue()->Dequeue(10);
 
+		// 예약된 Task 처리
+		FThreadManager::DistributeReservedTasks();
+
 		// 작업 처리 Tick이 남았다면, Global AsyncTaskQueue도 처리해버림
 		FThreadManager::QueueAsyncTask();
 	}
@@ -27,6 +30,20 @@ void WorkerThreadMain(shared_ptr<FServerService>& Service)
 
 int main()
 {
+	GGameMode->AddTimer(1000, []()
+		{
+			printf("Hello, 1000!\n");
+		});
+	GGameMode->AddTimer(2000, []()
+		{
+			printf("Hello, 2000!\n");
+		});
+	GGameMode->AddTimer(3000, []()
+		{
+			printf("Hello, 3000!\n");
+		});
+
+
 	ClientPacketHandler::Initialize();
 
 	auto Service = MakeShared<FServerService>(

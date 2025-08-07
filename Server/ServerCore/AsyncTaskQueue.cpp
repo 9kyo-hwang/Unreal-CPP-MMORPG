@@ -1,16 +1,16 @@
 #include "pch.h"
-#include "AsyncTaskManager.h"
+#include "AsyncTaskQueue.h"
 
-#include "GlobalAsyncTaskManager.h"
+#include "AsyncTaskQueueManager.h"
 
-void FAsyncTaskQueue::Add(shared_ptr<FTask>&& Task)
+void FAsyncTaskQueue::Add(shared_ptr<FTask> Task, bool bDoLaunch)
 {
 	const int32 Prev = NumTasks.fetch_add(1);	// 반드시 카운트 증가가 선행
 	Tasks.Enqueue(Task);	// WRITE_LOCK
 
 	if (Prev == 0)	// 최초로 Task를 추가한 상태 -> 내가 실행까지 담당
 	{
-		if (LAsyncTaskQueue == nullptr)
+		if (LAsyncTaskQueue == nullptr && bDoLaunch)
 		{
 			Launch();
 		}

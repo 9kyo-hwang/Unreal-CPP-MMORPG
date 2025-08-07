@@ -1,5 +1,5 @@
 #pragma once
-#include "AsyncTaskManager.h"
+#include "AsyncTaskQueue.h"
 
 class UPlayer;
 
@@ -12,7 +12,6 @@ public:
 
 private:
 	TMap<uint64, shared_ptr<UPlayer>> Players;
-	// FTaskArchive를 상속받아 자동으로 TaskQueue를 들고 있음
 };
 
 extern shared_ptr<AGameModeBase> GGameMode;
