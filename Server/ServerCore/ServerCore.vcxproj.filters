@@ -19,6 +19,9 @@
     <Filter Include="Task">
       <UniqueIdentifier>{5eddfe23-4c17-4286-95ba-6ee14a8943cc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="DB">
+      <UniqueIdentifier>{ac831d39-765a-4189-a843-12fe8d65f439}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Types.h">
@@ -108,6 +111,12 @@
     <ClInclude Include="TaskTimer.h">
       <Filter>Task</Filter>
     </ClInclude>
+    <ClInclude Include="DataBaseConnection.h">
+      <Filter>DB</Filter>
+    </ClInclude>
+    <ClInclude Include="DataBaseConnectionPool.h">
+      <Filter>DB</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CorePCH.cpp">
@@ -184,6 +193,12 @@
     </ClCompile>
     <ClCompile Include="TaskTimer.cpp">
       <Filter>Task</Filter>
+    </ClCompile>
+    <ClCompile Include="DataBaseConnection.cpp">
+      <Filter>DB</Filter>
+    </ClCompile>
+    <ClCompile Include="DataBaseConnectionPool.cpp">
+      <Filter>DB</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

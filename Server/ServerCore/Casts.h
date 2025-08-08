@@ -158,66 +158,66 @@ public:
 
 #pragma endregion
 
-template<typename To, typename From>
-To Cast(From* InPtr)
-{
-	if (InPtr == nullptr)
-	{
-		return nullptr;
-	}
-
-	using Types = typename From::Types;
-	if (MultiConversion<Types>::CanCast(
-		InPtr->TypeId,
-		IndexOf<Types, remove_pointer_t<To>>::Value)
-		)
-	{
-		return static_cast<To>(InPtr);
-	}
-
-	return nullptr;
-}
-
-template<typename To, typename From>
-shared_ptr<To> Cast(shared_ptr<From> InPtr)
-{
-	if (InPtr == nullptr)
-	{
-		return nullptr;
-	}
-
-	using Types = typename From::Types;
-	if (MultiConversion<Types>::CanCast(
-		InPtr->TypeId,
-		IndexOf<Types, remove_pointer_t<To>>::Value)
-		)
-	{
-		return static_pointer_cast<To>(InPtr);
-	}
-
-	return nullptr;
-}
-
-template<typename To, typename From>
-bool IsA(From* InPtr)
-{
-	if (InPtr == nullptr)
-	{
-		return false;
-	}
-
-	using Types = typename From::Types;
-	return MultiConversion<Types>::CanCast(
-		InPtr->TypeId,
-		IndexOf<Types, remove_pointer_t<To>>::Value
-	);
-}
-
-template<typename To, typename From>
-bool IsA(shared_ptr<From> InPtr)
-{
-	return IsA<To, From>(InPtr);
-}
+// template<typename To, typename From>
+// To Cast(From* InPtr)
+// {
+// 	if (InPtr == nullptr)
+// 	{
+// 		return nullptr;
+// 	}
+//
+// 	using Types = typename From::Types;
+// 	if (MultiConversion<Types>::CanCast(
+// 		InPtr->TypeId,
+// 		IndexOf<Types, remove_pointer_t<To>>::Value)
+// 		)
+// 	{
+// 		return static_cast<To>(InPtr);
+// 	}
+//
+// 	return nullptr;
+// }
+//
+// template<typename To, typename From>
+// shared_ptr<To> Cast(shared_ptr<From> InPtr)
+// {
+// 	if (InPtr == nullptr)
+// 	{
+// 		return nullptr;
+// 	}
+//
+// 	using Types = typename From::Types;
+// 	if (MultiConversion<Types>::CanCast(
+// 		InPtr->TypeId,
+// 		IndexOf<Types, remove_pointer_t<To>>::Value)
+// 		)
+// 	{
+// 		return static_pointer_cast<To>(InPtr);
+// 	}
+//
+// 	return nullptr;
+// }
+//
+// template<typename To, typename From>
+// bool IsA(From* InPtr)
+// {
+// 	if (InPtr == nullptr)
+// 	{
+// 		return false;
+// 	}
+//
+// 	using Types = typename From::Types;
+// 	return MultiConversion<Types>::CanCast(
+// 		InPtr->TypeId,
+// 		IndexOf<Types, remove_pointer_t<To>>::Value
+// 	);
+// }
+//
+// template<typename To, typename From>
+// bool IsA(shared_ptr<From> InPtr)
+// {
+// 	return IsA<To, From>(InPtr);
+// }
 
 template<typename To, typename From>
 shared_ptr<To> StaticCastSharedPtr(const shared_ptr<From>& InPtr)
