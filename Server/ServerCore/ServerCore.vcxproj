@@ -166,6 +166,7 @@
     <ClInclude Include="CorePCH.h" />
     <ClInclude Include="CoreTLS.h" />
     <ClInclude Include="AsyncTaskQueueManager.h" />
+    <ClInclude Include="DataBaseBinder.h" />
     <ClInclude Include="DataBaseConnection.h" />
     <ClInclude Include="DataBaseConnectionPool.h" />
     <ClInclude Include="IOCPCore.h" />
@@ -197,6 +198,7 @@
     <ClCompile Include="CorePCH.cpp" />
     <ClCompile Include="CoreTLS.cpp" />
     <ClCompile Include="AsyncTaskQueueManager.cpp" />
+    <ClCompile Include="DataBaseBinder.cpp" />
     <ClCompile Include="DataBaseConnection.cpp" />
     <ClCompile Include="DataBaseConnectionPool.cpp" />
     <ClCompile Include="IOCPCore.cpp" />
