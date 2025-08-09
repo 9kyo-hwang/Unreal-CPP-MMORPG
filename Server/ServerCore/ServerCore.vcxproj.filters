@@ -22,6 +22,9 @@
     <Filter Include="DB">
       <UniqueIdentifier>{ac831d39-765a-4189-a843-12fe8d65f439}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Utils\XML">
+      <UniqueIdentifier>{8baa426b-66f4-434f-8cbd-c34cad4660c2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Types.h">
@@ -117,7 +120,27 @@
     <ClInclude Include="DataBaseConnectionPool.h">
       <Filter>DB</Filter>
     </ClInclude>
-    <ClInclude Include="DataBaseBinder.h" />
+    <ClInclude Include="DataBaseBinder.h">
+      <Filter>DB</Filter>
+    </ClInclude>
+    <ClInclude Include="rapidxml.hpp">
+      <Filter>Utils\XML</Filter>
+    </ClInclude>
+    <ClInclude Include="rapidxml_iterators.hpp">
+      <Filter>Utils\XML</Filter>
+    </ClInclude>
+    <ClInclude Include="rapidxml_print.hpp">
+      <Filter>Utils\XML</Filter>
+    </ClInclude>
+    <ClInclude Include="rapidxml_utils.hpp">
+      <Filter>Utils\XML</Filter>
+    </ClInclude>
+    <ClInclude Include="RapidXml.h">
+      <Filter>Utils\XML</Filter>
+    </ClInclude>
+    <ClInclude Include="FileHelper.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CorePCH.cpp">
@@ -201,6 +224,14 @@
     <ClCompile Include="DataBaseConnectionPool.cpp">
       <Filter>DB</Filter>
     </ClCompile>
-    <ClCompile Include="DataBaseBinder.cpp" />
+    <ClCompile Include="DataBaseBinder.cpp">
+      <Filter>DB</Filter>
+    </ClCompile>
+    <ClCompile Include="RapidXml.cpp">
+      <Filter>Utils\XML</Filter>
+    </ClCompile>
+    <ClCompile Include="FileHelper.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
