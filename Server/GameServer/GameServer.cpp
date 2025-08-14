@@ -10,6 +10,7 @@
 #include "GameMode.h"
 #include "DataBaseConnectionPool.h"
 #include "DataBaseBinder.h"
+#include "DatabaseSynchronizer.h"
 #include "RapidXml.h"
 
 static constexpr uint64 WorkerTimeoutTick = 64;
@@ -33,57 +34,12 @@ void WorkerThreadMain(shared_ptr<FServerService>& Service)
 
 int main()
 {
-	FXmlNode Root;
-	FRapidXml Parser;
-	if (false == Parser.ParseXmlFile(TEXT("GameDB.xml"), Root))
-	{
-		return 1;
-	}
-
-	auto Tables = Root.GetChildrenNodes(TEXT("Table"));
-	for (const FXmlNode& Table : Tables)
-	{
-		FString Name = Table.GetAttribute(TEXT("name"), TEXT(""));
-		FString Desc = Table.GetAttribute(TEXT("desc"), TEXT(""));
-
-		for (const FXmlNode& Column : Table.GetChildrenNodes(TEXT("Column")))
-		{
-			FString ColName = Column.GetAttribute(TEXT("name"), TEXT(""));
-			FString ColType = Column.GetAttribute(TEXT("type"), TEXT(""));
-			bool Nullable = Column.GetAttribute(TEXT("notnull"), false) == false;
-			FString Identity = Column.GetAttribute(TEXT("identity"), TEXT(""));
-			FString ColDefault = Column.GetAttribute(TEXT("default"), TEXT(""));
-			// ETC...
-		}
-
-		for (const FXmlNode& Index : Table.GetChildrenNodes(TEXT("Index")))
-		{
-			FString IndexType = Index.GetAttribute(TEXT("type"), TEXT(""));
-			bool bIsPrimaryKey = Index.FindChildNode(TEXT("PrimaryKey")).IsValid();
-			bool bUniqueConstraint = Index.FindChildNode(TEXT("UniqueKey")).IsValid();
-
-			for (const FXmlNode& Column : Index.GetChildrenNodes(TEXT("Column")))
-			{
-				FString ColName = Column.GetAttribute(TEXT("name"), TEXT(""));
-			}
-		}
-	}
-
-	for (const FXmlNode& Procedure : Root.GetChildrenNodes(TEXT("Procedure")))
-	{
-		FString Name = Procedure.GetAttribute(TEXT("name"), TEXT(""));
-		FString Body = Procedure.FindChildNode(TEXT("Body")).GetContent(TEXT(""));
-
-		for (const FXmlNode& Param : Procedure.GetChildrenNodes(TEXT("Param")))
-		{
-			FString ParamName = Param.GetAttribute(TEXT("name"), TEXT(""));
-			FString ParamType = Param.GetAttribute(TEXT("type"), TEXT(""));
-			// TODO...
-		}
-	}
-
 	// Live Service이면 서버 주소, DB 이름, Account 정보 등을 다 별도의 파일로 관리
 	check(GDataBaseConnectionPool->Open(1, L"Driver={ODBC Driver 17 for SQL Server};Server=(localdb)\\MSSQLLocalDB;Database=ServerDB;Trusted_Connection=Yes;"));
+
+	FDatabaseConnection* Connection = GDataBaseConnectionPool->Get();
+	FDatabaseSynchronizer Synchronizer(*Connection);
+	Synchronizer.Synchronize(TEXT("GameDB.xml"));
 
 	ClientPacketHandler::Initialize();
 

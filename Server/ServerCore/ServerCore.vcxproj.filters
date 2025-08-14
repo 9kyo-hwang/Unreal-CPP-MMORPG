@@ -25,6 +25,9 @@
     <Filter Include="Utils\XML">
       <UniqueIdentifier>{8baa426b-66f4-434f-8cbd-c34cad4660c2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Log">
+      <UniqueIdentifier>{efbcf4d4-6733-410d-abb8-56992ea51640}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Types.h">
@@ -141,6 +144,15 @@
     <ClInclude Include="FileHelper.h">
       <Filter>Utils</Filter>
     </ClInclude>
+    <ClInclude Include="Debug.h">
+      <Filter>Log</Filter>
+    </ClInclude>
+    <ClInclude Include="DataBaseModel.h">
+      <Filter>DB</Filter>
+    </ClInclude>
+    <ClInclude Include="DatabaseSynchronizer.h">
+      <Filter>DB</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CorePCH.cpp">
@@ -232,6 +244,15 @@
     </ClCompile>
     <ClCompile Include="FileHelper.cpp">
       <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Debug.cpp">
+      <Filter>Log</Filter>
+    </ClCompile>
+    <ClCompile Include="DataBaseModel.cpp">
+      <Filter>DB</Filter>
+    </ClCompile>
+    <ClCompile Include="DatabaseSynchronizer.cpp">
+      <Filter>DB</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

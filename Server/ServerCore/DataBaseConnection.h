@@ -5,11 +5,11 @@
 static constexpr uint64 BINARY_MAX = 8000;	// page 단위가 8kb -> max 또한 8000
 static constexpr uint64 WVARCHAR_MAX = 4000;	// using wchar_t -> final length is double of string size
 
-class FDataBaseConnection
+class FDatabaseConnection
 {
 public:
-	FDataBaseConnection();
-	~FDataBaseConnection();
+	FDatabaseConnection();
+	~FDatabaseConnection();
 
 	bool Open(SQLHENV Environment, const TCHAR* ConnectionString);
 	void Clear();

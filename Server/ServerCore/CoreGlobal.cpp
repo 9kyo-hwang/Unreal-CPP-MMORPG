@@ -3,6 +3,7 @@
 
 #include "AsyncTaskQueueManager.h"
 #include "DataBaseConnectionPool.h"
+#include "Debug.h"
 #include "MemoryBase.h"
 #include "Profiler.h"
 #include "SocketSubsystem.h"
@@ -16,7 +17,8 @@ FSendBufferPool* GSendBufferPool = nullptr;
 FAsyncTaskQueueManager* GAsyncTaskQueueManager = nullptr;
 FTaskTimerManager* GTaskTimerManager = nullptr;
 FDeadLockProfiler* GDeadLockProfiler = nullptr;
-FDataBaseConnectionPool* GDataBaseConnectionPool = nullptr;
+FDatabaseConnectionPool* GDataBaseConnectionPool = nullptr;
+FDebug* GDebug = nullptr;
 
 // 매니저 간 호출 순서를 조정해주는 역할
 class CoreGlobal
@@ -30,7 +32,8 @@ public:
 		GAsyncTaskQueueManager = new FAsyncTaskQueueManager();
 		GTaskTimerManager = new FTaskTimerManager();
 		GDeadLockProfiler = new FDeadLockProfiler();
-		GDataBaseConnectionPool = new FDataBaseConnectionPool();
+		GDataBaseConnectionPool = new FDatabaseConnectionPool();
+		GDebug = new FDebug();
 		FSocketSubsystem::Init();
 	}
 
@@ -43,6 +46,7 @@ public:
 		delete GTaskTimerManager;
 		delete GDeadLockProfiler;
 		delete GDataBaseConnectionPool;
+		delete GDebug;
 		FSocketSubsystem::Shutdown();
 	}
 } GCoreGlobal;

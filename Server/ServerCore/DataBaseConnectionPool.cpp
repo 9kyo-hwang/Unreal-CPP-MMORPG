@@ -1,17 +1,17 @@
 #include "pch.h"
 #include "DataBaseConnectionPool.h"
 
-FDataBaseConnectionPool::FDataBaseConnectionPool()
+FDatabaseConnectionPool::FDatabaseConnectionPool()
 	: Environment(nullptr)
 {
 }
 
-FDataBaseConnectionPool::~FDataBaseConnectionPool()
+FDatabaseConnectionPool::~FDatabaseConnectionPool()
 {
 	Clear();
 }
 
-bool FDataBaseConnectionPool::Open(int32 NumConnection, const TCHAR* ConnectionString)
+bool FDatabaseConnectionPool::Open(int32 NumConnection, const TCHAR* ConnectionString)
 {
 	// 최초 서버를 실행할 때 1회 수행
 	WRITE_LOCK;
@@ -39,7 +39,7 @@ bool FDataBaseConnectionPool::Open(int32 NumConnection, const TCHAR* ConnectionS
 	for (int32 i = 0; i < NumConnection; ++i)
 	{
 		// 커넥션 수 만큼 스레드 생성
-		FDataBaseConnection* Connection = New<FDataBaseConnection>();
+		FDatabaseConnection* Connection = New<FDatabaseConnection>();
 		if (!Connection->Open(Environment, ConnectionString))
 		{
 			return false;
@@ -51,7 +51,7 @@ bool FDataBaseConnectionPool::Open(int32 NumConnection, const TCHAR* ConnectionS
 	return true;
 }
 
-void FDataBaseConnectionPool::Clear()
+void FDatabaseConnectionPool::Clear()
 {
 	WRITE_LOCK;
 	if (Environment != SQL_NULL_HANDLE)
@@ -60,7 +60,7 @@ void FDataBaseConnectionPool::Clear()
 		Environment = SQL_NULL_HANDLE;
 	}
 
-	for (FDataBaseConnection* Connection : Connections)
+	for (FDatabaseConnection* Connection : Connections)
 	{
 		Delete(Connection);
 	}
@@ -68,7 +68,7 @@ void FDataBaseConnectionPool::Clear()
 	Connections.clear();
 }
 
-FDataBaseConnection* FDataBaseConnectionPool::Get()
+FDatabaseConnection* FDatabaseConnectionPool::Get()
 {
 	WRITE_LOCK;
 	if (Connections.empty())
@@ -76,12 +76,12 @@ FDataBaseConnection* FDataBaseConnectionPool::Get()
 		return nullptr;
 	}
 
-	FDataBaseConnection* Connection = Connections.back();
+	FDatabaseConnection* Connection = Connections.back();
 	Connections.pop_back();
 	return Connection;
 }
 
-void FDataBaseConnectionPool::Release(FDataBaseConnection* Connection)
+void FDatabaseConnectionPool::Release(FDatabaseConnection* Connection)
 {
 	WRITE_LOCK;
 	Connections.push_back(Connection);

@@ -12,10 +12,10 @@ struct FIsAllBitSet<0> { enum { Value = 0 }; };
 
 // (NumParams, NumColumns) 조합마다 별개의 클래스로 생성됨
 template<int32 NumParams, int32 NumColumns>
-class FDataBaseBinder
+class FDatabaseBinder
 {
 public:
-	FDataBaseBinder(FDataBaseConnection& InConnection, const TCHAR* InCommandString)
+	FDatabaseBinder(FDatabaseConnection& InConnection, const TCHAR* InCommandString)
 		: Connection(InConnection)
 		, CommandString(InCommandString)
 		, ParamIndPtrs{}
@@ -134,7 +134,7 @@ public:
 	}
 
 private:
-	FDataBaseConnection& Connection;
+	FDatabaseConnection& Connection;
 	const TCHAR* CommandString;
 	SQLLEN ParamIndPtrs[NumParams > 0 ? NumParams : 1];	// 템플릿 인자라 연산식도 컴파일 타임에 계산
 	SQLLEN ColumnIndPtrs[NumColumns > 0 ? NumColumns : 1];

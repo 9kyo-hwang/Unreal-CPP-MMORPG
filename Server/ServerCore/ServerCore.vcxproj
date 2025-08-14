@@ -169,6 +169,8 @@
     <ClInclude Include="DataBaseBinder.h" />
     <ClInclude Include="DataBaseConnection.h" />
     <ClInclude Include="DataBaseConnectionPool.h" />
+    <ClInclude Include="DataBaseModel.h" />
+    <ClInclude Include="DatabaseSynchronizer.h" />
     <ClInclude Include="FileHelper.h" />
     <ClInclude Include="IOCPCore.h" />
     <ClInclude Include="IOCPEvent.h" />
@@ -176,6 +178,7 @@
     <ClInclude Include="Listener.h" />
     <ClInclude Include="Lock.h" />
     <ClInclude Include="Allocator.h" />
+    <ClInclude Include="Debug.h" />
     <ClInclude Include="MemoryBase.h" />
     <ClInclude Include="MemoryPool.h" />
     <ClInclude Include="ObjectPool.h" />
@@ -207,6 +210,8 @@
     <ClCompile Include="DataBaseBinder.cpp" />
     <ClCompile Include="DataBaseConnection.cpp" />
     <ClCompile Include="DataBaseConnectionPool.cpp" />
+    <ClCompile Include="DataBaseModel.cpp" />
+    <ClCompile Include="DatabaseSynchronizer.cpp" />
     <ClCompile Include="FileHelper.cpp" />
     <ClCompile Include="IOCPCore.cpp" />
     <ClCompile Include="IOCPEvent.cpp" />
@@ -214,6 +219,7 @@
     <ClCompile Include="Listener.cpp" />
     <ClCompile Include="Lock.cpp" />
     <ClCompile Include="Allocator.cpp" />
+    <ClCompile Include="Debug.cpp" />
     <ClCompile Include="MemoryBase.cpp" />
     <ClCompile Include="MemoryPool.cpp" />
     <ClCompile Include="pch.cpp">

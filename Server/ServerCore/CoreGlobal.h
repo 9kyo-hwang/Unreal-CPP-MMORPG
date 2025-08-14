@@ -6,4 +6,5 @@ extern class FSendBufferPool* GSendBufferPool;
 extern class FAsyncTaskQueueManager* GAsyncTaskQueueManager;
 extern class FTaskTimerManager* GTaskTimerManager;
 extern class FDeadLockProfiler* GDeadLockProfiler;
-extern class FDataBaseConnectionPool* GDataBaseConnectionPool;
+extern class FDatabaseConnectionPool* GDataBaseConnectionPool;
+extern class FDebug* GDebug;
