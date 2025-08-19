@@ -13,20 +13,8 @@
     <Filter Include="Thread">
       <UniqueIdentifier>{b7161208-2dd3-4bf5-b7ce-8030d14ab963}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Memory">
-      <UniqueIdentifier>{60227770-71c6-4cc8-96a8-ac74403edecb}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Task">
       <UniqueIdentifier>{5eddfe23-4c17-4286-95ba-6ee14a8943cc}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="DB">
-      <UniqueIdentifier>{ac831d39-765a-4189-a843-12fe8d65f439}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Utils\XML">
-      <UniqueIdentifier>{8baa426b-66f4-434f-8cbd-c34cad4660c2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Log">
-      <UniqueIdentifier>{efbcf4d4-6733-410d-abb8-56992ea51640}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -50,30 +38,6 @@
     </ClInclude>
     <ClInclude Include="ThreadManager.h">
       <Filter>Thread</Filter>
-    </ClInclude>
-    <ClInclude Include="Lock.h">
-      <Filter>Thread</Filter>
-    </ClInclude>
-    <ClInclude Include="Profiler.h">
-      <Filter>Thread</Filter>
-    </ClInclude>
-    <ClInclude Include="MemoryBase.h">
-      <Filter>Memory</Filter>
-    </ClInclude>
-    <ClInclude Include="Allocator.h">
-      <Filter>Memory</Filter>
-    </ClInclude>
-    <ClInclude Include="Container.h">
-      <Filter>Memory</Filter>
-    </ClInclude>
-    <ClInclude Include="MemoryPool.h">
-      <Filter>Memory</Filter>
-    </ClInclude>
-    <ClInclude Include="ObjectPool.h">
-      <Filter>Memory</Filter>
-    </ClInclude>
-    <ClInclude Include="Casts.h">
-      <Filter>Memory</Filter>
     </ClInclude>
     <ClInclude Include="SocketSubsystem.h">
       <Filter>Network</Filter>
@@ -117,41 +81,8 @@
     <ClInclude Include="TaskTimer.h">
       <Filter>Task</Filter>
     </ClInclude>
-    <ClInclude Include="DataBaseConnection.h">
-      <Filter>DB</Filter>
-    </ClInclude>
-    <ClInclude Include="DataBaseConnectionPool.h">
-      <Filter>DB</Filter>
-    </ClInclude>
-    <ClInclude Include="DataBaseBinder.h">
-      <Filter>DB</Filter>
-    </ClInclude>
-    <ClInclude Include="rapidxml.hpp">
-      <Filter>Utils\XML</Filter>
-    </ClInclude>
-    <ClInclude Include="rapidxml_iterators.hpp">
-      <Filter>Utils\XML</Filter>
-    </ClInclude>
-    <ClInclude Include="rapidxml_print.hpp">
-      <Filter>Utils\XML</Filter>
-    </ClInclude>
-    <ClInclude Include="rapidxml_utils.hpp">
-      <Filter>Utils\XML</Filter>
-    </ClInclude>
-    <ClInclude Include="RapidXml.h">
-      <Filter>Utils\XML</Filter>
-    </ClInclude>
-    <ClInclude Include="FileHelper.h">
+    <ClInclude Include="Queue.h">
       <Filter>Utils</Filter>
-    </ClInclude>
-    <ClInclude Include="Debug.h">
-      <Filter>Log</Filter>
-    </ClInclude>
-    <ClInclude Include="DataBaseModel.h">
-      <Filter>DB</Filter>
-    </ClInclude>
-    <ClInclude Include="DatabaseSynchronizer.h">
-      <Filter>DB</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -169,24 +100,6 @@
     </ClCompile>
     <ClCompile Include="ThreadManager.cpp">
       <Filter>Thread</Filter>
-    </ClCompile>
-    <ClCompile Include="Lock.cpp">
-      <Filter>Thread</Filter>
-    </ClCompile>
-    <ClCompile Include="Profiler.cpp">
-      <Filter>Thread</Filter>
-    </ClCompile>
-    <ClCompile Include="MemoryBase.cpp">
-      <Filter>Memory</Filter>
-    </ClCompile>
-    <ClCompile Include="Allocator.cpp">
-      <Filter>Memory</Filter>
-    </ClCompile>
-    <ClCompile Include="Container.cpp">
-      <Filter>Memory</Filter>
-    </ClCompile>
-    <ClCompile Include="MemoryPool.cpp">
-      <Filter>Memory</Filter>
     </ClCompile>
     <ClCompile Include="SocketSubsystem.cpp">
       <Filter>Network</Filter>
@@ -230,29 +143,8 @@
     <ClCompile Include="TaskTimer.cpp">
       <Filter>Task</Filter>
     </ClCompile>
-    <ClCompile Include="DataBaseConnection.cpp">
-      <Filter>DB</Filter>
-    </ClCompile>
-    <ClCompile Include="DataBaseConnectionPool.cpp">
-      <Filter>DB</Filter>
-    </ClCompile>
-    <ClCompile Include="DataBaseBinder.cpp">
-      <Filter>DB</Filter>
-    </ClCompile>
-    <ClCompile Include="RapidXml.cpp">
-      <Filter>Utils\XML</Filter>
-    </ClCompile>
-    <ClCompile Include="FileHelper.cpp">
+    <ClCompile Include="Queue.cpp">
       <Filter>Utils</Filter>
-    </ClCompile>
-    <ClCompile Include="Debug.cpp">
-      <Filter>Log</Filter>
-    </ClCompile>
-    <ClCompile Include="DataBaseModel.cpp">
-      <Filter>DB</Filter>
-    </ClCompile>
-    <ClCompile Include="DatabaseSynchronizer.cpp">
-      <Filter>DB</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

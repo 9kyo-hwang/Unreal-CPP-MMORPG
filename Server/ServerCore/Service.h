@@ -13,7 +13,7 @@ enum class EServiceType
 using FSessionFactory = function<shared_ptr<class FSession>(void)>;
 
 // Client가 될 수도, Server가 될 수도, 다양한 정책을 가질 수 있는 클래스
-class FService : public TSharedFromThis<FService>
+class FService : public enable_shared_from_this<FService>
 {
 public:
 	FService(
@@ -29,13 +29,13 @@ public:
 	virtual bool Run() = 0;
 	bool CanRun() const { return SessionFactory != nullptr; }
 
-	virtual void Stop() = 0;
+	virtual void Stop();
 	void SetSessionFactory(FSessionFactory InSessionFactory) { SessionFactory = InSessionFactory; }
 
 	shared_ptr<FSession> CreateSession();
 	void AddSession(shared_ptr<FSession> InSession);
 	void RemoveSession(shared_ptr<FSession> InSession);
-	void Broadcast(shared_ptr<FSendBuffer> SendBuffer);
+	void Broadcast(shared_ptr<class FSendBuffer> SendBuffer);
 
 	EServiceType GetType() const { return Type; }
 	FInternetAddr GetAddr() const { return Addr; }
@@ -52,7 +52,7 @@ protected:
 	FInternetAddr Addr;
 	shared_ptr<FSocketEventQueue> EventQueue;
 
-	TSet<shared_ptr<FSession>> Sessions;
+	unordered_set<shared_ptr<FSession>> Sessions;
 	int32 NumSessions;
 	int32 NumMaxSessions;
 	FSessionFactory SessionFactory;

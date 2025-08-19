@@ -181,7 +181,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="GameMode.cpp" />
     <ClCompile Include="GameServer.cpp" />
     <ClCompile Include="ClientSession.cpp" />
     <ClCompile Include="pch.cpp">
@@ -190,7 +189,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Player.cpp" />
     <ClCompile Include="Protocol.pb.cc">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
@@ -209,9 +207,7 @@
   <ItemGroup>
     <ClInclude Include="Enum.pb.h" />
     <ClInclude Include="ClientSession.h" />
-    <ClInclude Include="GameMode.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="Player.h" />
     <ClInclude Include="Protocol.pb.h" />
     <ClInclude Include="ClientPacketHandler.h" />
     <ClInclude Include="SessionManager.h" />
@@ -227,9 +223,6 @@
     <UpToDateCheckInput Include="..\Common\Protobuf\Enum.proto" />
     <UpToDateCheckInput Include="..\Common\Protobuf\Protocol.proto" />
     <UpToDateCheckInput Include="..\Common\Protobuf\Struct.proto" />
-  </ItemGroup>
-  <ItemGroup>
-    <Xml Include="GameDB.xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

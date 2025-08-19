@@ -19,10 +19,15 @@ FService::~FService()
 {
 }
 
+void FService::Stop()
+{
+	// TODO
+}
+
 shared_ptr<FSession> FService::CreateSession()
 {
 	shared_ptr<FSession> NewSession = SessionFactory();
-	NewSession->SetService(AsShared());
+	NewSession->SetService(shared_from_this());
 	if (EventQueue->Enqueue(NewSession) == false)
 	{
 		return nullptr;
@@ -109,14 +114,14 @@ bool FServerService::Run()
 		return false;
 	}
 
-	Listener = MakeShared<FListener>();
+	Listener = make_shared<FListener>();
 	if (Listener == nullptr)
 	{
 		return false;
 	}
 
 	// 현재 FInternetAddr을 받고 있는데, ServerService로 변경할 예정
-	if (false == Listener->Run(SharedThis(this)))
+	if (false == Listener->Run(static_pointer_cast<FServerService>(shared_from_this())))
 	{
 		return false;
 	}
@@ -127,4 +132,6 @@ bool FServerService::Run()
 void FServerService::Stop()
 {
 	// TODO
+
+	Super::Stop();
 }

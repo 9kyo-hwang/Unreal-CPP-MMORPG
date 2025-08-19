@@ -20,7 +20,7 @@ FListener::~FListener()
 	{
 		// TODO
 
-		Delete(Event);
+		delete(Event);
 	}
 }
 
@@ -57,7 +57,7 @@ bool FListener::Run(shared_ptr<FServerService> InServerService)
 	}
 
 	// 전역 Completion Port를 사용하지 않고, Service가 들고 있는 CP에 접근
-	if (ServerService.lock()->GetEventQueue()->Enqueue(AsShared()) == false)
+	if (ServerService.lock()->GetEventQueue()->Enqueue(shared_from_this()) == false)
 	{
 		return false;
 	}
@@ -85,8 +85,8 @@ bool FListener::Run(shared_ptr<FServerService> InServerService)
 	const int32 NumAccepts = ServerService.lock()->GetNumMaxSessions();
 	for (int32 i = 0; i < NumAccepts; ++i)
 	{
-		FSocketAccept* Event = New<FSocketAccept>();
-		Event->Owner = AsShared();
+		FSocketAccept* Event = new FSocketAccept();
+		Event->Owner = shared_from_this();
 		AcceptEvents.emplace_back(Event);
 		RegisterAccept(Event);
 	}

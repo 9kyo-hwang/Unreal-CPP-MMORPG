@@ -25,7 +25,7 @@ private:
 
 protected:
 	unique_ptr<FSocket> Socket;
-	TArray<FSocketAccept*> AcceptEvents;
+	vector<FSocketAccept*> AcceptEvents;
 	weak_ptr<FServerService> ServerService;	// Listener가 속한 서비스
 };
 

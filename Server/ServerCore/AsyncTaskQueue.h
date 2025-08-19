@@ -1,36 +1,39 @@
 #pragma once
 #include "Task.h"
 #include "TaskTimer.h"
+#include "Queue.h"
 
-class FAsyncTaskQueue : public TSharedFromThis<FAsyncTaskQueue>
+class FAsyncTaskQueue : public enable_shared_from_this<FAsyncTaskQueue>
 {
-	friend class FTaskTimerManager;
-
 public:
 	virtual ~FAsyncTaskQueue() = default;
 
-	template<typename InCallableType>
-	void Add(InCallableType&& Callable)
+	void Add(CallableType&& Callable)
 	{
-		auto Task = TObjectPool<TTask<InCallableType>>::MakeShared(std::forward<InCallableType>(Callable));
-		Add(StaticCastSharedPtr<ITask>(Task));
+		Add(make_shared<FTask>(move(Callable)));
 	}
 
-	template<typename InCallableType>
-	void AddTimer(uint64 InRate, InCallableType&& Callable)
+	template<typename ClassType, typename ReturnType, typename... MethodArgs>
+	void Add(ReturnType(ClassType::*Method)(MethodArgs...), MethodArgs... Args)
 	{
-		auto Task = TObjectPool<TTask<InCallableType>>::MakeShared(std::forward<InCallableType>(Callable));
-		GTaskTimerManager->SetTimer(InRate, AsShared(), StaticCastSharedPtr<ITask>(Task));
+		shared_ptr<ClassType> Owner = static_pointer_cast<ClassType>(shared_from_this());
+		Add(make_shared<FTask>(Owner, Method, forward<MethodArgs>(Args)...));
+	}
+
+	template<typename ClassType, typename ReturnType, typename... MethodArgs>
+	void AddTimer(uint64 InRate, ReturnType(ClassType::* Method)(MethodArgs...), MethodArgs... Args)
+	{
+		shared_ptr<ClassType> Owner = static_pointer_cast<ClassType>(shared_from_this());
+		auto Task = make_shared<FTask>(Owner, Method, std::forward<MethodArgs>(Args)...);
+		GTaskTimerManager->SetTimer(InRate, shared_from_this(), Task);
 	}
 
 	void Empty() { Tasks.Empty(); }
 	void Launch();
-
-private:
-	void Add(shared_ptr<ITask> Task, bool bDoLaunch = true);
+	void Add(shared_ptr<FTask> Task, bool bDoLaunch = true);
 
 protected:
-	TQueue<shared_ptr<ITask>> Tasks;
+	TQueue<shared_ptr<FTask>> Tasks;
 	TAtomic<int32> NumTasks;
 };
 

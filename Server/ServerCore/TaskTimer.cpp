@@ -1,12 +1,11 @@
 #include "pch.h"
 #include "TaskTimer.h"
-
 #include "AsyncTaskQueue.h"
 
-void FTaskTimerManager::SetTimer(uint64 InRate, weak_ptr<FAsyncTaskQueue> InOwner, shared_ptr<ITask> InTask)
+void FTaskTimerManager::SetTimer(uint64 InRate, weak_ptr<FAsyncTaskQueue> InOwner, shared_ptr<FTask> InTask)
 {
 	const uint64 ExecuteTick = ::GetTickCount64() + InRate;	// 경합 X
-	FTaskData* TaskData = TObjectPool<FTaskData>::Get(InOwner, InTask);	// 이미 Lock
+	FTaskData* TaskData = new FTaskData(InOwner, InTask);	// 이미 Lock
 
 	WRITE_LOCK;
 	Handles.emplace(ExecuteTick, TaskData);
@@ -20,7 +19,7 @@ void FTaskTimerManager::Distribute(uint64 Now)
 		return;
 	}
 
-	TArray<FTimerHandle> HandlesToBeExecuted;
+	vector<FTimerHandle> HandlesToBeExecuted;
 	{
 		WRITE_LOCK;
 
@@ -45,7 +44,7 @@ void FTaskTimerManager::Distribute(uint64 Now)
 			Owner->Add(Handle.Data->Task);
 		}
 
-		TObjectPool<FTaskData>::Release(Handle.Data);
+		delete Handle.Data;
 	}
 
 	bDistributing.store(false);
@@ -59,7 +58,7 @@ void FTaskTimerManager::Clear()
 	while (!Handles.empty())
 	{
 		const FTimerHandle& Handle = Handles.top();
-		TObjectPool<FTaskData>::Release(Handle.Data);
+		delete Handle.Data;
 		Handles.pop();
 	}
 }

@@ -20,6 +20,6 @@ private:
 	int32 BufferSize;
 	int32 ReadPos;
 	int32 WritePos;
-	TArray<uint8> Buffer;
+	vector<uint8> Buffer;
 };
 

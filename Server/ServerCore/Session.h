@@ -25,7 +25,7 @@ public:
 
 	FInternetAddr GetIpAddress() const { return Addr; }
 	FSocket* GetSocket() const { return Socket.get(); }
-	shared_ptr<FSession> GetSession() { return SharedThis(this); }
+	shared_ptr<FSession> GetSession() { return static_pointer_cast<FSession>(shared_from_this()); }
 	shared_ptr<FService> GetService() const { return Service.lock(); }
 
 	bool IsConnected() const { return bIsConnected; }
@@ -98,7 +98,7 @@ public:
 	FPacketSession();
 	~FPacketSession() override;
 
-	shared_ptr<FPacketSession> SharedThisSession() { return SharedThis(this); }
+	shared_ptr<FPacketSession> SharedThisSession() { return static_pointer_cast<FPacketSession>(shared_from_this()); }
 
 protected:
 	int32 OnRecv(BYTE* Buffer, int32 Length) sealed;	// 하위 클래스에서 사용하지 못하도록

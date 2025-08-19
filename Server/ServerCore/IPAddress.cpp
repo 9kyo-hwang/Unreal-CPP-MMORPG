@@ -39,11 +39,11 @@ void FInternetAddr::SetIp(const TCHAR* InAddr, uint16 Port)
 	Addr.sin_port = ::htons(Port);
 }
 
-void FInternetAddr::GetIp(FString& OutAddr) const
+void FInternetAddr::GetIp(wstring& OutAddr) const
 {
 	TCHAR Buffer[100];
 	::InetNtopW(AF_INET, &Addr.sin_addr, Buffer, countof(Buffer));
-	OutAddr = FString(Buffer);
+	OutAddr = wstring(Buffer);
  }
 
 int32 FInternetAddr::GetPort() const

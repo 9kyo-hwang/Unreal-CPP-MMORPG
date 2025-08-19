@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "Session.h"
 
+#include "SendBuffer.h"
 #include "Service.h"
 #include "Sockets.h"
 #include "SocketSubsystem.h"
@@ -117,7 +118,7 @@ bool FSession::RegisterConnect()
 	}
 
 	ConnectEvent.Init();
-	ConnectEvent.Owner = AsShared();	// NumRefs += 1
+	ConnectEvent.Owner = shared_from_this();	// NumRefs += 1
 
 	DWORD BytesSent = 0;
 	auto TargetAddr = GetService()->GetAddr().GetRawAddr();
@@ -148,7 +149,7 @@ bool FSession::RegisterConnect()
 bool FSession::RegisterDisconnect()
 {
 	DisconnectEvent.Init();
-	DisconnectEvent.Owner = AsShared();	// NumRefs += 1
+	DisconnectEvent.Owner = shared_from_this();	// NumRefs += 1
 
 	if (!FSocketSubsystem::Disconnect(
 		Socket->GetNativeSocket(), 
@@ -177,7 +178,7 @@ void FSession::RegisterRecv()
 	}
 
 	RecvEvent.Init();
-	RecvEvent.Owner = AsShared();	// NumRefs += 1
+	RecvEvent.Owner = shared_from_this();	// NumRefs += 1
 
 	WSABUF Buf(RecvBuffer.GetFreeSize(), reinterpret_cast<char*>(RecvBuffer.GetWritePosition()));
 	DWORD NumberOfBytesRecvd = 0;
@@ -203,7 +204,7 @@ void FSession::RegisterSend()
 	}
 
 	SendEvent.Init();
-	SendEvent.Owner = AsShared();	// NumRefs += 1
+	SendEvent.Owner = shared_from_this();	// NumRefs += 1
 
 	{
 		WRITE_LOCK;	// 나중에 코드가 바뀔 수도 있어서 다시 Lock을 걸어줌
@@ -223,7 +224,7 @@ void FSession::RegisterSend()
 
 	// Scatter-Gather
 	DWORD BufferCount = SendEvent.SendBuffers.size();
-	TArray<WSABUF> Buffers(BufferCount);
+	vector<WSABUF> Buffers(BufferCount);
 	for (int32 i = 0; i < BufferCount; ++i)
 	{
 		Buffers[i] = WSABUF(

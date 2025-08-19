@@ -67,5 +67,5 @@ class FSocketSend : public FSocketEvent
 public:
 	FSocketSend();
 
-	TArray<shared_ptr<FSendBuffer>> SendBuffers;
+	vector<shared_ptr<class FSendBuffer>> SendBuffers;
 };

@@ -36,12 +36,12 @@ public:
 
 	void OnSend(int32 BytesSent) override
 	{
-		// cout << "OnSend Len = " << BytesSent << endl;
+		cout << "OnSend Len = " << BytesSent << endl;
 	}
 
 	void OnDisconnected() override
 	{
-		// cout << "Disconnected" << endl;
+		cout << "Disconnected" << endl;
 	}
 };
 
@@ -51,10 +51,10 @@ int main()
 
 	this_thread::sleep_for(1s);
 
-	auto Service = MakeShared<FClientService>(
+	auto Service = make_shared<FClientService>(
 		FInternetAddr(TEXT("127.0.0.1"), 7777),
-		MakeShared<FSocketEventQueue>(),
-		MakeShared<FServerSession>,	// ()를 붙이면 안됨. 추후 SessionManager 등에서 관리
+		make_shared<FSocketEventQueue>(),
+		[=]() { return make_shared<FServerSession>(); },	// ()를 붙이면 안됨. 추후 SessionManager 등에서 관리
 		1
 	);
 
@@ -71,13 +71,9 @@ int main()
 			});
 	}
 
-	Protocol::C_CHAT Packet;
-	Packet.set_msg("Hello, World!");
-	auto SendBuffer = ServerPacketHandler::CreateSendBuffer(Packet);
-
 	while (true)
 	{
-		Service->Broadcast(SendBuffer);
+		// Service->Broadcast(SendBuffer);
 		this_thread::sleep_for(1s);
 	}
 

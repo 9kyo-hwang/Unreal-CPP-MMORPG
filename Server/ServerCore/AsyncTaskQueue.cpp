@@ -3,7 +3,7 @@
 
 #include "AsyncTaskQueueManager.h"
 
-void FAsyncTaskQueue::Add(shared_ptr<ITask> Task, bool bDoLaunch)
+void FAsyncTaskQueue::Add(shared_ptr<FTask> Task, bool bDoLaunch)
 {
 	const int32 Prev = NumTasks.fetch_add(1);	// 반드시 카운트 증가가 선행
 	Tasks.Enqueue(Task);	// WRITE_LOCK
@@ -16,7 +16,7 @@ void FAsyncTaskQueue::Add(shared_ptr<ITask> Task, bool bDoLaunch)
 		}
 		else
 		{
-			GAsyncTaskQueueManager->AddQueue(AsShared());
+			GAsyncTaskQueueManager->AddQueue(shared_from_this());
 		}
 	}
 }
@@ -26,7 +26,7 @@ void FAsyncTaskQueue::Launch()
 	LAsyncTaskQueue = this;
 	while (true)
 	{
-		TArray<shared_ptr<ITask>> TaskList;
+		vector<shared_ptr<FTask>> TaskList;
 		Tasks.Dequeue(TaskList);
 		const int32 NumQueuedTask = TaskList.size();
 
@@ -46,7 +46,7 @@ void FAsyncTaskQueue::Launch()
 		if (Tick >= LEndTick)
 		{
 			LAsyncTaskQueue = nullptr;
-			GAsyncTaskQueueManager->AddQueue(AsShared());
+			GAsyncTaskQueueManager->AddQueue(shared_from_this());
 			break;
 		}
 	}

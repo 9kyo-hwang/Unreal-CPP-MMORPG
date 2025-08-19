@@ -80,9 +80,9 @@ private:
 		const uint16 DataSize = static_cast<uint16>(Packet.ByteSizeLong());
 		const uint16 PacketSize = DataSize + sizeof(FPacketHeader);
 
-		shared_ptr<FSendBuffer> SendBuffer = GSendBufferPool->Open(PacketSize);
-
+		shared_ptr<FSendBuffer> SendBuffer = make_shared<FSendBuffer>(PacketSize);
 		FPacketHeader* PacketHeader = reinterpret_cast<FPacketHeader*>(SendBuffer->GetData());
+
 		PacketHeader->Size = PacketSize;
 		PacketHeader->Id = PacketId;
 

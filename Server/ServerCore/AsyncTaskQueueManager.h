@@ -1,4 +1,5 @@
 #pragma once
+#include "Queue.h"
 
 class FAsyncTaskQueue;
 
