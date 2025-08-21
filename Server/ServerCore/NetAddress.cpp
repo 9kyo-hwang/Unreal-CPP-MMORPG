@@ -2,14 +2,14 @@
 #include "NetAddress.h"
 
 /*--------------
-	NetAddress
+	FNetAddress
 ---------------*/
 
-NetAddress::NetAddress(SOCKADDR_IN InSockAddr) : SockAddr(InSockAddr)
+FNetAddress::FNetAddress(SOCKADDR_IN InSockAddr) : SockAddr(InSockAddr)
 {
 }
 
-NetAddress::NetAddress(wstring Ip, uint16 Port)
+FNetAddress::FNetAddress(wstring Ip, uint16 Port)
 {
 	::memset(&SockAddr, 0, sizeof(SockAddr));
 	SockAddr.sin_family = AF_INET;
@@ -17,14 +17,14 @@ NetAddress::NetAddress(wstring Ip, uint16 Port)
 	SockAddr.sin_port = ::htons(Port);
 }
 
-wstring NetAddress::GetIpAddress() const
+wstring FNetAddress::GetIpAddress() const
 {
 	WCHAR Buffer[100];
 	::InetNtopW(AF_INET, &SockAddr.sin_addr, Buffer, len32(Buffer));
 	return wstring(Buffer);
 }
 
-IN_ADDR NetAddress::Ip2Address(const WCHAR* Ip)
+IN_ADDR FNetAddress::Ip2Address(const WCHAR* Ip)
 {
 	IN_ADDR InAddr;
 	::InetPtonW(AF_INET, Ip, &InAddr);

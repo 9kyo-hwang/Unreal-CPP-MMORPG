@@ -36,7 +36,7 @@ int main()
 	ServerPacketHandler::Init();
 
 	FServerServiceRef service = make_shared<FServerService>(
-		NetAddress(L"127.0.0.1", 7777),
+		FNetAddress(L"127.0.0.1", 7777),
 		make_shared<FSocketIOEventQueue>(),
 		[=]() { return make_shared<FGameSession>(); }, // TODO : SessionManager 등
 		100);

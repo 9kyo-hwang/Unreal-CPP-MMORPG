@@ -3,6 +3,7 @@
 #include "IocpEvent.h"
 #include "NetAddress.h"
 #include "RecvBuffer.h"
+#include "FSocket.h"
 
 class FService;
 
@@ -26,29 +27,30 @@ public:
 	virtual ~FSession();
 
 public:
-						/* �ܺο��� ��� */
 	void				Send(FSendBufferRef InSendBuffer);
 	bool				Connect();
 	void				Disconnect(const WCHAR* Msg);
 
-		TSharedPtr<FService> GetService() const { return Service.lock(); }
+	TSharedPtr<FService> GetService() const { return Service.lock(); }
 	void SetService(TSharedPtr<FService> InService) { Service = InService; }
 
 public:
-						/* ���� ���� */
-	void				SetNetAddress(NetAddress InAddr) { NetAddr = InAddr; }
-	NetAddress			GetAddress() const { return NetAddr; }
-	SOCKET				GetSocket() const { return Socket; }
+	void				SetNetAddress(FNetAddress InAddr) { NetAddr = InAddr; }
+	FNetAddress			GetAddress() const { return NetAddr; }
+	SOCKET				GetSocket() { return Socket.GetSocket(); }
 	bool				IsConnected() { return bIsConnected; }
 	FSessionRef			GetSessionRef() { return SharedThis<FSession>(this); }
 
+	bool SetUpdateAcceptSocket(SOCKET ListenSocket)
+	{
+		return Socket.SetUpdateAcceptSocket(ListenSocket);
+	}
+
 private:
-						/* �������̽� ���� */
 	HANDLE		GetHandle() override;
 	void		Dispatch(FSocketIOEvent* InEvent, int32 NumOfBytes = 0) override;
 
 private:
-						/* ���� ���� */
 	bool				RegisterConnect();
 	bool				RegisterDisconnect();
 	void				RegisterRecv();
@@ -62,7 +64,6 @@ private:
 	void				HandleError(int32 ErrorCode);
 
 protected:
-						/* ������ �ڵ忡�� ������ */
 	virtual void		OnConnected() { }
 	virtual int32		OnRecv(BYTE* InBuffer, int32 InLength) { return InLength; }
 	virtual void		OnSend(int32 InLength) { }
@@ -70,20 +71,17 @@ protected:
 
 private:
 	TWeakPtr<FService>	Service;
-	SOCKET				Socket = INVALID_SOCKET;
-	NetAddress			NetAddr = {};
+	FSocket				Socket;
+	FNetAddress			NetAddr{};
 	atomic<bool>		bIsConnected{false};
 
 private:
 	FCriticalSection CriticalSection;
-	/* ���� ���� */
 	FReceiveBuffer RecvBuffer;
-	/* �۽� ���� */
 	TQueue<FSendBufferRef> SendQueue;
 	atomic<bool> bIsSendRegistered{false};
 
 private:
-						/* FSocketIOEvent ���� */
 	FConnectEvent		ConnectEvent;
 	FDisconnectEvent	DisconnectEvent;
 	FRecvEvent			RecvEvent;
@@ -97,7 +95,7 @@ private:
 struct FPacketHeader
 {
 	uint16 Size;
-	uint16 Id; // ��������ID (ex. 1=�α���, 2=�̵���û)
+	uint16 Id;
 };
 
 class FPacketSession : public FSession

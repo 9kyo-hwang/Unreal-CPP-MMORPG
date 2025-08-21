@@ -18,7 +18,7 @@ using FSessionFactory = TFunction<FSessionRef(void)>;
 class FService : public TSharedFromThis<FService>
 {
 public:
-	FService(EServiceType InType, NetAddress InAddr, FSocketIOEventQueueRef InEventQueue, FSessionFactory InFactory, int32 InMaxSessionCount = 1);
+	FService(EServiceType InType, FNetAddress InAddr, FSocketIOEventQueueRef InEventQueue, FSessionFactory InFactory, int32 InMaxSessionCount = 1);
 	virtual ~FService();
 
 	virtual bool		Start() = 0;
@@ -36,13 +36,13 @@ public:
 
 public:
 	EServiceType GetServiceType() const { return Type; }
-	NetAddress GetNetAddress() const { return Addr; }
+	FNetAddress GetNetAddress() const { return Addr; }
 	FSocketIOEventQueueRef&	GetEventQueue() { return EventQueue; }
 
 protected:
 	FCriticalSection CriticalSection;
 	EServiceType		Type;
-	NetAddress			Addr{};
+	FNetAddress			Addr{};
 	FSocketIOEventQueueRef	EventQueue;
 
 	TSet<FSessionRef>	Sessions;
@@ -58,7 +58,7 @@ protected:
 class FClientService : public FService
 {
 public:
-	FClientService(NetAddress InTargetAddr, FSocketIOEventQueueRef InEventQueue, FSessionFactory InFactory, int32 InMaxSessionCount = 1);
+	FClientService(FNetAddress InTargetAddr, FSocketIOEventQueueRef InEventQueue, FSessionFactory InFactory, int32 InMaxSessionCount = 1);
 	~FClientService() override {}
 
 	bool	Start() override;
@@ -72,7 +72,7 @@ public:
 class FServerService : public FService
 {
 public:
-	FServerService(NetAddress InTargetAddr, FSocketIOEventQueueRef InEventQueue, FSessionFactory InFactory, int32 InMaxSessionCount = 1);
+	FServerService(FNetAddress InTargetAddr, FSocketIOEventQueueRef InEventQueue, FSessionFactory InFactory, int32 InMaxSessionCount = 1);
 	~FServerService() override {}
 
 	bool	Start() override;

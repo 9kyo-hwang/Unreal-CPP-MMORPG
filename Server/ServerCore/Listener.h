@@ -1,6 +1,7 @@
 #pragma once
 #include "IocpCore.h"
 #include "NetAddress.h"
+#include "FSocket.h"
 
 class FAcceptEvent;
 class FServerService;
@@ -16,23 +17,23 @@ public:
 	~FListener();
 
 public:
-	/* ¿ÜºÎ¿¡¼­ »ç¿ë */
+	/* ï¿½ÜºÎ¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ */
 	bool StartAccept(FServerServiceRef InService);
 	void CloseSocket();
 
 public:
-	/* ÀÎÅÍÆäÀÌ½º ±¸Çö */
+	/* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì½ï¿½ ï¿½ï¿½ï¿½ï¿½ */
 	HANDLE GetHandle() override;
 	void Dispatch(FSocketIOEvent* InEvent, int32 NumOfBytes = 0) override;
 
 private:
-	/* ¼ö½Å °ü·Ã */
+	/* ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ */
 	void RegisterAccept(FAcceptEvent* InEvent);
 	void ProcessAccept(FAcceptEvent* InEvent);
 
 protected:
-	SOCKET Socket = INVALID_SOCKET;
-	vector<FAcceptEvent*> AcceptEvents;
+	FSocket Socket;
+	TArray<FAcceptEvent*> AcceptEvents;
 	FServerServiceRef Service;
 };
 

@@ -3,18 +3,12 @@
 #include "SocketUtils.h"
 #include "Service.h"
 
-/*--------------
-	FSession
----------------*/
-
 FSession::FSession() : RecvBuffer(BUFFER_SIZE)
 {
-	Socket = SocketUtils::CreateSocket();
 }
 
 FSession::~FSession()
 {
-	SocketUtils::Close(Socket);
 }
 
 void FSession::Send(FSendBufferRef InSendBuffer)
@@ -23,8 +17,6 @@ void FSession::Send(FSendBufferRef InSendBuffer)
 		return;
 
 	bool registerSend = false;
-
-	// 현재 RegisterSend가 걸리지 않은 상태라면, 걸어준다
 	{
 		FScopeLock ScopeLock(CriticalSection);
 
@@ -48,15 +40,14 @@ void FSession::Disconnect(const WCHAR* Msg)
 	if (bIsConnected.exchange(false) == false)
 		return;
 
-	// TEMP
-	wcout << "Disconnect : " << Msg << endl;
+	wcout << L"Disconnect : " << Msg << endl;
 
 	RegisterDisconnect();
 }
 
 HANDLE FSession::GetHandle()
 {
-	return reinterpret_cast<HANDLE>(Socket);
+	return reinterpret_cast<HANDLE>(Socket.GetSocket());
 }
 
 void FSession::Dispatch(FSocketIOEvent* InEvent, int32 NumOfBytes)
@@ -88,23 +79,23 @@ bool FSession::RegisterConnect()
 	if (GetService()->GetServiceType() != EServiceType::Client)
 		return false;
 
-	if (SocketUtils::SetReuseAddress(Socket, true) == false)
+	if (Socket.SetReuseAddress(true) == false)
 		return false;
 
-	if (SocketUtils::BindAnyAddress(Socket, 0/*남는거*/) == false)
+	if (Socket.Bind(FNetAddress(L"127.0.0.1", 0)) == false)
 		return false;
 
 	ConnectEvent.Init();
-	ConnectEvent.Owner = AsShared(); // ADD_REF
+	ConnectEvent.Owner = AsShared();
 
 	DWORD numOfBytes = 0;
 	SOCKADDR_IN sockAddr = GetService()->GetNetAddress().GetSockAddr();
-	if (false == SocketUtils::ConnectEx(Socket, reinterpret_cast<SOCKADDR*>(&sockAddr), sizeof(sockAddr), nullptr, 0, &numOfBytes, &ConnectEvent))
+	if (false == FSocketUtils::ConnectEx(Socket.GetSocket(), reinterpret_cast<SOCKADDR*>(&sockAddr), sizeof(sockAddr), nullptr, 0, &numOfBytes, &ConnectEvent))
 	{
 		int32 errorCode = ::WSAGetLastError();
 		if (errorCode != WSA_IO_PENDING)
 		{
-			ConnectEvent.Owner = nullptr; // RELEASE_REF
+			ConnectEvent.Owner = nullptr;
 			return false;
 		}
 	}
@@ -115,14 +106,14 @@ bool FSession::RegisterConnect()
 bool FSession::RegisterDisconnect()
 {
 	DisconnectEvent.Init();
-	DisconnectEvent.Owner = AsShared(); // ADD_REF
+	DisconnectEvent.Owner = AsShared();
 
-	if (false == SocketUtils::DisconnectEx(Socket, &DisconnectEvent, TF_REUSE_SOCKET, 0))
+	if (false == FSocketUtils::DisconnectEx(Socket.GetSocket(), &DisconnectEvent, TF_REUSE_SOCKET, 0))
 	{
 		int32 errorCode = ::WSAGetLastError();
 		if (errorCode != WSA_IO_PENDING)
 		{
-			DisconnectEvent.Owner = nullptr; // RELEASE_REF
+			DisconnectEvent.Owner = nullptr;
 			return false;
 		}
 	}
@@ -136,7 +127,7 @@ void FSession::RegisterRecv()
 		return;
 
 	RecvEvent.Init();
-	RecvEvent.Owner = AsShared(); // ADD_REF
+	RecvEvent.Owner = AsShared();
 
 	WSABUF wsaBuf;
 	wsaBuf.buf = reinterpret_cast<char*>(RecvBuffer.WritePos());
@@ -144,13 +135,13 @@ void FSession::RegisterRecv()
 
 	DWORD numOfBytes = 0;
 	DWORD flags = 0;
-	if (SOCKET_ERROR == ::WSARecv(Socket, &wsaBuf, 1, OUT &numOfBytes, OUT &flags, &RecvEvent, nullptr))
+	if (SOCKET_ERROR == ::WSARecv(Socket.GetSocket(), &wsaBuf, 1, OUT &numOfBytes, OUT &flags, &RecvEvent, nullptr))
 	{
 		int32 errorCode = ::WSAGetLastError();
 		if (errorCode != WSA_IO_PENDING)
 		{
 			HandleError(errorCode);
-			RecvEvent.Owner = nullptr; // RELEASE_REF
+			RecvEvent.Owner = nullptr;
 		}
 	}
 }
@@ -161,9 +152,7 @@ void FSession::RegisterSend()
 		return;
 
 	SendEvent.Init();
-	SendEvent.Owner = AsShared(); // ADD_REF
-
-	// 보낼 데이터를 sendEvent에 등록
+	SendEvent.Owner = AsShared();
 	{
 		FScopeLock ScopeLock(CriticalSection);
 
@@ -173,14 +162,12 @@ void FSession::RegisterSend()
 			FSendBufferRef sendBuffer = SendQueue.front();
 
 			writeSize += sendBuffer->GetWriteSize();
-			// TODO : 예외 체크
 
 			SendQueue.pop();
 			SendEvent.SendBuffers.push_back(sendBuffer);
 		}
 	}
 
-	// Scatter-Gather (흩어져 있는 데이터들을 모아서 한 방에 보낸다)
 	vector<WSABUF> wsaBufs;
 	wsaBufs.reserve(SendEvent.SendBuffers.size());
 	for (FSendBufferRef sendBuffer : SendEvent.SendBuffers)
@@ -192,14 +179,14 @@ void FSession::RegisterSend()
 	}
 
 	DWORD numOfBytes = 0;
-	if (SOCKET_ERROR == ::WSASend(Socket, wsaBufs.data(), static_cast<DWORD>(wsaBufs.size()), OUT &numOfBytes, 0, &SendEvent, nullptr))
+	if (SOCKET_ERROR == ::WSASend(Socket.GetSocket(), wsaBufs.data(), static_cast<DWORD>(wsaBufs.size()), OUT &numOfBytes, 0, &SendEvent, nullptr))
 	{
 		int32 errorCode = ::WSAGetLastError();
 		if (errorCode != WSA_IO_PENDING)
 		{
 			HandleError(errorCode);
-			SendEvent.Owner = nullptr; // RELEASE_REF
-			SendEvent.SendBuffers.clear(); // RELEASE_REF
+			SendEvent.Owner = nullptr;
+			SendEvent.SendBuffers.clear();
 			bIsSendRegistered.store(false);
 		}
 	}
@@ -207,31 +194,28 @@ void FSession::RegisterSend()
 
 void FSession::ProcessConnect()
 {
-	ConnectEvent.Owner = nullptr; // RELEASE_REF
+	ConnectEvent.Owner = nullptr;
 
 	bIsConnected.store(true);
 
-	// 세션 등록
 	GetService()->AddSession(GetSessionRef());
 
-	// 컨텐츠 코드에서 재정의
 	OnConnected();
 
-	// 수신 등록
 	RegisterRecv();
 }
 
 void FSession::ProcessDisconnect()
 {
-	DisconnectEvent.Owner = nullptr; // RELEASE_REF
+	DisconnectEvent.Owner = nullptr;
 
-	OnDisconnected(); // 컨텐츠 코드에서 재정의
+	OnDisconnected();
 	GetService()->ReleaseSession(GetSessionRef());
 }
 
 void FSession::ProcessRecv(int32 BytesRecvd)
 {
-	RecvEvent.Owner = nullptr; // RELEASE_REF
+	RecvEvent.Owner = nullptr;
 
 	if (BytesRecvd == 0)
 	{
@@ -246,24 +230,22 @@ void FSession::ProcessRecv(int32 BytesRecvd)
 	}
 
 	int32 dataSize = RecvBuffer.GetDataSize();
-	int32 processLen = OnRecv(RecvBuffer.ReadPos(), dataSize); // 컨텐츠 코드에서 재정의
+	int32 processLen = OnRecv(RecvBuffer.ReadPos(), dataSize);
 	if (processLen < 0 || dataSize < processLen || RecvBuffer.OnRead(processLen) == false)
 	{
 		Disconnect(L"OnRead Overflow");
 		return;
 	}
 	
-	// 커서 정리
 	RecvBuffer.Clear();
 
-	// 수신 등록
 	RegisterRecv();
 }
 
 void FSession::ProcessSend(int32 BytesSent)
 {
-	SendEvent.Owner = nullptr; // RELEASE_REF
-	SendEvent.SendBuffers.clear(); // RELEASE_REF
+	SendEvent.Owner = nullptr;
+	SendEvent.SendBuffers.clear();
 
 	if (BytesSent == 0)
 	{
@@ -271,7 +253,6 @@ void FSession::ProcessSend(int32 BytesSent)
 		return;
 	}
 
-	// 컨텐츠 코드에서 재정의
 	OnSend(BytesSent);
 
 	FScopeLock ScopeLock(CriticalSection);
@@ -290,15 +271,10 @@ void FSession::HandleError(int32 ErrorCode)
 		Disconnect(L"HandleError");
 		break;
 	default:
-		// TODO : Log
 		cout << "Handle Error : " << ErrorCode << endl;
 		break;
 	}
 }
-
-/*-----------------
-	FPacketSession
-------------------*/
 
 FPacketSession::FPacketSession()
 {
@@ -308,7 +284,6 @@ FPacketSession::~FPacketSession()
 {
 }
 
-// [size(2)][id(2)][data....][size(2)][id(2)][data....]
 int32 FPacketSession::OnRecv(BYTE* InBuffer, int32 InLength)
 {
 	int32 processLen = 0;
@@ -316,16 +291,13 @@ int32 FPacketSession::OnRecv(BYTE* InBuffer, int32 InLength)
 	while (true)
 	{
 		int32 dataSize = InLength - processLen;
-		// 최소한 헤더는 파싱할 수 있어야 한다
 		if (dataSize < sizeof(FPacketHeader))
 			break;
 
 		FPacketHeader header = *(reinterpret_cast<FPacketHeader*>(&InBuffer[processLen]));
-		// 헤더에 기록된 패킷 크기를 파싱할 수 있어야 한다
 		if (dataSize < header.Size)
 			break;
 
-		// 패킷 조립 성공
 		OnReceive(&InBuffer[processLen], header.Size);
 
 		processLen += header.Size;

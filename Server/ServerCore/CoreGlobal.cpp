@@ -21,7 +21,7 @@ public:
 		GThreadManager = new FThreadManager();
 		GGlobalQueue = new FGlobalJobQueue();
 		GJobTimer = new FJobTimer();
-		SocketUtils::Init();
+		FSocketUtils::Init();
 	}
 
 	~CoreGlobal()
@@ -29,6 +29,6 @@ public:
 		delete GThreadManager;
 		delete GGlobalQueue;
 		delete GJobTimer;
-		SocketUtils::Clear();
+		FSocketUtils::Clear();
 	}
 } GCoreGlobal;

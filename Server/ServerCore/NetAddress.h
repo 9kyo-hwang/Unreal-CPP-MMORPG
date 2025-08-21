@@ -1,19 +1,19 @@
 #pragma once
 
 /*--------------
-	NetAddress
+	FNetAddress
 ---------------*/
 
-class NetAddress
+class FNetAddress
 {
 public:
-	NetAddress() = default;
-	NetAddress(SOCKADDR_IN InSockAddr);
-	NetAddress(wstring Ip, uint16 Port);
+	FNetAddress() = default;
+	FNetAddress(SOCKADDR_IN InSockAddr);
+	FNetAddress(wstring Ip, uint16 Port);
 
-	SOCKADDR_IN&	GetSockAddr() { return SockAddr; }
-	wstring			GetIpAddress() const;
-	uint16			GetPort() { return ::ntohs(SockAddr.sin_port); }
+	const SOCKADDR_IN& GetSockAddr() { return SockAddr; }
+	wstring	GetIpAddress() const;
+	uint16 GetPort() const { return ::ntohs(SockAddr.sin_port); }
 
 public:
 	static IN_ADDR	Ip2Address(const WCHAR* Ip);

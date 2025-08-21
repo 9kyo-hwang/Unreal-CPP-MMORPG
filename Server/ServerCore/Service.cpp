@@ -7,7 +7,7 @@
 	FService
 --------------*/
 
-FService::FService(EServiceType InType, NetAddress InAddr, FSocketIOEventQueueRef InEventQueue, FSessionFactory InFactory, int32 InMaxSessionCount)
+FService::FService(EServiceType InType, FNetAddress InAddr, FSocketIOEventQueueRef InEventQueue, FSessionFactory InFactory, int32 InMaxSessionCount)
 	: Type(InType), Addr(InAddr), EventQueue(InEventQueue), MaxSessionCount(InMaxSessionCount), Factory(InFactory)
 {
 
@@ -62,7 +62,7 @@ void FService::ReleaseSession(FSessionRef TargetSession)
 	FClientService
 ------------------*/
 
-FClientService::FClientService(NetAddress InTargetAddr, FSocketIOEventQueueRef InEventQueue, FSessionFactory InFactory, int32 InMaxSessionCount)
+FClientService::FClientService(FNetAddress InTargetAddr, FSocketIOEventQueueRef InEventQueue, FSessionFactory InFactory, int32 InMaxSessionCount)
 	: FService(EServiceType::Client, InTargetAddr, InEventQueue, InFactory, InMaxSessionCount)
 {
 }
@@ -86,7 +86,7 @@ bool FClientService::Start()
 	return true;
 }
 
-FServerService::FServerService(NetAddress address, FSocketIOEventQueueRef InEventQueue, FSessionFactory InFactory, int32 InMaxSessionCount)
+FServerService::FServerService(FNetAddress address, FSocketIOEventQueueRef InEventQueue, FSessionFactory InFactory, int32 InMaxSessionCount)
 	: FService(EServiceType::Server, address, InEventQueue, InFactory, InMaxSessionCount)
 {
 }

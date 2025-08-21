@@ -51,7 +51,7 @@ int main()
 	this_thread::sleep_for(1s);
 
 	FClientServiceRef service = make_shared<FClientService>(
-		NetAddress(L"127.0.0.1", 7777),
+		FNetAddress(L"127.0.0.1", 7777),
 		make_shared<FSocketIOEventQueue>(),
 		[=]() { return make_shared<FServerSession>(); }, // TODO : SessionManager 등
 		1);

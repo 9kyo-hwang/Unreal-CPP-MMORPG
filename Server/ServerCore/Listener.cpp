@@ -5,60 +5,37 @@
 #include "Session.h"
 #include "Service.h"
 
-/*--------------
-	FListener
----------------*/
-
 FListener::~FListener()
 {
-	SocketUtils::Close(Socket);
-
 	for (FAcceptEvent* Event : AcceptEvents)
-	{
-		// TODO
-
 		delete(Event);
-	}
+	
+	AcceptEvents.clear();
 }
 
 bool FListener::StartAccept(FServerServiceRef InService)
 {
 	Service = InService;
 	if (Service == nullptr)
-	{
 		return false;
-	}
 
-	Socket = SocketUtils::CreateSocket();
-	if (Socket == INVALID_SOCKET)
-	{
+	if (Socket.GetSocket() == INVALID_SOCKET)
 		return false;
-	}
 
 	if (Service->GetEventQueue()->Register(AsShared()) == false)
-	{
 		return false;
-	}
 
-	if (SocketUtils::SetReuseAddress(Socket, true) == false)
-	{
+	if (Socket.SetReuseAddress(true) == false)
 		return false;
-	}
 
-	if (SocketUtils::SetLinger(Socket, 0, 0) == false)
-	{
+	if (Socket.SetLinger(0, 0) == false)
 		return false;
-	}
 
-	if (SocketUtils::Bind(Socket, Service->GetNetAddress()) == false)
-	{
+	if (Socket.Bind(Service->GetNetAddress()) == false)
 		return false;
-	}
 
-	if (SocketUtils::Listen(Socket) == false)
-	{
+	if (Socket.Listen() == false)
 		return false;
-	}
 
 	const int32 AcceptCount = Service->GetMaxSessionCount();
 	for (int32 i = 0; i < AcceptCount; i++)
@@ -74,12 +51,12 @@ bool FListener::StartAccept(FServerServiceRef InService)
 
 void FListener::CloseSocket()
 {
-	SocketUtils::Close(Socket);
+	Socket.Close();
 }
 
 HANDLE FListener::GetHandle()
 {
-	return reinterpret_cast<HANDLE>(Socket);
+	return reinterpret_cast<HANDLE>(Socket.GetSocket());
 }
 
 void FListener::Dispatch(FSocketIOEvent* InEvent, int32 NumOfBytes)
@@ -91,18 +68,17 @@ void FListener::Dispatch(FSocketIOEvent* InEvent, int32 NumOfBytes)
 
 void FListener::RegisterAccept(FAcceptEvent* InEvent)
 {
-	FSessionRef Session = Service->CreateSession(); // Register IOCP
+	FSessionRef Session = Service->CreateSession();
 
 	InEvent->Init();
 	InEvent->Session = Session;
 
 	DWORD BytesRecvd = 0;
-	if (false == SocketUtils::AcceptEx(Socket, Session->GetSocket(), Session->RecvBuffer.WritePos(), 0, sizeof(SOCKADDR_IN) + 16, sizeof(SOCKADDR_IN) + 16, OUT & BytesRecvd, static_cast<LPOVERLAPPED>(InEvent)))
+	if (false == FSocketUtils::AcceptEx(Socket.GetSocket(), Session->GetSocket(), Session->RecvBuffer.WritePos(), 0, sizeof(SOCKADDR_IN) + 16, sizeof(SOCKADDR_IN) + 16, OUT & BytesRecvd, static_cast<LPOVERLAPPED>(InEvent)))
 	{
 		const int32 Error = ::WSAGetLastError();
 		if (Error != WSA_IO_PENDING)
 		{
-			// 일단 다시 Accept 걸어준다
 			RegisterAccept(InEvent);
 		}
 	}
@@ -112,7 +88,7 @@ void FListener::ProcessAccept(FAcceptEvent* InEvent)
 {
 	FSessionRef Session = InEvent->Session;
 
-	if (false == SocketUtils::SetUpdateAcceptSocket(Session->GetSocket(), Socket))
+	if (false == Session->SetUpdateAcceptSocket(Socket.GetSocket()))
 	{
 		RegisterAccept(InEvent);
 		return;
@@ -126,7 +102,7 @@ void FListener::ProcessAccept(FAcceptEvent* InEvent)
 		return;
 	}
 
-	Session->SetNetAddress(NetAddress(SockAddr));
+	Session->SetNetAddress(FNetAddress(SockAddr));
 	Session->ProcessConnect();
 	RegisterAccept(InEvent);
 }
