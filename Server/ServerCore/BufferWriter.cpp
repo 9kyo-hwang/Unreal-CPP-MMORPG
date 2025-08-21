@@ -10,8 +10,8 @@ BufferWriter::BufferWriter()
 
 }
 
-BufferWriter::BufferWriter(BYTE* buffer, uint32 size, uint32 pos)
-	: _buffer(buffer), _size(size), _pos(pos)
+BufferWriter::BufferWriter(BYTE* InBuffer, uint32 InSize, uint32 InPos)
+	: Buffer(InBuffer), Size(InSize), Pos(InPos)
 {
 
 }
@@ -21,12 +21,12 @@ BufferWriter::~BufferWriter()
 
 }
 
-bool BufferWriter::Write(void* src, uint32 len)
+bool BufferWriter::Write(void* Src, uint32 Length)
 {
-	if (FreeSize() < len)
+	if (GetFreeSize() < Length)
 		return false;
 
-	::memcpy(&_buffer[_pos], src, len);
-	_pos += len;
+	::memcpy(&Buffer[Pos], Src, Length);
+	Pos += Length;
 	return true;
 }

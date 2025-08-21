@@ -1,42 +1,42 @@
 #pragma once
 
 /*----------------
-	BufferReader
+	FBufferReader
 -----------------*/
 
-class BufferReader
+class FBufferReader
 {
 public:
-	BufferReader();
-	BufferReader(BYTE* buffer, uint32 size, uint32 pos = 0);
-	~BufferReader();
+	FBufferReader();
+	FBufferReader(BYTE* InBuffer, uint32 InSize, uint32 InPos = 0);
+	~FBufferReader();
 
-	BYTE*			Buffer() { return _buffer; }
-	uint32			Size() { return _size; }
-	uint32			ReadSize() { return _pos; }
-	uint32			FreeSize() { return _size - _pos; }
-
-	template<typename T>
-	bool			Peek(T* dest) { return Peek(dest, sizeof(T)); }
-	bool			Peek(void* dest, uint32 len);
+	BYTE*			GetBuffer() const { return Buffer; }
+	uint32			GetSize() const { return Size; }
+	uint32			GetReadSize() const { return Pos; }
+	uint32			GetFreeSize() const { return Size - Pos; }
 
 	template<typename T>
-	bool			Read(T* dest) { return Read(dest, sizeof(T)); }
-	bool			Read(void* dest, uint32 len);
+	bool			Peek(T* Dest) { return Peek(Dest, sizeof(T)); }
+	bool			Peek(void* Dest, uint32 Length) const;
 
 	template<typename T>
-	BufferReader&	operator>>(OUT T& dest);
+	bool			Read(T* Dest) { return Read(Dest, sizeof(T)); }
+	bool			Read(void* Dest, uint32 Length);
+
+	template<typename T>
+	FBufferReader&	operator>>(OUT T& Dest);
 
 private:
-	BYTE*			_buffer = nullptr;
-	uint32			_size = 0;
-	uint32			_pos = 0;
+	BYTE*			Buffer = nullptr;
+	uint32			Size = 0;
+	uint32			Pos = 0;
 };
 
 template<typename T>
-inline BufferReader& BufferReader::operator>>(OUT T& dest)
+inline FBufferReader& FBufferReader::operator>>(OUT T& Dest)
 {
-	dest = *reinterpret_cast<T*>(&_buffer[_pos]);
-	_pos += sizeof(T);
+	Dest = *reinterpret_cast<T*>(&Buffer[Pos]);
+	Pos += sizeof(T);
 	return *this;
 }

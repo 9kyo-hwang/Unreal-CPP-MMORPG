@@ -3,61 +3,64 @@
 #include "JobQueue.h"
 
 /*--------------
-	JobTimer
+	FJobTimer
 ---------------*/
 
-void JobTimer::Reserve(uint64 tickAfter, weak_ptr<JobQueue> owner, JobRef job)
+void FJobTimer::Reserve(uint64 InRate, weak_ptr<FJobQueue> InOwner, FJobRef InJob)
 {
-	const uint64 executeTick = ::GetTickCount64() + tickAfter;
-	JobData* jobData = new JobData(owner, job);
+	const uint64 ExecuteTick = ::GetTickCount64() + InRate;
+	FJobData* Data = new FJobData(InOwner, InJob);
 
-	WRITE_LOCK;
+	FScopeLock ScopeLock(CriticalSection);
 
-	_items.push(TimerItem{ executeTick, jobData });
+	Items.push(FTimerItem{ ExecuteTick, Data });
 }
 
-void JobTimer::Distribute(uint64 now)
+void FJobTimer::Distribute(uint64 InTick)
 {
 	// 한 번에 1 쓰레드만 통과
-	if (_distributing.exchange(true) == true)
-		return;
-
-	vector<TimerItem> items;
-
+	if (bIsDistributing.exchange(true) == true)
 	{
-		WRITE_LOCK;
+		return;
+	}
 
-		while (_items.empty() == false)
+	vector<FTimerItem> CandidateItems;
+	{
+		FScopeLock ScopeLock(CriticalSection);
+
+		while (Items.empty() == false)
 		{
-			const TimerItem& timerItem = _items.top();
-			if (now < timerItem.executeTick)
+			const FTimerItem& Item = Items.top();
+			if (InTick < Item.ExecuteTick)
 				break;
 
-			items.push_back(timerItem);
-			_items.pop();
+			CandidateItems.push_back(Item);
+			Items.pop();
 		}
 	}
 
-	for (TimerItem& item : items)
+	for (FTimerItem& Item : CandidateItems)
 	{
-		if (JobQueueRef owner = item.jobData->owner.lock())
-			owner->Push(item.jobData->job);
+		if (FJobQueueRef Owner = Item.Data->Owner.lock())
+		{
+			Owner->Push(Item.Data->Job);
+		}
 
-		delete item.jobData;		
+		delete Item.Data;		
 	}
 
 	// 끝났으면 풀어준다
-	_distributing.store(false);
+	bIsDistributing.store(false);
 }
 
-void JobTimer::Clear()
+void FJobTimer::Clear()
 {
-	WRITE_LOCK;
+	FScopeLock ScopeLock(CriticalSection);
 
-	while (_items.empty() == false)
+	while (Items.empty() == false)
 	{
-		const TimerItem& timerItem = _items.top();
-		delete timerItem.jobData;
-		_items.pop();
+		const FTimerItem& Item = Items.top();
+		delete Item.Data;
+		Items.pop();
 	}
 }

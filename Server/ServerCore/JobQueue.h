@@ -4,46 +4,46 @@
 #include "JobTimer.h"
 
 /*--------------
-	JobQueue
+	FJobQueue
 ---------------*/
 
-class JobQueue : public enable_shared_from_this<JobQueue>
+class FJobQueue : public TSharedFromThis<FJobQueue>
 {
 public:
-	void DoAsync(CallbackType&& callback)
+	void DoAsync(CallableType&& InCallable)
 	{
-		Push(make_shared<Job>(std::move(callback)));
+		Push(make_shared<FJob>(std::move(InCallable)));
 	}
 
-	template<typename T, typename Ret, typename... Args>
-	void DoAsync(Ret(T::*memFunc)(Args...), Args... args)
+	template<typename ClassType, typename ReturnType, typename... Args>
+	void DoAsync(ReturnType(ClassType::*Method)(Args...), Args... InArgs)
 	{
-		shared_ptr<T> owner = static_pointer_cast<T>(shared_from_this());
-		Push(make_shared<Job>(owner, memFunc, std::forward<Args>(args)...));
+		shared_ptr<ClassType> Owner = SharedThis<ClassType>(this);
+		Push(make_shared<FJob>(Owner, Method, std::forward<Args>(InArgs)...));
 	}
 
-	void DoTimer(uint64 tickAfter, CallbackType&& callback)
+	void DoTimer(uint64 InRate, CallableType&& InCallable)
 	{
-		JobRef job = make_shared<Job>(std::move(callback));
-		GJobTimer->Reserve(tickAfter, shared_from_this(), job);
+		FJobRef Job = make_shared<FJob>(std::move(InCallable));
+		GJobTimer->Reserve(InRate, AsShared(), Job);
 	}
 
-	template<typename T, typename Ret, typename... Args>
-	void DoTimer(uint64 tickAfter, Ret(T::* memFunc)(Args...), Args... args)
+	template<typename ClassType, typename ReturnType, typename... Args>
+	void DoTimer(uint64 InRate, ReturnType(ClassType::* Method)(Args...), Args... InArgs)
 	{
-		shared_ptr<T> owner = static_pointer_cast<T>(shared_from_this());
-		JobRef job = make_shared<Job>(owner, memFunc, std::forward<Args>(args)...);
-		GJobTimer->Reserve(tickAfter, shared_from_this(), job);
+		shared_ptr<ClassType> Owner = SharedThis<ClassType>(this);
+		FJobRef Job = make_shared<FJob>(Owner, Method, std::forward<Args>(InArgs)...);
+		GJobTimer->Reserve(InRate, AsShared(), Job);
 	}
 
-	void					ClearJobs() { _jobs.Clear(); }
+	void					Clear() { Jobs.Clear(); }
 
 public:
-	void					Push(JobRef job, bool pushOnly = false);
+	void					Push(FJobRef InJob, bool bPushOnly = false);
 	void					Execute();
 
 protected:
-	LockQueue<JobRef>		_jobs;
-	atomic<int32>			_jobCount = 0;
+	TLockQueue<FJobRef>		Jobs;
+	atomic<int32>			JobCount{0};
 };
 

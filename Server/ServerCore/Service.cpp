@@ -4,107 +4,117 @@
 #include "Listener.h"
 
 /*-------------
-	Service
+	FService
 --------------*/
 
-Service::Service(ServiceType type, NetAddress address, IocpCoreRef core, SessionFactory factory, int32 maxSessionCount)
-	: _type(type), _netAddress(address), _iocpCore(core), _sessionFactory(factory), _maxSessionCount(maxSessionCount)
+FService::FService(EServiceType InType, NetAddress InAddr, FSocketIOEventQueueRef InEventQueue, FSessionFactory InFactory, int32 InMaxSessionCount)
+	: Type(InType), Addr(InAddr), EventQueue(InEventQueue), MaxSessionCount(InMaxSessionCount), Factory(InFactory)
 {
 
 }
 
-Service::~Service()
+FService::~FService()
 {
 }
 
-void Service::CloseService()
+void FService::CloseService()
 {
 	// TODO
 }
 
-void Service::Broadcast(SendBufferRef sendBuffer)
+void FService::Broadcast(FSendBufferRef InSendBuffer)
 {
-	WRITE_LOCK;
-	for (const auto& session : _sessions)
+	FScopeLock ScopeLock(CriticalSection);
+	for (const auto& Session : Sessions)
 	{
-		session->Send(sendBuffer);
+		Session->Send(InSendBuffer);
 	}
 }
 
-SessionRef Service::CreateSession()
+FSessionRef FService::CreateSession()
 {
-	SessionRef session = _sessionFactory();
-	session->SetService(shared_from_this());
+	FSessionRef Session = Factory();
+	Session->SetService(AsShared());
 
-	if (_iocpCore->Register(session) == false)
+	if (EventQueue->Register(Session) == false)
+	{
 		return nullptr;
+	}
 
-	return session;
+	return Session;
 }
 
-void Service::AddSession(SessionRef session)
+void FService::AddSession(FSessionRef NewSession)
 {
-	WRITE_LOCK;
-	_sessionCount++;
-	_sessions.insert(session);
+	FScopeLock ScopeLock(CriticalSection);
+	SessionCount++;
+	Sessions.insert(NewSession);
 }
 
-void Service::ReleaseSession(SessionRef session)
+void FService::ReleaseSession(FSessionRef TargetSession)
 {
-	WRITE_LOCK;
-	ASSERT_CRASH(_sessions.erase(session) != 0);
-	_sessionCount--;
+	FScopeLock ScopeLock(CriticalSection);
+	check(Sessions.erase(TargetSession) != 0);
+	SessionCount--;
 }
 
 /*-----------------
-	ClientService
+	FClientService
 ------------------*/
 
-ClientService::ClientService(NetAddress targetAddress, IocpCoreRef core, SessionFactory factory, int32 maxSessionCount)
-	: Service(ServiceType::Client, targetAddress, core, factory, maxSessionCount)
+FClientService::FClientService(NetAddress InTargetAddr, FSocketIOEventQueueRef InEventQueue, FSessionFactory InFactory, int32 InMaxSessionCount)
+	: FService(EServiceType::Client, InTargetAddr, InEventQueue, InFactory, InMaxSessionCount)
 {
 }
 
-bool ClientService::Start()
+bool FClientService::Start()
 {
 	if (CanStart() == false)
-		return false;
-
-	const int32 sessionCount = GetMaxSessionCount();
-	for (int32 i = 0; i < sessionCount; i++)
 	{
-		SessionRef session = CreateSession();
-		if (session->Connect() == false)
+		return false;
+	}
+
+	for (int32 i = 0; i < GetMaxSessionCount(); i++)
+	{
+		FSessionRef Session = CreateSession();
+		if (Session->Connect() == false)
+		{
 			return false;
+		}
 	}
 
 	return true;
 }
 
-ServerService::ServerService(NetAddress address, IocpCoreRef core, SessionFactory factory, int32 maxSessionCount)
-	: Service(ServiceType::Server, address, core, factory, maxSessionCount)
+FServerService::FServerService(NetAddress address, FSocketIOEventQueueRef InEventQueue, FSessionFactory InFactory, int32 InMaxSessionCount)
+	: FService(EServiceType::Server, address, InEventQueue, InFactory, InMaxSessionCount)
 {
 }
 
-bool ServerService::Start()
+bool FServerService::Start()
 {
 	if (CanStart() == false)
+	{
 		return false;
+	}
 
-	_listener = make_shared<Listener>();
-	if (_listener == nullptr)
+	Listener = make_shared<FListener>();
+	if (Listener == nullptr)
+	{
 		return false;
+	}
 
-	ServerServiceRef service = static_pointer_cast<ServerService>(shared_from_this());
-	if (_listener->StartAccept(service) == false)
+	auto Service = SharedThis<FServerService>(this);
+	if (Listener->StartAccept(Service) == false)
+	{
 		return false;
+	}
 
 	return true;
 }
 
-void ServerService::CloseService()
+void FServerService::CloseService()
 {
 	// TODO
-
-	Service::CloseService();
+	FService::CloseService();
 }

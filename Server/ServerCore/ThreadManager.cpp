@@ -5,70 +5,74 @@
 #include "GlobalQueue.h"
 
 /*------------------
-	ThreadManager
+	FThreadManager
 -------------------*/
 
-ThreadManager::ThreadManager()
+FThreadManager::FThreadManager()
 {
 	// Main Thread
 	InitTLS();
 }
 
-ThreadManager::~ThreadManager()
+FThreadManager::~FThreadManager()
 {
 	Join();
 }
 
-void ThreadManager::Launch(function<void(void)> callback)
+void FThreadManager::Launch(function<void(void)> Callable)
 {
-	lock_guard<mutex> guard(_lock);
+	FScopeLock ScopeLock(CriticalSection);
 
-	_threads.push_back(thread([=]()
+	Threads.push_back(thread([=]()
 		{
 			InitTLS();
-			callback();
+			Callable();
 			DestroyTLS();
 		}));
 }
 
-void ThreadManager::Join()
+void FThreadManager::Join()
 {
-	for (thread& t : _threads)
+	for (thread& Thread : Threads)
 	{
-		if (t.joinable())
-			t.join();
+		if (Thread.joinable())
+			Thread.join();
 	}
-	_threads.clear();
+	Threads.clear();
 }
 
-void ThreadManager::InitTLS()
+void FThreadManager::InitTLS()
 {
 	static atomic<uint32> SThreadId = 1;
 	LThreadId = SThreadId.fetch_add(1);
 }
 
-void ThreadManager::DestroyTLS()
+void FThreadManager::DestroyTLS()
 {
 
 }
 
-void ThreadManager::DoGlobalQueueWork()
+void FThreadManager::DoGlobalQueueWork()
 {
 	while (true)
 	{
-		uint64 now = ::GetTickCount64();
-		if (now > LEndTickCount)
+		uint64 Tick = ::GetTickCount64();
+		if (Tick > LEndTickCount)
+		{
 			break;
+		}
 
-		JobQueueRef jobQueue = GGlobalQueue->Pop();
+		FJobQueueRef jobQueue = GGlobalQueue->Pop();
 		if (jobQueue == nullptr)
+		{
 			break;
+		}
 
 		jobQueue->Execute();
 	}
 }
 
-void ThreadManager::DistributeReservedJobs()
+void FThreadManager::DistributeReservedJobs()
 {
 	const uint64 now = ::GetTickCount64();
 

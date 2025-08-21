@@ -4,16 +4,16 @@
 #include <functional>
 
 /*------------------
-	ThreadManager
+	FThreadManager
 -------------------*/
 
-class ThreadManager
+class FThreadManager
 {
 public:
-	ThreadManager();
-	~ThreadManager();
+	FThreadManager();
+	~FThreadManager();
 
-	void	Launch(function<void(void)> callback);
+	void	Launch(function<void(void)> Callable);
 	void	Join();
 
 	static void InitTLS();
@@ -23,7 +23,7 @@ public:
 	static void DistributeReservedJobs();
 
 private:
-	mutex			_lock;
-	vector<thread>	_threads;
+	FCriticalSection CriticalSection;
+	vector<thread>	Threads;
 };
 

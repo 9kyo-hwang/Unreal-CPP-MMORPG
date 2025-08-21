@@ -1,41 +1,43 @@
 #pragma once
 
-struct JobData
+struct FJobData
 {
-	JobData(weak_ptr<JobQueue> owner, JobRef job) : owner(owner), job(job)
+	FJobData(weak_ptr<FJobQueue> InOwner, FJobRef InJob)
+		: Owner(InOwner)
+		, Job(InJob)
 	{
 
 	}
 
-	weak_ptr<JobQueue>	owner;
-	JobRef				job;
+	weak_ptr<FJobQueue>	Owner;
+	FJobRef				Job;
 };
 
-struct TimerItem
+struct FTimerItem
 {
-	bool operator<(const TimerItem& other) const
+	bool operator<(const FTimerItem& Other) const
 	{
-		return executeTick > other.executeTick;
+		return ExecuteTick > Other.ExecuteTick;
 	}
 
-	uint64 executeTick = 0;
-	JobData* jobData = nullptr;
+	uint64 ExecuteTick = 0;
+	FJobData* Data = nullptr;
 };
 
 /*--------------
-	JobTimer
+	FJobTimer
 ---------------*/
 
-class JobTimer
+class FJobTimer
 {
 public:
-	void			Reserve(uint64 tickAfter, weak_ptr<JobQueue> owner, JobRef job);
-	void			Distribute(uint64 now);
+	void			Reserve(uint64 InRate, TWeakPtr<FJobQueue> InOwner, FJobRef InJob);
+	void			Distribute(uint64 InTick);
 	void			Clear();
 
 private:
-	USE_LOCK;
-	priority_queue<TimerItem>	_items;
-	atomic<bool>				_distributing = false;
+	FCriticalSection CriticalSection;
+	priority_queue<FTimerItem> Items;
+	atomic<bool> bIsDistributing{false};
 };
 

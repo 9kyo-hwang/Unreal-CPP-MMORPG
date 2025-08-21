@@ -1,19 +1,19 @@
 #pragma once
 
-class GameSession;
+class FGameSession;
 
-using GameSessionRef = shared_ptr<GameSession>;
+using FGameSessionRef = shared_ptr<FGameSession>;
 
-class GameSessionManager
+class FGameSessionManager
 {
 public:
-	void Add(GameSessionRef session);
-	void Remove(GameSessionRef session);
-	void Broadcast(SendBufferRef sendBuffer);
+	void Add(FGameSessionRef NewSession);
+	void Remove(FGameSessionRef TargetSession);
+	void Broadcast(FSendBufferRef InSendBuffer);
 
 private:
-	USE_LOCK;
-	set<GameSessionRef> _sessions;
+	FCriticalSection CriticalSection;
+	set<FGameSessionRef> Sessions;
 };
 
-extern GameSessionManager GSessionManager;
+extern FGameSessionManager GSessionManager;

@@ -1,8 +1,8 @@
 #pragma once
 
-class Session;
+class FSession;
 
-enum class EventType : uint8
+enum class EEventType : uint8
 {
 	Connect,
 	Disconnect,
@@ -13,72 +13,72 @@ enum class EventType : uint8
 };
 
 /*--------------
-	IocpEvent
+	FSocketIOEvent
 ---------------*/
 
-class IocpEvent : public OVERLAPPED
+class FSocketIOEvent : public OVERLAPPED
 {
 public:
-	IocpEvent(EventType type);
+	FSocketIOEvent(EEventType type);
 
 	void			Init();
 
 public:
-	EventType		eventType;
-	IocpObjectRef	owner;
+	EEventType		EventType;
+	ISocketIOEventableRef	Owner;
 };
 
 /*----------------
-	ConnectEvent
+	FConnectEvent
 -----------------*/
 
-class ConnectEvent : public IocpEvent
+class FConnectEvent : public FSocketIOEvent
 {
 public:
-	ConnectEvent() : IocpEvent(EventType::Connect) { }
+	FConnectEvent() : FSocketIOEvent(EEventType::Connect) { }
 };
 
 /*--------------------
-	DisconnectEvent
+	FDisconnectEvent
 ----------------------*/
 
-class DisconnectEvent : public IocpEvent
+class FDisconnectEvent : public FSocketIOEvent
 {
 public:
-	DisconnectEvent() : IocpEvent(EventType::Disconnect) { }
+	FDisconnectEvent() : FSocketIOEvent(EEventType::Disconnect) { }
 };
 
 /*----------------
-	AcceptEvent
+	FAcceptEvent
 -----------------*/
 
-class AcceptEvent : public IocpEvent
+class FAcceptEvent : public FSocketIOEvent
 {
 public:
-	AcceptEvent() : IocpEvent(EventType::Accept) { }
+	FAcceptEvent() : FSocketIOEvent(EEventType::Accept) { }
 
 public:
-	SessionRef	session = nullptr;
+	FSessionRef	Session = nullptr;
 };
 
 /*----------------
-	RecvEvent
+	FRecvEvent
 -----------------*/
 
-class RecvEvent : public IocpEvent
+class FRecvEvent : public FSocketIOEvent
 {
 public:
-	RecvEvent() : IocpEvent(EventType::Recv) { }
+	FRecvEvent() : FSocketIOEvent(EEventType::Recv) { }
 };
 
 /*----------------
-	SendEvent
+	FSendEvent
 -----------------*/
 
-class SendEvent : public IocpEvent
+class FSendEvent : public FSocketIOEvent
 {
 public:
-	SendEvent() : IocpEvent(EventType::Send) { }
+	FSendEvent() : FSocketIOEvent(EEventType::Send) { }
 	 
-	vector<SendBufferRef> sendBuffers;
+	TArray<FSendBufferRef> SendBuffers;
 };

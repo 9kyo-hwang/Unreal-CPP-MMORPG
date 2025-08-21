@@ -2,15 +2,15 @@
 #include "IocpEvent.h"
 
 /*--------------
-	IocpEvent
+	FSocketIOEvent
 ---------------*/
 
-IocpEvent::IocpEvent(EventType type) : eventType(type)
+FSocketIOEvent::FSocketIOEvent(EEventType type) : EventType(type)
 {
 	Init();
 }
 
-void IocpEvent::Init()
+void FSocketIOEvent::Init()
 {
 	OVERLAPPED::hEvent = 0;
 	OVERLAPPED::Internal = 0;

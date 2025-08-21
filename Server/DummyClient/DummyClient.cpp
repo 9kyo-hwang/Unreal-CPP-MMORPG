@@ -7,12 +7,12 @@
 
 char sendData[] = "Hello World";
 
-class ServerSession : public PacketSession
+class FServerSession : public FPacketSession
 {
 public:
-	~ServerSession()
+	~FServerSession() override
 	{
-		cout << "~ServerSession" << endl;
+		cout << "~FServerSession" << endl;
 	}
 
 	virtual void OnConnected() override
@@ -24,10 +24,10 @@ public:
 		Send(sendBuffer);
 	}
 
-	virtual void OnRecvPacket(BYTE* buffer, int32 len) override
+	virtual void OnReceive(BYTE* buffer, int32 len) override
 	{
-		PacketSessionRef session = GetPacketSessionRef();
-		PacketHeader* header = reinterpret_cast<PacketHeader*>(buffer);
+		FPacketSessionRef session = GetPacketSessionRef();
+		FPacketHeader* header = reinterpret_cast<FPacketHeader*>(buffer);
 
 		// TODO : packetId 대역 체크
 		ClientPacketHandler::HandlePacket(session, buffer, len);
@@ -50,13 +50,13 @@ int main()
 
 	this_thread::sleep_for(1s);
 
-	ClientServiceRef service = make_shared<ClientService>(
+	FClientServiceRef service = make_shared<FClientService>(
 		NetAddress(L"127.0.0.1", 7777),
-		make_shared<IocpCore>(),
-		[=]() { return make_shared<ServerSession>(); }, // TODO : SessionManager 등
+		make_shared<FSocketIOEventQueue>(),
+		[=]() { return make_shared<FServerSession>(); }, // TODO : SessionManager 등
 		1);
 
-	ASSERT_CRASH(service->Start());
+	check(service->Start());
 
 	for (int32 i = 0; i < 2; i++)
 	{
@@ -64,7 +64,7 @@ int main()
 			{
 				while (true)
 				{
-					service->GetIocpCore()->Dispatch();
+					service->GetEventQueue()->Dispatch();
 				}
 			});
 	}

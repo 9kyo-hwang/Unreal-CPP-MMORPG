@@ -1,19 +1,19 @@
 #pragma once
 
 /*----------------
-	GlobalQueue
+	FGlobalJobQueue
 -----------------*/
 
-class GlobalQueue
+class FGlobalJobQueue
 {
 public:
-	GlobalQueue();
-	~GlobalQueue();
+	FGlobalJobQueue();
+	~FGlobalJobQueue();
 
-	void					Push(JobQueueRef jobQueue);
-	JobQueueRef				Pop();
+	void Push(FJobQueueRef InQueue);
+	FJobQueueRef Pop();
 
 private:
-	LockQueue<JobQueueRef> _jobQueues;
+	TLockQueue<FJobQueueRef> JobQueues;
 };
 

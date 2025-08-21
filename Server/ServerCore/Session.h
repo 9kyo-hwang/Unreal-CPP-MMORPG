@@ -4,17 +4,17 @@
 #include "NetAddress.h"
 #include "RecvBuffer.h"
 
-class Service;
+class FService;
 
 /*--------------
-	Session
+	FSession
 ---------------*/
 
-class Session : public IocpObject
+class FSession : public ISocketIOEventable
 {
-	friend class Listener;
-	friend class IocpCore;
-	friend class Service;
+	friend class FListener;
+	friend class FSocketIOEventQueue;
+	friend class FService;
 
 	enum
 	{
@@ -22,30 +22,30 @@ class Session : public IocpObject
 	};
 
 public:
-	Session();
-	virtual ~Session();
+	FSession();
+	virtual ~FSession();
 
 public:
 						/* 외부에서 사용 */
-	void				Send(SendBufferRef sendBuffer);
+	void				Send(FSendBufferRef InSendBuffer);
 	bool				Connect();
-	void				Disconnect(const WCHAR* cause);
+	void				Disconnect(const WCHAR* Msg);
 
-	shared_ptr<Service>	GetService() { return _service.lock(); }
-	void				SetService(shared_ptr<Service> service) { _service = service; }
+	shared_ptr<FService> GetService() const { return Service.lock(); }
+	void SetService(shared_ptr<FService> InService) { Service = InService; }
 
 public:
 						/* 정보 관련 */
-	void				SetNetAddress(NetAddress address) { _netAddress = address; }
-	NetAddress			GetAddress() { return _netAddress; }
-	SOCKET				GetSocket() { return _socket; }
-	bool				IsConnected() { return _connected; }
-	SessionRef			GetSessionRef() { return static_pointer_cast<Session>(shared_from_this()); }
+	void				SetNetAddress(NetAddress InAddr) { NetAddr = InAddr; }
+	NetAddress			GetAddress() const { return NetAddr; }
+	SOCKET				GetSocket() const { return Socket; }
+	bool				IsConnected() { return bIsConnected; }
+	FSessionRef			GetSessionRef() { return SharedThis<FSession>(this); }
 
 private:
 						/* 인터페이스 구현 */
-	virtual HANDLE		GetHandle() override;
-	virtual void		Dispatch(class IocpEvent* iocpEvent, int32 numOfBytes = 0) override;
+	HANDLE		GetHandle() override;
+	void		Dispatch(FSocketIOEvent* InEvent, int32 NumOfBytes = 0) override;
 
 private:
 						/* 전송 관련 */
@@ -56,60 +56,59 @@ private:
 
 	void				ProcessConnect();
 	void				ProcessDisconnect();
-	void				ProcessRecv(int32 numOfBytes);
-	void				ProcessSend(int32 numOfBytes);
+	void				ProcessRecv(int32 BytesRecvd);
+	void				ProcessSend(int32 BytesSent);
 
-	void				HandleError(int32 errorCode);
+	void				HandleError(int32 ErrorCode);
 
 protected:
 						/* 컨텐츠 코드에서 재정의 */
 	virtual void		OnConnected() { }
-	virtual int32		OnRecv(BYTE* buffer, int32 len) { return len; }
-	virtual void		OnSend(int32 len) { }
+	virtual int32		OnRecv(BYTE* InBuffer, int32 InLength) { return InLength; }
+	virtual void		OnSend(int32 InLength) { }
 	virtual void		OnDisconnected() { }
 
 private:
-	weak_ptr<Service>	_service;
-	SOCKET				_socket = INVALID_SOCKET;
-	NetAddress			_netAddress = {};
-	atomic<bool>		_connected = false;
+	weak_ptr<FService>	Service;
+	SOCKET				Socket = INVALID_SOCKET;
+	NetAddress			NetAddr = {};
+	atomic<bool>		bIsConnected{false};
 
 private:
-	USE_LOCK;
-							/* 수신 관련 */
-	RecvBuffer				_recvBuffer;
-
-							/* 송신 관련 */
-	queue<SendBufferRef>	_sendQueue;
-	atomic<bool>			_sendRegistered = false;
+	FCriticalSection CriticalSection;
+	/* 수신 관련 */
+	FReceiveBuffer RecvBuffer;
+	/* 송신 관련 */
+	TQueue<FSendBufferRef> SendQueue;
+	atomic<bool> bIsSendRegistered{false};
 
 private:
-						/* IocpEvent 재사용 */
-	ConnectEvent		_connectEvent;
-	DisconnectEvent		_disconnectEvent;
-	RecvEvent			_recvEvent;
-	SendEvent			_sendEvent;
+						/* FSocketIOEvent 재사용 */
+	FConnectEvent		ConnectEvent;
+	FDisconnectEvent	DisconnectEvent;
+	FRecvEvent			RecvEvent;
+	FSendEvent			SendEvent;
 };
 
 /*-----------------
-	PacketSession
+	FPacketSession
 ------------------*/
 
-struct PacketHeader
+struct FPacketHeader
 {
-	uint16 size;
-	uint16 id; // 프로토콜ID (ex. 1=로그인, 2=이동요청)
+	uint16 Size;
+	uint16 Id; // 프로토콜ID (ex. 1=로그인, 2=이동요청)
 };
 
-class PacketSession : public Session
+class FPacketSession : public FSession
 {
 public:
-	PacketSession();
-	virtual ~PacketSession();
+	FPacketSession();
+	~FPacketSession() override;
 
-	PacketSessionRef	GetPacketSessionRef() { return static_pointer_cast<PacketSession>(shared_from_this()); }
+	FPacketSessionRef GetPacketSessionRef() { return SharedThis<FPacketSession>(this); }
 
 protected:
-	virtual int32		OnRecv(BYTE* buffer, int32 len) sealed;
-	virtual void		OnRecvPacket(BYTE* buffer, int32 len) abstract;
+	int32 OnRecv(BYTE* InBuffer, int32 InLength) sealed;
+	virtual void OnReceive(BYTE* InBuffer, int32 InLength) = 0;
 };

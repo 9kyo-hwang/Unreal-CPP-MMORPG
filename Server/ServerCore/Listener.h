@@ -2,37 +2,37 @@
 #include "IocpCore.h"
 #include "NetAddress.h"
 
-class AcceptEvent;
-class ServerService;
+class FAcceptEvent;
+class FServerService;
 
 /*--------------
-	Listener
+	FListener
 ---------------*/
 
-class Listener : public IocpObject
+class FListener : public ISocketIOEventable
 {
 public:
-	Listener() = default;
-	~Listener();
+	FListener() = default;
+	~FListener();
 
 public:
 	/* 외부에서 사용 */
-	bool StartAccept(ServerServiceRef service);
+	bool StartAccept(FServerServiceRef InService);
 	void CloseSocket();
 
 public:
 	/* 인터페이스 구현 */
-	virtual HANDLE GetHandle() override;
-	virtual void Dispatch(class IocpEvent* iocpEvent, int32 numOfBytes = 0) override;
+	HANDLE GetHandle() override;
+	void Dispatch(FSocketIOEvent* InEvent, int32 NumOfBytes = 0) override;
 
 private:
 	/* 수신 관련 */
-	void RegisterAccept(AcceptEvent* acceptEvent);
-	void ProcessAccept(AcceptEvent* acceptEvent);
+	void RegisterAccept(FAcceptEvent* InEvent);
+	void ProcessAccept(FAcceptEvent* InEvent);
 
 protected:
-	SOCKET _socket = INVALID_SOCKET;
-	vector<AcceptEvent*> _acceptEvents;
-	ServerServiceRef _service;
+	SOCKET Socket = INVALID_SOCKET;
+	vector<FAcceptEvent*> AcceptEvents;
+	FServerServiceRef Service;
 };
 

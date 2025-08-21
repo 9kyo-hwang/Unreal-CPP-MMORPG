@@ -2,26 +2,26 @@
 #include "SendBuffer.h"
 
 /*----------------
-	SendBuffer
+	FSendBuffer
 -----------------*/
 
-SendBuffer::SendBuffer(int32 bufferSize)
+FSendBuffer::FSendBuffer(int32 InBufferSize)
 {
-	_buffer.resize(bufferSize);
+	Buffer.resize(InBufferSize);
 }
 
-SendBuffer::~SendBuffer()
+FSendBuffer::~FSendBuffer()
 {
 }
 
-void SendBuffer::CopyData(void* data, int32 len)
+void FSendBuffer::CopyData(void* InData, int32 InLength)
 {
-	assert(Capacity() >= len);
-	::memcpy(_buffer.data(), data, len);
-	_writeSize = len;
+	assert(GetCapacity() >= InLength);
+	::memcpy(Buffer.data(), InData, InLength);
+	WriteSize = InLength;
 }
 
-void SendBuffer::Close(uint32 writeSize)
+void FSendBuffer::Close(uint32 InWriteSize)
 {
-	_writeSize = writeSize;
+	WriteSize = InWriteSize;
 }

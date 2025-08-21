@@ -2,38 +2,42 @@
 #include "BufferReader.h"
 
 /*----------------
-	BufferReader
+	FBufferReader
 -----------------*/
 
-BufferReader::BufferReader()
+FBufferReader::FBufferReader()
 {
 }
 
-BufferReader::BufferReader(BYTE* buffer, uint32 size, uint32 pos)
-	: _buffer(buffer), _size(size), _pos(pos)
-{
-
-}
-
-BufferReader::~BufferReader()
+FBufferReader::FBufferReader(BYTE* InBuffer, uint32 InSize, uint32 InPos)
+	: Buffer(InBuffer), Size(InSize), Pos(InPos)
 {
 
 }
 
-bool BufferReader::Peek(void* dest, uint32 len)
+FBufferReader::~FBufferReader()
 {
-	if (FreeSize() < len)
+
+}
+
+bool FBufferReader::Peek(void* Dest, uint32 Length) const
+{
+	if (GetFreeSize() < Length)
+	{
 		return false;
+	}
 
-	::memcpy(dest, &_buffer[_pos], len);
+	::memcpy(Dest, &Buffer[Pos], Length);
 	return true;
 }
 
-bool BufferReader::Read(void* dest, uint32 len)
+bool FBufferReader::Read(void* Dest, uint32 Length)
 {
-	if (Peek(dest, len) == false)
+	if (Peek(Dest, Length) == false)
+	{
 		return false;
+	}
 
-	_pos += len;
+	Pos += Length;
 	return true;
 }

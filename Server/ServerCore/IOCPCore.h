@@ -1,31 +1,31 @@
 #pragma once
 
 /*----------------
-	IocpObject
+	ISocketIOEventable
 -----------------*/
 
-class IocpObject : public enable_shared_from_this<IocpObject>
+class ISocketIOEventable : public TSharedFromThis<ISocketIOEventable>
 {
 public:
-	virtual HANDLE GetHandle() abstract;
-	virtual void Dispatch(class IocpEvent* iocpEvent, int32 numOfBytes = 0) abstract;
+	virtual HANDLE GetHandle() = 0;
+	virtual void Dispatch(class FSocketIOEvent* iocpEvent, int32 numOfBytes = 0) = 0;
 };
 
 /*--------------
-	IocpCore
+	FSocketIOEventQueue
 ---------------*/
 
-class IocpCore
+class FSocketIOEventQueue
 {
 public:
-	IocpCore();
-	~IocpCore();
+	FSocketIOEventQueue();
+	~FSocketIOEventQueue();
 
-	HANDLE		GetHandle() { return _iocpHandle; }
+	HANDLE		GetHandle() { return Handle; }
 
-	bool		Register(IocpObjectRef iocpObject);
+	bool		Register(ISocketIOEventableRef iocpObject);
 	bool		Dispatch(uint32 timeoutMs = INFINITE);
 
 private:
-	HANDLE		_iocpHandle;
+	HANDLE		Handle;
 };

@@ -2,33 +2,33 @@
 #include <functional>
 
 /*---------
-	Job
+	FJob
 ----------*/
 
-using CallbackType = std::function<void()>;
+using CallableType = std::function<void()>;
 
-class Job
+class FJob
 {
 public:
-	Job(CallbackType&& callback) : _callback(std::move(callback))
+	FJob(CallableType&& InCallable) : Callable(std::move(InCallable))
 	{
 	}
 
 	template<typename T, typename Ret, typename... Args>
-	Job(shared_ptr<T> owner, Ret(T::* memFunc)(Args...), Args&&... args)
+	FJob(shared_ptr<T> Owner, Ret(T::* Method)(Args...), Args&&... InArgs)
 	{
-		_callback = [owner, memFunc, args...]()
+		Callable = [Owner, Method, InArgs...]()
 		{
-			(owner.get()->*memFunc)(args...);
+			(Owner.get()->*Method)(InArgs...);
 		};
 	}
 
-	void Execute()
+	void Execute() const
 	{
-		_callback();
+		Callable();
 	}
 
 private:
-	CallbackType _callback;
+	CallableType Callable;
 };
 

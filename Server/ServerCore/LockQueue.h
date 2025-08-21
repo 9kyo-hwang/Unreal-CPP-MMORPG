@@ -1,40 +1,40 @@
 #pragma once
 
 template<typename T>
-class LockQueue
+class TLockQueue
 {
 public:
-	void Push(T item)
+	void Push(T Item)
 	{
-		WRITE_LOCK;
-		_items.push(item);
+		FScopeLock ScopeLock(CriticalSection);
+		Items.push(Item);
 	}
 
 	T Pop()
 	{
-		WRITE_LOCK;
-		if (_items.empty())
+		FScopeLock ScopeLock(CriticalSection);
+		if (Items.empty())
 			return T();
 
-		T ret = _items.front();
-		_items.pop();
+		T ret = Items.front();
+		Items.pop();
 		return ret;
 	}
 
-	void PopAll(OUT vector<T>& items)
+	void PopAll(vector<T>& OutItems)
 	{
-		WRITE_LOCK;
-		while (T item = Pop())
-			items.push_back(item);
+		FScopeLock ScopeLock(CriticalSection);
+		while (T Item = Pop())
+			OutItems.push_back(Item);
 	}
 
 	void Clear()
 	{
-		WRITE_LOCK;
-		_items = queue<T>();
+		FScopeLock ScopeLock(CriticalSection);
+		Items = TQueue<T>();
 	}
 
 private:
-	USE_LOCK;
-	queue<T> _items;
+	FCriticalSection CriticalSection;
+	TQueue<T> Items;
 };

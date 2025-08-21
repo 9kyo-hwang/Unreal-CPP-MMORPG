@@ -4,81 +4,81 @@
 #include "Listener.h"
 #include <functional>
 
-enum class ServiceType : uint8
+enum class EServiceType : uint8
 {
 	Server,
 	Client
 };
 
 /*-------------
-	Service
+	FService
 --------------*/
 
-using SessionFactory = function<SessionRef(void)>;
+using FSessionFactory = function<FSessionRef(void)>;
 
-class Service : public enable_shared_from_this<Service>
+class FService : public TSharedFromThis<FService>
 {
 public:
-	Service(ServiceType type, NetAddress address, IocpCoreRef core, SessionFactory factory, int32 maxSessionCount = 1);
-	virtual ~Service();
+	FService(EServiceType InType, NetAddress InAddr, FSocketIOEventQueueRef InEventQueue, FSessionFactory InFactory, int32 InMaxSessionCount = 1);
+	virtual ~FService();
 
-	virtual bool		Start() abstract;
-	bool				CanStart() { return _sessionFactory != nullptr; }
+	virtual bool		Start() = 0;
+	bool				CanStart() const { return Factory != nullptr; }
 
 	virtual void		CloseService();
-	void				SetSessionFactory(SessionFactory func) { _sessionFactory = func; }
+	void				SetSessionFactory(FSessionFactory InFactory) { Factory = InFactory; }
 
-	void				Broadcast(SendBufferRef sendBuffer);
-	SessionRef			CreateSession();
-	void				AddSession(SessionRef session);
-	void				ReleaseSession(SessionRef session);
-	int32				GetCurrentSessionCount() { return _sessionCount; }
-	int32				GetMaxSessionCount() { return _maxSessionCount; }
+	void				Broadcast(FSendBufferRef InSendBuffer);
+	FSessionRef			CreateSession();
+	void				AddSession(FSessionRef NewSession);
+	void				ReleaseSession(FSessionRef TargetSession);
+	int32				GetCurrentSessionCount() const { return SessionCount; }
+	int32				GetMaxSessionCount() const { return MaxSessionCount; }
 
 public:
-	ServiceType			GetServiceType() { return _type; }
-	NetAddress			GetNetAddress() { return _netAddress; }
-	IocpCoreRef&		GetIocpCore() { return _iocpCore; }
+	EServiceType GetServiceType() const { return Type; }
+	NetAddress GetNetAddress() const { return Addr; }
+	FSocketIOEventQueueRef&	GetEventQueue() { return EventQueue; }
 
 protected:
-	USE_LOCK;
-	ServiceType			_type;
-	NetAddress			_netAddress = {};
-	IocpCoreRef			_iocpCore;
+	FCriticalSection CriticalSection;
+	EServiceType		Type;
+	NetAddress			Addr{};
+	FSocketIOEventQueueRef	EventQueue;
 
-	set<SessionRef>		_sessions;
-	int32				_sessionCount = 0;
-	int32				_maxSessionCount = 0;
-	SessionFactory		_sessionFactory;
+	set<FSessionRef>	Sessions;
+	int32				SessionCount = 0;
+	int32				MaxSessionCount = 0;
+	FSessionFactory		Factory;
 };
 
 /*-----------------
-	ClientService
+	FClientService
 ------------------*/
 
-class ClientService : public Service
+class FClientService : public FService
 {
 public:
-	ClientService(NetAddress targetAddress, IocpCoreRef core, SessionFactory factory, int32 maxSessionCount = 1);
-	virtual ~ClientService() {}
+	FClientService(NetAddress InTargetAddr, FSocketIOEventQueueRef InEventQueue, FSessionFactory InFactory, int32 InMaxSessionCount = 1);
+	~FClientService() override {}
 
-	virtual bool	Start() override;
+	bool	Start() override;
 };
 
 
 /*-----------------
-	ServerService
+	FServerService
 ------------------*/
 
-class ServerService : public Service
+class FServerService : public FService
 {
 public:
-	ServerService(NetAddress targetAddress, IocpCoreRef core, SessionFactory factory, int32 maxSessionCount = 1);
-	virtual ~ServerService() {}
+	FServerService(NetAddress InTargetAddr, FSocketIOEventQueueRef InEventQueue, FSessionFactory InFactory, int32 InMaxSessionCount = 1);
+	~FServerService() override {}
 
-	virtual bool	Start() override;
-	virtual void	CloseService() override;
+	bool	Start() override;
+	void	CloseService() override;
 
 private:
-	ListenerRef		_listener = nullptr;
+	FListenerRef Listener = nullptr;
 };

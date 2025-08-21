@@ -3,24 +3,24 @@
 class SendBufferChunk;
 
 /*----------------
-	SendBuffer
+	FSendBuffer
 -----------------*/
 
-class SendBuffer : enable_shared_from_this<SendBuffer>
+class FSendBuffer : TSharedFromThis<FSendBuffer>
 {
 public:
-	SendBuffer(int32 bufferSize);
-	~SendBuffer();
+	FSendBuffer(int32 InBufferSize);
+	~FSendBuffer();
 
-	BYTE* Buffer() { return _buffer.data(); }
-	int32 WriteSize() { return _writeSize; }
-	int32 Capacity() { return static_cast<int32>(_buffer.size()); }
+	BYTE* GetData() { return Buffer.data(); }
+	int32 GetWriteSize() const { return WriteSize; }
+	int32 GetCapacity() const { return static_cast<int32>(Buffer.size()); }
 
-	void CopyData(void* data, int32 len);
-	void Close(uint32 writeSize);
+	void CopyData(void* InData, int32 InLength);
+	void Close(uint32 InWriteSize);
 
 private:
-	vector<BYTE>	_buffer;
-	int32			_writeSize = 0;
+	vector<BYTE>	Buffer;
+	int32			WriteSize = 0;
 };
 

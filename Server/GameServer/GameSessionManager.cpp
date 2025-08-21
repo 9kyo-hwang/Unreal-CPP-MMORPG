@@ -2,25 +2,25 @@
 #include "GameSessionManager.h"
 #include "GameSession.h"
 
-GameSessionManager GSessionManager;
+FGameSessionManager GSessionManager;
 
-void GameSessionManager::Add(GameSessionRef session)
+void FGameSessionManager::Add(FGameSessionRef NewSession)
 {
-	WRITE_LOCK;
-	_sessions.insert(session);
+	FScopeLock ScopeLock(CriticalSection);
+	Sessions.insert(NewSession);
 }
 
-void GameSessionManager::Remove(GameSessionRef session)
+void FGameSessionManager::Remove(FGameSessionRef TargetSession)
 {
-	WRITE_LOCK;
-	_sessions.erase(session);
+	FScopeLock ScopeLock(CriticalSection);
+	Sessions.erase(TargetSession);
 }
 
-void GameSessionManager::Broadcast(SendBufferRef sendBuffer)
+void FGameSessionManager::Broadcast(FSendBufferRef InSendBuffer)
 {
-	WRITE_LOCK;
-	for (GameSessionRef session : _sessions)
+	FScopeLock ScopeLock(CriticalSection);
+	for (FGameSessionRef Session : Sessions)
 	{
-		session->Send(sendBuffer);
+		Session->Send(InSendBuffer);
 	}
 }

@@ -1,19 +1,19 @@
 #pragma once
 #include "Session.h"
 
-class GameSession : public PacketSession
+class FGameSession : public FPacketSession
 {
 public:
-	~GameSession()
+	~FGameSession() override
 	{
-		cout << "~GameSession" << endl;
+		cout << "~FGameSession" << endl;
 	}
 
-	virtual void OnConnected() override;
-	virtual void OnDisconnected() override;
-	virtual void OnRecvPacket(BYTE* buffer, int32 len) override;
-	virtual void OnSend(int32 len) override;
+	void OnConnected() override;
+	void OnDisconnected() override;
+	void OnReceive(BYTE* buffer, int32 len) override;
+	void OnSend(int32 len) override;
 
 public:
-	weak_ptr<class Room> _room;
+	TWeakPtr<class Room> _room;
 };

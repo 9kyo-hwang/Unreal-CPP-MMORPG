@@ -2,25 +2,25 @@
 #include "GlobalQueue.h"
 
 /*----------------
-	GlobalQueue
+	FGlobalJobQueue
 -----------------*/
 
-GlobalQueue::GlobalQueue()
+FGlobalJobQueue::FGlobalJobQueue()
 {
 
 }
 
-GlobalQueue::~GlobalQueue()
+FGlobalJobQueue::~FGlobalJobQueue()
 {
 
 }
 
-void GlobalQueue::Push(JobQueueRef jobQueue)
+void FGlobalJobQueue::Push(FJobQueueRef InQueue)
 {
-	_jobQueues.Push(jobQueue);
+	JobQueues.Push(InQueue);
 }
 
-JobQueueRef GlobalQueue::Pop()
+FJobQueueRef FGlobalJobQueue::Pop()
 {
-	return _jobQueues.Pop();
+	return JobQueues.Pop();
 }

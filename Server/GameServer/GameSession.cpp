@@ -4,25 +4,25 @@
 #include "ServerPacketHandler.h"
 //#include "Room.h"
 
-void GameSession::OnConnected()
+void FGameSession::OnConnected()
 {
-	GSessionManager.Add(static_pointer_cast<GameSession>(shared_from_this()));
+	GSessionManager.Add(SharedThis<FGameSession>(this));
 }
 
-void GameSession::OnDisconnected()
+void FGameSession::OnDisconnected()
 {
-	GSessionManager.Remove(static_pointer_cast<GameSession>(shared_from_this()));
+	GSessionManager.Remove(SharedThis<FGameSession>(this));
 }
 
-void GameSession::OnRecvPacket(BYTE* buffer, int32 len)
+void FGameSession::OnReceive(BYTE* buffer, int32 len)
 {
-	PacketSessionRef session = GetPacketSessionRef();
-	PacketHeader* header = reinterpret_cast<PacketHeader*>(buffer);
+	FPacketSessionRef session = GetPacketSessionRef();
+	FPacketHeader* header = reinterpret_cast<FPacketHeader*>(buffer);
 
-	// TODO : packetId 대역 체크
+	// TODO
 	ServerPacketHandler::HandlePacket(session, buffer, len);
 }
 
-void GameSession::OnSend(int32 len)
+void FGameSession::OnSend(int32 len)
 {
 }

@@ -9,18 +9,18 @@
 #include "GlobalQueue.h"
 #include "JobTimer.h"
 
-ThreadManager* GThreadManager = nullptr;
-GlobalQueue* GGlobalQueue = nullptr;
-JobTimer* GJobTimer = nullptr;
+FThreadManager* GThreadManager = nullptr;
+FGlobalJobQueue* GGlobalQueue = nullptr;
+FJobTimer* GJobTimer = nullptr;
 
 class CoreGlobal
 {
 public:
 	CoreGlobal()
 	{
-		GThreadManager = new ThreadManager();
-		GGlobalQueue = new GlobalQueue();
-		GJobTimer = new JobTimer();
+		GThreadManager = new FThreadManager();
+		GGlobalQueue = new FGlobalJobQueue();
+		GJobTimer = new FJobTimer();
 		SocketUtils::Init();
 	}
 

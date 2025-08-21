@@ -8,46 +8,46 @@ class BufferWriter
 {
 public:
 	BufferWriter();
-	BufferWriter(BYTE* buffer, uint32 size, uint32 pos = 0);
+	BufferWriter(BYTE* InBuffer, uint32 InSize, uint32 InPos = 0);
 	~BufferWriter();
 
-	BYTE*			Buffer() { return _buffer; }
-	uint32			Size() { return _size; }
-	uint32			WriteSize() { return _pos; }
-	uint32			FreeSize() { return _size - _pos; }
+	BYTE*			GetBuffer() const { return Buffer; }
+	uint32			GetSize() const { return Size; }
+	uint32			GetWriteSize() const { return Pos; }
+	uint32			GetFreeSize() const { return Size - Pos; }
 
 	template<typename T>
-	bool			Write(T* src) { return Write(src, sizeof(T)); }
-	bool			Write(void* src, uint32 len);
+	bool			Write(T* Src) { return Write(Src, sizeof(T)); }
+	bool			Write(void* Src, uint32 Length);
 
 	template<typename T>
 	T*				Reserve();
 
 	template<typename T>
-	BufferWriter&	operator<<(T&& src);
+	BufferWriter&	operator<<(T&& Src);
 
 private:
-	BYTE*			_buffer = nullptr;
-	uint32			_size = 0;
-	uint32			_pos = 0;
+	BYTE*			Buffer = nullptr;
+	uint32			Size = 0;
+	uint32			Pos = 0;
 };
 
 template<typename T>
 T* BufferWriter::Reserve()
 {
-	if (FreeSize() < sizeof(T))
+	if (GetFreeSize() < sizeof(T))
 		return nullptr;
 
-	T* ret = reinterpret_cast<T*>(&_buffer[_pos]);
-	_pos += sizeof(T);
-	return ret;
+	T* Ret = reinterpret_cast<T*>(&Buffer[Pos]);
+	Pos += sizeof(T);
+	return Ret;
 }
 
 template<typename T>
-BufferWriter& BufferWriter::operator<<(T&& src)
+BufferWriter& BufferWriter::operator<<(T&& Src)
 {
 	using DataType = std::remove_reference_t<T>;
-	*reinterpret_cast<DataType*>(&_buffer[_pos]) = std::forward<DataType>(src);
-	_pos += sizeof(T);
+	*reinterpret_cast<DataType*>(&Buffer[Pos]) = std::forward<DataType>(Src);
+	Pos += sizeof(T);
 	return *this;
 }

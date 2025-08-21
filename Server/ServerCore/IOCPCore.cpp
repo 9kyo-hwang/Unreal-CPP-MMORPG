@@ -3,34 +3,34 @@
 #include "IocpEvent.h"
 
 /*--------------
-	IocpCore
+	FSocketIOEventQueue
 ---------------*/
 
-IocpCore::IocpCore()
+FSocketIOEventQueue::FSocketIOEventQueue()
 {
-	_iocpHandle = ::CreateIoCompletionPort(INVALID_HANDLE_VALUE, 0, 0, 0);
-	ASSERT_CRASH(_iocpHandle != INVALID_HANDLE_VALUE);
+	Handle = ::CreateIoCompletionPort(INVALID_HANDLE_VALUE, 0, 0, 0);
+	check(Handle != INVALID_HANDLE_VALUE);
 }
 
-IocpCore::~IocpCore()
+FSocketIOEventQueue::~FSocketIOEventQueue()
 {
-	::CloseHandle(_iocpHandle);
+	::CloseHandle(Handle);
 }
 
-bool IocpCore::Register(IocpObjectRef iocpObject)
+bool FSocketIOEventQueue::Register(ISocketIOEventableRef iocpObject)
 {
-	return ::CreateIoCompletionPort(iocpObject->GetHandle(), _iocpHandle, /*key*/0, 0);
+	return ::CreateIoCompletionPort(iocpObject->GetHandle(), Handle, /*key*/0, 0);
 }
 
-bool IocpCore::Dispatch(uint32 timeoutMs)
+bool FSocketIOEventQueue::Dispatch(uint32 timeoutMs)
 {
 	DWORD numOfBytes = 0;
 	ULONG_PTR key = 0;	
-	IocpEvent* iocpEvent = nullptr;
+	FSocketIOEvent* iocpEvent = nullptr;
 
-	if (::GetQueuedCompletionStatus(_iocpHandle, OUT &numOfBytes, OUT &key, OUT reinterpret_cast<LPOVERLAPPED*>(&iocpEvent), timeoutMs))
+	if (::GetQueuedCompletionStatus(Handle, OUT &numOfBytes, OUT &key, OUT reinterpret_cast<LPOVERLAPPED*>(&iocpEvent), timeoutMs))
 	{
-		IocpObjectRef iocpObject = iocpEvent->owner;
+		ISocketIOEventableRef iocpObject = iocpEvent->Owner;
 		iocpObject->Dispatch(iocpEvent, numOfBytes);
 	}
 	else
@@ -42,7 +42,7 @@ bool IocpCore::Dispatch(uint32 timeoutMs)
 			return false;
 		default:
 			// TODO : ·Î±× Âï±â
-			IocpObjectRef iocpObject = iocpEvent->owner;
+			ISocketIOEventableRef iocpObject = iocpEvent->Owner;
 			iocpObject->Dispatch(iocpEvent, numOfBytes);
 			break;
 		}
