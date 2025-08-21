@@ -1,97 +1,84 @@
 #pragma once
+#include "NetAddress.h"
+#include "IocpCore.h"
+#include "Listener.h"
 #include <functional>
 
-#include "IPAddress.h"
-#include "IOCPCore.h"
-
-enum class EServiceType
+enum class ServiceType : uint8
 {
 	Server,
-	Client,
+	Client
 };
 
-using FSessionFactory = function<shared_ptr<class FSession>(void)>;
+/*-------------
+	Service
+--------------*/
 
-// Client가 될 수도, Server가 될 수도, 다양한 정책을 가질 수 있는 클래스
-class FService : public enable_shared_from_this<FService>
+using SessionFactory = function<SessionRef(void)>;
+
+class Service : public enable_shared_from_this<Service>
 {
 public:
-	FService(
-		EServiceType InType,
-		FInternetAddr InAddr,
-		shared_ptr<FSocketEventQueue> InEventQueue,
-		FSessionFactory InSessionFactory,
-		int32 InNumMaxSessions = 1
-	);
+	Service(ServiceType type, NetAddress address, IocpCoreRef core, SessionFactory factory, int32 maxSessionCount = 1);
+	virtual ~Service();
 
-	virtual ~FService();
+	virtual bool		Start() abstract;
+	bool				CanStart() { return _sessionFactory != nullptr; }
 
-	virtual bool Run() = 0;
-	bool CanRun() const { return SessionFactory != nullptr; }
+	virtual void		CloseService();
+	void				SetSessionFactory(SessionFactory func) { _sessionFactory = func; }
 
-	virtual void Stop();
-	void SetSessionFactory(FSessionFactory InSessionFactory) { SessionFactory = InSessionFactory; }
+	void				Broadcast(SendBufferRef sendBuffer);
+	SessionRef			CreateSession();
+	void				AddSession(SessionRef session);
+	void				ReleaseSession(SessionRef session);
+	int32				GetCurrentSessionCount() { return _sessionCount; }
+	int32				GetMaxSessionCount() { return _maxSessionCount; }
 
-	shared_ptr<FSession> CreateSession();
-	void AddSession(shared_ptr<FSession> InSession);
-	void RemoveSession(shared_ptr<FSession> InSession);
-	void Broadcast(shared_ptr<class FSendBuffer> SendBuffer);
-
-	EServiceType GetType() const { return Type; }
-	FInternetAddr GetAddr() const { return Addr; }
-	shared_ptr<FSocketEventQueue>& GetEventQueue() { return EventQueue; }
-
-	// LOCK이 걸렸기 때문에 해당 메서드로 얻는 수치는 정확한 수치가 아닐 수 있음
-	int32 GetNumSessions() const { return NumSessions; }
-	int32 GetNumMaxSessions() const { return NumMaxSessions; }
+public:
+	ServiceType			GetServiceType() { return _type; }
+	NetAddress			GetNetAddress() { return _netAddress; }
+	IocpCoreRef&		GetIocpCore() { return _iocpCore; }
 
 protected:
 	USE_LOCK;
+	ServiceType			_type;
+	NetAddress			_netAddress = {};
+	IocpCoreRef			_iocpCore;
 
-	EServiceType Type;
-	FInternetAddr Addr;
-	shared_ptr<FSocketEventQueue> EventQueue;
-
-	unordered_set<shared_ptr<FSession>> Sessions;
-	int32 NumSessions;
-	int32 NumMaxSessions;
-	FSessionFactory SessionFactory;
+	set<SessionRef>		_sessions;
+	int32				_sessionCount = 0;
+	int32				_maxSessionCount = 0;
+	SessionFactory		_sessionFactory;
 };
 
-class FClientService : public FService
+/*-----------------
+	ClientService
+------------------*/
+
+class ClientService : public Service
 {
-	using Super = FService;
-
 public:
-	FClientService(
-		FInternetAddr TargetAddr,
-		shared_ptr<FSocketEventQueue> InEventQueue,
-		FSessionFactory InSessionFactory,
-		int32 InNumMaxSessions = 1
-	);
-	~FClientService() override;
+	ClientService(NetAddress targetAddress, IocpCoreRef core, SessionFactory factory, int32 maxSessionCount = 1);
+	virtual ~ClientService() {}
 
-	bool Run() override;
-	void Stop() override;
+	virtual bool	Start() override;
 };
 
-class FServerService : public FService
+
+/*-----------------
+	ServerService
+------------------*/
+
+class ServerService : public Service
 {
-	using Super = FService;
-
 public:
-	FServerService(
-		FInternetAddr InAddr,
-		shared_ptr<FSocketEventQueue> InEventQueue,
-		FSessionFactory InSessionFactory,
-		int32 InNumMaxSessions = 1
-	);
+	ServerService(NetAddress targetAddress, IocpCoreRef core, SessionFactory factory, int32 maxSessionCount = 1);
+	virtual ~ServerService() {}
 
-	~FServerService() override;
-
-	bool Run() override;
-	void Stop() override;
+	virtual bool	Start() override;
+	virtual void	CloseService() override;
 
 private:
-	shared_ptr<class FListener> Listener;
+	ListenerRef		_listener = nullptr;
 };

@@ -1,27 +1,24 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Network">
-      <UniqueIdentifier>{3746ea0d-547a-4152-9fb7-50cec9169f97}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Utils">
-      <UniqueIdentifier>{26003895-93a7-40b8-b8ea-f907cecf9f79}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Main">
-      <UniqueIdentifier>{5553af5c-d099-4875-8091-cc92b1e256ad}</UniqueIdentifier>
+      <UniqueIdentifier>{3d481471-3c78-4090-9859-e1ca098cb30a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Network">
+      <UniqueIdentifier>{efb0ca8b-3927-4225-a72f-8ea9348391e3}</UniqueIdentifier>
     </Filter>
     <Filter Include="Thread">
-      <UniqueIdentifier>{b7161208-2dd3-4bf5-b7ce-8030d14ab963}</UniqueIdentifier>
+      <UniqueIdentifier>{571af80e-f0ff-408d-a276-89c16b505784}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Task">
-      <UniqueIdentifier>{5eddfe23-4c17-4286-95ba-6ee14a8943cc}</UniqueIdentifier>
+    <Filter Include="Job">
+      <UniqueIdentifier>{ce7733e9-9735-4bfa-95d0-e10dc877e436}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils">
+      <UniqueIdentifier>{13f8da5f-8028-43f7-908f-ab7928fa6c57}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Types.h">
-      <Filter>Main</Filter>
-    </ClInclude>
-    <ClInclude Include="CorePCH.h">
+    <ClInclude Include="CorePch.h">
       <Filter>Main</Filter>
     </ClInclude>
     <ClInclude Include="pch.h">
@@ -36,32 +33,8 @@
     <ClInclude Include="CoreMacro.h">
       <Filter>Main</Filter>
     </ClInclude>
-    <ClInclude Include="ThreadManager.h">
-      <Filter>Thread</Filter>
-    </ClInclude>
-    <ClInclude Include="SocketSubsystem.h">
-      <Filter>Network</Filter>
-    </ClInclude>
-    <ClInclude Include="IPAddress.h">
-      <Filter>Network</Filter>
-    </ClInclude>
-    <ClInclude Include="Sockets.h">
-      <Filter>Network</Filter>
-    </ClInclude>
-    <ClInclude Include="IOCPCore.h">
-      <Filter>Network</Filter>
-    </ClInclude>
-    <ClInclude Include="IOCPEvent.h">
-      <Filter>Network</Filter>
-    </ClInclude>
-    <ClInclude Include="Listener.h">
-      <Filter>Network</Filter>
-    </ClInclude>
-    <ClInclude Include="Session.h">
-      <Filter>Network</Filter>
-    </ClInclude>
-    <ClInclude Include="Service.h">
-      <Filter>Network</Filter>
+    <ClInclude Include="Types.h">
+      <Filter>Main</Filter>
     </ClInclude>
     <ClInclude Include="RecvBuffer.h">
       <Filter>Network</Filter>
@@ -69,24 +42,54 @@
     <ClInclude Include="SendBuffer.h">
       <Filter>Network</Filter>
     </ClInclude>
-    <ClInclude Include="Task.h">
-      <Filter>Task</Filter>
+    <ClInclude Include="Service.h">
+      <Filter>Network</Filter>
     </ClInclude>
-    <ClInclude Include="AsyncTaskQueue.h">
-      <Filter>Task</Filter>
+    <ClInclude Include="Session.h">
+      <Filter>Network</Filter>
     </ClInclude>
-    <ClInclude Include="AsyncTaskQueueManager.h">
-      <Filter>Task</Filter>
+    <ClInclude Include="SocketUtils.h">
+      <Filter>Network</Filter>
     </ClInclude>
-    <ClInclude Include="TaskTimer.h">
-      <Filter>Task</Filter>
+    <ClInclude Include="IocpCore.h">
+      <Filter>Network</Filter>
     </ClInclude>
-    <ClInclude Include="Queue.h">
+    <ClInclude Include="IocpEvent.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="Listener.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="NetAddress.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="ThreadManager.h">
+      <Filter>Thread</Filter>
+    </ClInclude>
+    <ClInclude Include="JobQueue.h">
+      <Filter>Job</Filter>
+    </ClInclude>
+    <ClInclude Include="JobTimer.h">
+      <Filter>Job</Filter>
+    </ClInclude>
+    <ClInclude Include="GlobalQueue.h">
+      <Filter>Job</Filter>
+    </ClInclude>
+    <ClInclude Include="Job.h">
+      <Filter>Job</Filter>
+    </ClInclude>
+    <ClInclude Include="LockQueue.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="BufferWriter.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="BufferReader.h">
       <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CorePCH.cpp">
+    <ClCompile Include="CorePch.cpp">
       <Filter>Main</Filter>
     </ClCompile>
     <ClCompile Include="pch.cpp">
@@ -98,52 +101,55 @@
     <ClCompile Include="CoreTLS.cpp">
       <Filter>Main</Filter>
     </ClCompile>
-    <ClCompile Include="ThreadManager.cpp">
-      <Filter>Thread</Filter>
-    </ClCompile>
-    <ClCompile Include="SocketSubsystem.cpp">
-      <Filter>Network</Filter>
-    </ClCompile>
-    <ClCompile Include="IPAddress.cpp">
-      <Filter>Network</Filter>
-    </ClCompile>
-    <ClCompile Include="Sockets.cpp">
-      <Filter>Network</Filter>
-    </ClCompile>
-    <ClCompile Include="IOCPCore.cpp">
-      <Filter>Network</Filter>
-    </ClCompile>
-    <ClCompile Include="IOCPEvent.cpp">
-      <Filter>Network</Filter>
-    </ClCompile>
-    <ClCompile Include="Listener.cpp">
-      <Filter>Network</Filter>
-    </ClCompile>
-    <ClCompile Include="Session.cpp">
+    <ClCompile Include="SendBuffer.cpp">
       <Filter>Network</Filter>
     </ClCompile>
     <ClCompile Include="Service.cpp">
       <Filter>Network</Filter>
     </ClCompile>
+    <ClCompile Include="Session.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="SocketUtils.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="IocpCore.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="IocpEvent.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="Listener.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="NetAddress.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
     <ClCompile Include="RecvBuffer.cpp">
       <Filter>Network</Filter>
     </ClCompile>
-    <ClCompile Include="SendBuffer.cpp">
-      <Filter>Network</Filter>
+    <ClCompile Include="ThreadManager.cpp">
+      <Filter>Thread</Filter>
     </ClCompile>
-    <ClCompile Include="Task.cpp">
-      <Filter>Task</Filter>
+    <ClCompile Include="JobQueue.cpp">
+      <Filter>Job</Filter>
     </ClCompile>
-    <ClCompile Include="AsyncTaskQueue.cpp">
-      <Filter>Task</Filter>
+    <ClCompile Include="JobTimer.cpp">
+      <Filter>Job</Filter>
     </ClCompile>
-    <ClCompile Include="AsyncTaskQueueManager.cpp">
-      <Filter>Task</Filter>
+    <ClCompile Include="GlobalQueue.cpp">
+      <Filter>Job</Filter>
     </ClCompile>
-    <ClCompile Include="TaskTimer.cpp">
-      <Filter>Task</Filter>
+    <ClCompile Include="Job.cpp">
+      <Filter>Job</Filter>
     </ClCompile>
-    <ClCompile Include="Queue.cpp">
+    <ClCompile Include="LockQueue.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="BufferWriter.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="BufferReader.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
   </ItemGroup>

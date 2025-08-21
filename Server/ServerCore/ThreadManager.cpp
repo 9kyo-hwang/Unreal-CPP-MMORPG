@@ -1,78 +1,76 @@
 #include "pch.h"
 #include "ThreadManager.h"
+#include "CoreTLS.h"
+#include "CoreGlobal.h"
+#include "GlobalQueue.h"
 
-#include "AsyncTaskQueue.h"
-#include "AsyncTaskQueueManager.h"
+/*------------------
+	ThreadManager
+-------------------*/
 
-FThreadManager::FThreadManager()
+ThreadManager::ThreadManager()
 {
 	// Main Thread
-	SetTls();
+	InitTLS();
 }
 
-FThreadManager::~FThreadManager()
+ThreadManager::~ThreadManager()
 {
-	WaitForCompletion();
+	Join();
 }
 
-void FThreadManager::AddThread(function<void()> Func)
+void ThreadManager::Launch(function<void(void)> callback)
 {
-	FScopeLock Lock(Mutex);
-	Threads.emplace_back(thread([=]()
+	lock_guard<mutex> guard(_lock);
+
+	_threads.push_back(thread([=]()
 		{
-			SetTls();
-			Func();
-			FreeTls();
+			InitTLS();
+			callback();
+			DestroyTLS();
 		}));
 }
 
-void FThreadManager::WaitForCompletion()
+void ThreadManager::Join()
 {
-	for (thread& Thread : Threads)
+	for (thread& t : _threads)
 	{
-		if (Thread.joinable())
-		{
-			Thread.join();
-		}
+		if (t.joinable())
+			t.join();
 	}
-
-	Threads.clear();
+	_threads.clear();
 }
 
-void FThreadManager::SetTls()
+void ThreadManager::InitTLS()
 {
-	static TAtomic<uint32> SThreadID = 1;
-	LThreadID = SThreadID.fetch_add(1);
+	static atomic<uint32> SThreadId = 1;
+	LThreadId = SThreadId.fetch_add(1);
 }
 
-void FThreadManager::FreeTls()
+void ThreadManager::DestroyTLS()
 {
 
 }
 
-void FThreadManager::QueueAsyncTask()
+void ThreadManager::DoGlobalQueueWork()
 {
 	while (true)
 	{
-		uint64 Tick = ::GetTickCount64();
-		if (Tick > LEndTick)
-		{
+		uint64 now = ::GetTickCount64();
+		if (now > LEndTickCount)
 			break;
-		}
 
-		shared_ptr<FAsyncTaskQueue> TaskQueue = GAsyncTaskQueueManager->RemoveQueue();
-		if (TaskQueue == nullptr)
-		{
+		JobQueueRef jobQueue = GGlobalQueue->Pop();
+		if (jobQueue == nullptr)
 			break;
-		}
 
-		TaskQueue->Launch();
-		LEndTick += Tick;
+		jobQueue->Execute();
 	}
 }
 
-void FThreadManager::DistributeReservedTasks()
+void ThreadManager::DistributeReservedJobs()
 {
-	const uint64 Tick = ::GetTickCount64();
-	GTaskTimerManager->Distribute(Tick);
+	const uint64 now = ::GetTickCount64();
+
+	GJobTimer->Distribute(now);
 }

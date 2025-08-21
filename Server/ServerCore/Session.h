@@ -1,106 +1,115 @@
 #pragma once
-#include "IOCPCore.h"
-#include "IOCPEvent.h"
-#include "IPAddress.h"
+#include "IocpCore.h"
+#include "IocpEvent.h"
+#include "NetAddress.h"
 #include "RecvBuffer.h"
 
-class FSocket;
-class FInternetAddr;
+class Service;
 
-// 클라이언트의 모든 정보를 들고 있는 클래스(CP에 등록될 객체)
-class FSession : public ISocketEventable
+/*--------------
+	Session
+---------------*/
+
+class Session : public IocpObject
 {
-	friend class FListener;
-	friend class FSocketEventQueue;
-	friend class FService;
+	friend class Listener;
+	friend class IocpCore;
+	friend class Service;
 
-	static constexpr int32 BufferSize = 0x10000; // 64KB
+	enum
+	{
+		BUFFER_SIZE = 0x10000, // 64KB
+	};
 
 public:
-	FSession();
-	virtual ~FSession();
+	Session();
+	virtual ~Session();
 
-	// Session 정보 관련
-	void SetIpAddress(FInternetAddr InAddr) { Addr = InAddr; }
+public:
+						/* 외부에서 사용 */
+	void				Send(SendBufferRef sendBuffer);
+	bool				Connect();
+	void				Disconnect(const WCHAR* cause);
 
-	FInternetAddr GetIpAddress() const { return Addr; }
-	FSocket* GetSocket() const { return Socket.get(); }
-	shared_ptr<FSession> GetSession() { return static_pointer_cast<FSession>(shared_from_this()); }
-	shared_ptr<FService> GetService() const { return Service.lock(); }
+	shared_ptr<Service>	GetService() { return _service.lock(); }
+	void				SetService(shared_ptr<Service> service) { _service = service; }
 
-	bool IsConnected() const { return bIsConnected; }
-	void SetService(shared_ptr<FService> InService) { Service = InService; }
-
-	void Send(shared_ptr<FSendBuffer> SendBuffer);
-	bool Connect();
-	void Disconnect(const TCHAR* Msg);
+public:
+						/* 정보 관련 */
+	void				SetNetAddress(NetAddress address) { _netAddress = address; }
+	NetAddress			GetAddress() { return _netAddress; }
+	SOCKET				GetSocket() { return _socket; }
+	bool				IsConnected() { return _connected; }
+	SessionRef			GetSessionRef() { return static_pointer_cast<Session>(shared_from_this()); }
 
 private:
-	HANDLE GetHandle() override;
-	void Dispatch(FSocketEvent* Event, int32 NumOfBytes = 0) override;
+						/* 인터페이스 구현 */
+	virtual HANDLE		GetHandle() override;
+	virtual void		Dispatch(class IocpEvent* iocpEvent, int32 numOfBytes = 0) override;
 
-	// 전송 관련 메서드
-	bool RegisterConnect();	// Client Server 단에서 Connect를 등록할 수 있음
-	bool RegisterDisconnect();
-	void RegisterRecv();
-	void RegisterSend();
+private:
+						/* 전송 관련 */
+	bool				RegisterConnect();
+	bool				RegisterDisconnect();
+	void				RegisterRecv();
+	void				RegisterSend();
 
-	void ProcessConnect();
-	void ProcessDisconnect();
-	void ProcessRecv(int32 BytesToRecv);
-	void ProcessSend(int32 BytesToSend);
+	void				ProcessConnect();
+	void				ProcessDisconnect();
+	void				ProcessRecv(int32 numOfBytes);
+	void				ProcessSend(int32 numOfBytes);
 
-	void HandleError(int32 Error);
+	void				HandleError(int32 errorCode);
 
 protected:
-	// 컨텐츠단에서 재정의해서 사용
-	virtual void OnConnected() {}
-	virtual int32 OnRecv(BYTE* Buffer, int32 Length) { return Length; }
-	virtual void OnSend(int32 BytesSent) {}
-	virtual void OnDisconnected() {}
+						/* 컨텐츠 코드에서 재정의 */
+	virtual void		OnConnected() { }
+	virtual int32		OnRecv(BYTE* buffer, int32 len) { return len; }
+	virtual void		OnSend(int32 len) { }
+	virtual void		OnDisconnected() { }
 
 private:
-	weak_ptr<FService> Service;	// Session이 속한 서비스
-	unique_ptr<FSocket> Socket;
-	FInternetAddr Addr;
-	TAtomic<bool> bIsConnected;
+	weak_ptr<Service>	_service;
+	SOCKET				_socket = INVALID_SOCKET;
+	NetAddress			_netAddress = {};
+	atomic<bool>		_connected = false;
 
 private:
 	USE_LOCK;
+							/* 수신 관련 */
+	RecvBuffer				_recvBuffer;
 
-	// Recv
-	FRecvBuffer RecvBuffer;
-	queue<shared_ptr<FSendBuffer>> SendQueue;	// Send 이벤트가 여러 개 등록될 수 있으므로 Queue로 관리
-	TAtomic<bool> bIsSending;	// 현재 Send 이벤트가 진행 중인지 여부
+							/* 송신 관련 */
+	queue<SendBufferRef>	_sendQueue;
+	atomic<bool>			_sendRegistered = false;
 
-	// Send
-
-private:  // Event Reuse
-	FSocketConnect ConnectEvent;
-	FSocketDisconnect DisconnectEvent;
-	FSocketRecv RecvEvent;
-	FSocketSend SendEvent;
+private:
+						/* IocpEvent 재사용 */
+	ConnectEvent		_connectEvent;
+	DisconnectEvent		_disconnectEvent;
+	RecvEvent			_recvEvent;
+	SendEvent			_sendEvent;
 };
 
-struct FPacketHeader
+/*-----------------
+	PacketSession
+------------------*/
+
+struct PacketHeader
 {
-	// uint32로 4byte x 2 해도 가능
-	uint16 Id;		// Protocol Id(1=Login, 2=Move, ...)
-	uint16 Size;	// Total Packet Size
+	uint16 size;
+	uint16 id; // 프로토콜ID (ex. 1=로그인, 2=이동요청)
 };
 
-// 컨텐츠 단에서는 반드시 이 패킷 세션을 상속받아 사용해야 함
-class FPacketSession : public FSession
+class PacketSession : public Session
 {
-	using Super = FSession;
-
 public:
-	FPacketSession();
-	~FPacketSession() override;
+	PacketSession();
+	virtual ~PacketSession();
 
-	shared_ptr<FPacketSession> SharedThisSession() { return static_pointer_cast<FPacketSession>(shared_from_this()); }
+	PacketSessionRef	GetPacketSessionRef() { return static_pointer_cast<PacketSession>(shared_from_this()); }
 
 protected:
-	int32 OnRecv(BYTE* Buffer, int32 Length) sealed;	// 하위 클래스에서 사용하지 못하도록
-	virtual void OnReceive(BYTE* Buffer, int32 Length) = 0;
+	virtual int32		OnRecv(BYTE* buffer, int32 len) sealed;
+	virtual void		OnRecvPacket(BYTE* buffer, int32 len) abstract;
 };

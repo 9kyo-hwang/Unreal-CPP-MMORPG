@@ -1,81 +1,70 @@
 #pragma once
 #include "Protocol.pb.h"
 
-using FIncomingPacketSignature = function<bool(shared_ptr<FPacketSession>&, BYTE*, int32)>;
-extern FIncomingPacketSignature GPacketHandlers[UINT16_MAX];
+using PacketHandlerFunc = std::function<bool(PacketSessionRef&, BYTE*, int32)>;
+extern PacketHandlerFunc GPacketHandler[UINT16_MAX];
 
-enum EPacketId : uint16
+enum : uint16
 {
-{%- for packet in parser.packets %}
-	{{packet.name}} = {{packet.packet_id}},
+{%- for pkt in parser.total_pkt %}
+	PKT_{{pkt.name}} = {{pkt.id}},
 {%- endfor %}
 };
 
-bool Handle_INVALID(shared_ptr<FPacketSession>& Session, BYTE* Buffer, int32 Length);
+// Custom Handlers
+bool Handle_INVALID(PacketSessionRef& session, BYTE* buffer, int32 len);
 
-{%- for packet in parser.recv_packets %}
-bool Handle_{{packet.name}}(shared_ptr<FPacketSession>& Session, Protocol::{{packet.name}}& Packet);
+{%- for pkt in parser.recv_pkt %}
+bool Handle_{{pkt.name}}(PacketSessionRef& session, Protocol::{{pkt.name}}& pkt);
 {%- endfor %}
 
 class {{output}}
 {
 public:
-	static void Initialize()
+	static void Init()
 	{
-		for (int32 i = 0; i < UINT16_MAX; ++i)
-		{
-			GPacketHandlers[i] = Handle_INVALID;
-		}
+		for (int32 i = 0; i < UINT16_MAX; i++)
+			GPacketHandler[i] = Handle_INVALID;
 
-{%- for packet in parser.recv_packets %}
-		GPacketHandlers[EPacketId::{{packet.name}}] = [](shared_ptr<FPacketSession>& Session, BYTE* Buffer, int32 Length)
-			{
-				return Incoming_Internal<Protocol::{{packet.name}}>(Handle_{{packet.name}}, Session, Buffer, Length);
-			};
+{%- for pkt in parser.recv_pkt %}
+		GPacketHandler[PKT_{{pkt.name}}] = [](PacketSessionRef& session, BYTE* buffer, int32 len) { return HandlePacket<Protocol::{{pkt.name}}>(Handle_{{pkt.name}}, session, buffer, len); };
 {%- endfor %}
 	}
 
-	static bool Incoming(shared_ptr<FPacketSession>& Session, BYTE* Buffer, int32 Length)
+	static bool HandlePacket(PacketSessionRef& session, BYTE* buffer, int32 len)
 	{
-		FPacketHeader* PacketHeader = reinterpret_cast<FPacketHeader*>(Buffer);
-		return GPacketHandlers[PacketHeader->Id](Session, Buffer, Length);
+		PacketHeader* header = reinterpret_cast<PacketHeader*>(buffer);
+		return GPacketHandler[header->id](session, buffer, len);
 	}
 
-{%- for packet in parser.send_packets %}
-	static shared_ptr<FSendBuffer> CreateSendBuffer(Protocol::{{packet.name}}& Packet)
-	{
-		return CreateSendBuffer_Internal(Packet, EPacketId::{{packet.name}});
-	}
+{%- for pkt in parser.send_pkt %}
+	static SendBufferRef MakeSendBuffer(Protocol::{{pkt.name}}& pkt) { return MakeSendBuffer(pkt, PKT_{{pkt.name}}); }
 {%- endfor %}
 
 private:
-	template<typename InPacketType, typename InHandlerType>
-	static bool Incoming_Internal(InHandlerType Handler, shared_ptr<FPacketSession>& Session, BYTE* Buffer, int32 Length)
+	template<typename PacketType, typename ProcessFunc>
+	static bool HandlePacket(ProcessFunc func, PacketSessionRef& session, BYTE* buffer, int32 len)
 	{
-		InPacketType Packet;
-		if (!Packet.ParseFromArray(Buffer + sizeof(FPacketHeader), Length - sizeof(FPacketHeader)))
-		{
+		PacketType pkt;
+		if (pkt.ParseFromArray(buffer + sizeof(PacketHeader), len - sizeof(PacketHeader)) == false)
 			return false;
-		}
 
-		return Handler(Session, Packet);
+		return func(session, pkt);
 	}
 
-	template<typename PacketType>
-	static shared_ptr<FSendBuffer> CreateSendBuffer_Internal(PacketType& Packet, uint16 PacketId)
+	template<typename T>
+	static SendBufferRef MakeSendBuffer(T& pkt, uint16 pktId)
 	{
-		const uint16 DataSize = static_cast<uint16>(Packet.ByteSizeLong());
-		const uint16 PacketSize = DataSize + sizeof(FPacketHeader);
+		const uint16 dataSize = static_cast<uint16>(pkt.ByteSizeLong());
+		const uint16 packetSize = dataSize + sizeof(PacketHeader);
 
-		shared_ptr<FSendBuffer> SendBuffer = make_shared<FSendBuffer>(PacketSize);
-		FPacketHeader* PacketHeader = reinterpret_cast<FPacketHeader*>(SendBuffer->GetData());
+		SendBufferRef sendBuffer = make_shared<SendBuffer>(packetSize);
+		PacketHeader* header = reinterpret_cast<PacketHeader*>(sendBuffer->Buffer());
+		header->size = packetSize;
+		header->id = pktId;
+		ASSERT_CRASH(pkt.SerializeToArray(&header[1], dataSize));
+		sendBuffer->Close(packetSize);
 
-		PacketHeader->Size = PacketSize;
-		PacketHeader->Id = PacketId;
-
-		check(Packet.SerializeToArray(&PacketHeader[1], DataSize));
-
-		SendBuffer->Close(PacketSize);
-		return SendBuffer;
+		return sendBuffer;
 	}
 };

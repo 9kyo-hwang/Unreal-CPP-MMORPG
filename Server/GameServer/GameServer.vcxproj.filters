@@ -2,76 +2,76 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Main">
-      <UniqueIdentifier>{884923b4-890b-4cae-9912-88f2cd49e66b}</UniqueIdentifier>
+      <UniqueIdentifier>{dc4550f0-e26d-4d7e-bb0c-bf53c6f49cf0}</UniqueIdentifier>
     </Filter>
     <Filter Include="Protocol">
-      <UniqueIdentifier>{45fc4272-2950-4050-9f07-bb1d3a98626b}</UniqueIdentifier>
+      <UniqueIdentifier>{bf74476f-4995-4053-89d0-39f2b37f8be8}</UniqueIdentifier>
     </Filter>
     <Filter Include="Protocol\Proto">
-      <UniqueIdentifier>{4d73674d-9a04-473c-af29-4e37f137b9ab}</UniqueIdentifier>
+      <UniqueIdentifier>{374187cb-8cc6-4f71-9cdc-934de1c2963b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GameServer.cpp">
       <Filter>Main</Filter>
     </ClCompile>
-    <ClCompile Include="ClientSession.cpp">
+    <ClCompile Include="pch.cpp">
       <Filter>Main</Filter>
     </ClCompile>
-    <ClCompile Include="SessionManager.cpp">
+    <ClCompile Include="GameSessionManager.cpp">
       <Filter>Main</Filter>
     </ClCompile>
-    <ClCompile Include="ClientPacketHandler.cpp">
+    <ClCompile Include="GameSession.cpp">
       <Filter>Main</Filter>
-    </ClCompile>
-    <ClCompile Include="Protocol.pb.cc">
-      <Filter>Protocol</Filter>
     </ClCompile>
     <ClCompile Include="Enum.pb.cc">
+      <Filter>Protocol</Filter>
+    </ClCompile>
+    <ClCompile Include="Protocol.pb.cc">
       <Filter>Protocol</Filter>
     </ClCompile>
     <ClCompile Include="Struct.pb.cc">
       <Filter>Protocol</Filter>
     </ClCompile>
-    <ClCompile Include="pch.cpp">
+    <ClCompile Include="ServerPacketHandler.cpp">
       <Filter>Main</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ClientSession.h">
+    <ClInclude Include="pch.h">
       <Filter>Main</Filter>
     </ClInclude>
-    <ClInclude Include="SessionManager.h">
+    <ClInclude Include="GameSession.h">
       <Filter>Main</Filter>
     </ClInclude>
-    <ClInclude Include="ClientPacketHandler.h">
+    <ClInclude Include="GameSessionManager.h">
       <Filter>Main</Filter>
-    </ClInclude>
-    <ClInclude Include="Protocol.pb.h">
-      <Filter>Protocol</Filter>
     </ClInclude>
     <ClInclude Include="Enum.pb.h">
+      <Filter>Protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Protocol.pb.h">
       <Filter>Protocol</Filter>
     </ClInclude>
     <ClInclude Include="Struct.pb.h">
       <Filter>Protocol</Filter>
     </ClInclude>
-    <ClInclude Include="pch.h">
+    <ClInclude Include="ServerPacketHandler.h">
       <Filter>Main</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\Common\Protobuf\GenPackets.bat">
+    <None Include="..\Common\protoc-21.12-win64\bin\Protocol.proto">
+      <Filter>Protocol\Proto</Filter>
+    </None>
+    <None Include="..\Common\protoc-21.12-win64\bin\Struct.proto">
+      <Filter>Protocol\Proto</Filter>
+    </None>
+    <None Include="..\Common\protoc-21.12-win64\bin\Enum.proto">
+      <Filter>Protocol\Proto</Filter>
+    </None>
+    <None Include="..\Common\protoc-21.12-win64\bin\GenPackets.bat">
       <Filter>Protocol</Filter>
-    </None>
-    <None Include="..\Common\Protobuf\Enum.proto">
-      <Filter>Protocol\Proto</Filter>
-    </None>
-    <None Include="..\Common\Protobuf\Protocol.proto">
-      <Filter>Protocol\Proto</Filter>
-    </None>
-    <None Include="..\Common\Protobuf\Struct.proto">
-      <Filter>Protocol\Proto</Filter>
     </None>
   </ItemGroup>
 </Project>

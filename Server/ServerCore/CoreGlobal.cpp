@@ -1,34 +1,34 @@
 #include "pch.h"
 #include "CoreGlobal.h"
-
-#include "AsyncTaskQueueManager.h"
-#include "SocketSubsystem.h"
+#include "pch.h"
+#include "CoreGlobal.h"
 #include "ThreadManager.h"
-#include "TaskTimer.h"
+#include "Memory.h"
+#include "SocketUtils.h"
+#include "SendBuffer.h"
+#include "GlobalQueue.h"
+#include "JobTimer.h"
 
-FThreadManager* GThreadManager = nullptr;
-FAsyncTaskQueueManager* GAsyncTaskQueueManager = nullptr;
-FTaskTimerManager* GTaskTimerManager = nullptr;
+ThreadManager* GThreadManager = nullptr;
+GlobalQueue* GGlobalQueue = nullptr;
+JobTimer* GJobTimer = nullptr;
 
-// 매니저 간 호출 순서를 조정해주는 역할
 class CoreGlobal
 {
 public:
 	CoreGlobal()
 	{
-		GThreadManager = new FThreadManager();
-		GAsyncTaskQueueManager = new FAsyncTaskQueueManager();
-		GTaskTimerManager = new FTaskTimerManager();
-
-		FSocketSubsystem::Init();
+		GThreadManager = new ThreadManager();
+		GGlobalQueue = new GlobalQueue();
+		GJobTimer = new JobTimer();
+		SocketUtils::Init();
 	}
 
 	~CoreGlobal()
 	{
 		delete GThreadManager;
-		delete GAsyncTaskQueueManager;
-		delete GTaskTimerManager;
-
-		FSocketSubsystem::Shutdown();
+		delete GGlobalQueue;
+		delete GJobTimer;
+		SocketUtils::Clear();
 	}
 } GCoreGlobal;

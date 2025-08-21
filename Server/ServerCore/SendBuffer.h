@@ -1,22 +1,26 @@
 #pragma once
 
-class FSendBufferChunk;
+class SendBufferChunk;
 
-class FSendBuffer : enable_shared_from_this<FSendBuffer>
+/*----------------
+	SendBuffer
+-----------------*/
+
+class SendBuffer : enable_shared_from_this<SendBuffer>
 {
 public:
-	FSendBuffer(uint32 InCapacity);
-	~FSendBuffer();
+	SendBuffer(int32 bufferSize);
+	~SendBuffer();
 
-	BYTE* GetData() { return Data.data(); }
-	uint32 GetUsedSize() const { return UsedSize; }
-	uint32 GetCapacity() const { return Capacity; }
+	BYTE* Buffer() { return _buffer.data(); }
+	int32 WriteSize() { return _writeSize; }
+	int32 Capacity() { return static_cast<int32>(_buffer.size()); }
 
-	void CopyData(void* InData, int32 Size);
-	void Close(uint32 InUsedSize);
+	void CopyData(void* data, int32 len);
+	void Close(uint32 writeSize);
 
 private:
-	vector<BYTE> Data;
-	uint32 UsedSize;	// 사용 중인 크기
-	uint32 Capacity;	// 최대 크기
+	vector<BYTE>	_buffer;
+	int32			_writeSize = 0;
 };
+

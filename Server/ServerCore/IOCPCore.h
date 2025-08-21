@@ -1,28 +1,31 @@
 #pragma once
 
-// GetQueuedCompletionStatus()에서 추가 정보를 받기 위해 Key와 Overlapped 구조체를 상속/합성해서 사용
-class FSocketEvent;				// Overlapped 구조체를 상속받은, IO 이벤트에 대응하는 클래스
-class ISocketEventable : public enable_shared_from_this<ISocketEventable>	// (Session의 베이스)
+/*----------------
+	IocpObject
+-----------------*/
+
+class IocpObject : public enable_shared_from_this<IocpObject>
 {
 public:
-	virtual HANDLE GetHandle() = 0;
-	virtual void Dispatch(FSocketEvent* Event, int32 NumBytes = 0) = 0;
+	virtual HANDLE GetHandle() abstract;
+	virtual void Dispatch(class IocpEvent* iocpEvent, int32 numOfBytes = 0) abstract;
 };
 
-class FSocketEventQueue
+/*--------------
+	IocpCore
+---------------*/
+
+class IocpCore
 {
 public:
-	FSocketEventQueue();
-	~FSocketEventQueue();
+	IocpCore();
+	~IocpCore();
 
-	HANDLE GetData() const
-	{
-		return Data;
-	}
+	HANDLE		GetHandle() { return _iocpHandle; }
 
-	bool Enqueue(shared_ptr<ISocketEventable> Socket);
-	bool Dequeue(uint32 TimeoutMilliseconds = INFINITE);
+	bool		Register(IocpObjectRef iocpObject);
+	bool		Dispatch(uint32 timeoutMs = INFINITE);
 
 private:
-	HANDLE Data;
+	HANDLE		_iocpHandle;
 };

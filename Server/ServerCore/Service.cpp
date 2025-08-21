@@ -1,137 +1,110 @@
 #include "pch.h"
 #include "Service.h"
-
-#include "Listener.h"
 #include "Session.h"
+#include "Listener.h"
 
-FService::FService(EServiceType InType, FInternetAddr InAddr, shared_ptr<FSocketEventQueue> InEventQueue,
-                   FSessionFactory InSessionFactory, int32 InNumMaxSessions)
-	: Type(InType)
-	, Addr(InAddr)
-	, EventQueue(InEventQueue)
-	, NumSessions(0)
-	, NumMaxSessions(InNumMaxSessions)
-	, SessionFactory(InSessionFactory)
+/*-------------
+	Service
+--------------*/
+
+Service::Service(ServiceType type, NetAddress address, IocpCoreRef core, SessionFactory factory, int32 maxSessionCount)
+	: _type(type), _netAddress(address), _iocpCore(core), _sessionFactory(factory), _maxSessionCount(maxSessionCount)
+{
+
+}
+
+Service::~Service()
 {
 }
 
-FService::~FService()
-{
-}
-
-void FService::Stop()
+void Service::CloseService()
 {
 	// TODO
 }
 
-shared_ptr<FSession> FService::CreateSession()
+void Service::Broadcast(SendBufferRef sendBuffer)
 {
-	shared_ptr<FSession> NewSession = SessionFactory();
-	NewSession->SetService(shared_from_this());
-	if (EventQueue->Enqueue(NewSession) == false)
+	WRITE_LOCK;
+	for (const auto& session : _sessions)
 	{
+		session->Send(sendBuffer);
+	}
+}
+
+SessionRef Service::CreateSession()
+{
+	SessionRef session = _sessionFactory();
+	session->SetService(shared_from_this());
+
+	if (_iocpCore->Register(session) == false)
 		return nullptr;
-	}
 
-	return NewSession;
+	return session;
 }
 
-void FService::AddSession(shared_ptr<FSession> InSession)
+void Service::AddSession(SessionRef session)
 {
 	WRITE_LOCK;
-	++NumSessions;
-	Sessions.emplace(InSession);
+	_sessionCount++;
+	_sessions.insert(session);
 }
 
-void FService::RemoveSession(shared_ptr<FSession> InSession)
+void Service::ReleaseSession(SessionRef session)
 {
 	WRITE_LOCK;
-	check(Sessions.erase(InSession) != 0);
-	--NumSessions;
+	ASSERT_CRASH(_sessions.erase(session) != 0);
+	_sessionCount--;
 }
 
-void FService::Broadcast(shared_ptr<FSendBuffer> SendBuffer)
-{
-	WRITE_LOCK;
-	for (const auto& Session : Sessions)
-	{
-		Session->Send(SendBuffer);
-	}
-}
+/*-----------------
+	ClientService
+------------------*/
 
-FClientService::FClientService(FInternetAddr TargetAddr, shared_ptr<FSocketEventQueue> InEventQueue, FSessionFactory InSessionFactory, int32 InNumMaxSessions)
-	: Super(EServiceType::Client, TargetAddr, InEventQueue, InSessionFactory, InNumMaxSessions)
-{
-	
-}
-
-FClientService::~FClientService()
+ClientService::ClientService(NetAddress targetAddress, IocpCoreRef core, SessionFactory factory, int32 maxSessionCount)
+	: Service(ServiceType::Client, targetAddress, core, factory, maxSessionCount)
 {
 }
 
-bool FClientService::Run()
+bool ClientService::Start()
 {
-	if (!CanRun())
-	{
+	if (CanStart() == false)
 		return false;
-	}
 
-	const int32 NumSessions = GetNumMaxSessions();
-	for (int32 i = 0; i < NumSessions; ++i)
+	const int32 sessionCount = GetMaxSessionCount();
+	for (int32 i = 0; i < sessionCount; i++)
 	{
-		shared_ptr<FSession> NewSession = CreateSession();
-		if (NewSession->Connect() == false)
-		{
+		SessionRef session = CreateSession();
+		if (session->Connect() == false)
 			return false;
-		}
 	}
 
 	return true;
 }
 
-void FClientService::Stop()
+ServerService::ServerService(NetAddress address, IocpCoreRef core, SessionFactory factory, int32 maxSessionCount)
+	: Service(ServiceType::Server, address, core, factory, maxSessionCount)
 {
-	
 }
 
-FServerService::FServerService(FInternetAddr InAddr, shared_ptr<FSocketEventQueue> InEventQueue, FSessionFactory InSessionFactory, int32 InNumMaxSessions)
-	: Super(EServiceType::Server, InAddr, InEventQueue, InSessionFactory, InNumMaxSessions)
+bool ServerService::Start()
 {
-
-}
-
-FServerService::~FServerService()
-{
-
-}
-
-bool FServerService::Run()
-{
-	// TODO
-
-	if (CanRun() == false)
-	{
+	if (CanStart() == false)
 		return false;
-	}
 
-	Listener = make_shared<FListener>();
-	if (Listener == nullptr)
-	{
+	_listener = make_shared<Listener>();
+	if (_listener == nullptr)
 		return false;
-	}
 
-	// 현재 FInternetAddr을 받고 있는데, ServerService로 변경할 예정
-	if (false == Listener->Run(static_pointer_cast<FServerService>(shared_from_this())))
-	{
+	ServerServiceRef service = static_pointer_cast<ServerService>(shared_from_this());
+	if (_listener->StartAccept(service) == false)
 		return false;
-	}
 
 	return true;
 }
 
-void FServerService::Stop()
+void ServerService::CloseService()
 {
 	// TODO
 
-	Super::Stop();
+	Service::CloseService();
 }

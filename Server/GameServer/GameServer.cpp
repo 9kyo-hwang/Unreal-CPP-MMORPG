@@ -1,56 +1,58 @@
 ﻿#include "pch.h"
-
-#include "ClientSession.h"
-#include "ClientPacketHandler.h"
-#include "Service.h"
+#include <iostream>
 #include "ThreadManager.h"
-#include "Protocol.pb.h"
-#include <functional>
+#include "Service.h"
+#include "Session.h"
+#include "GameSession.h"
+#include "GameSessionManager.h"
+//#include "ClientPacketHandler.h"
+#include <tchar.h>
+#include "Job.h"
 
-static constexpr uint64 WorkerTimeoutTick = 64;
+enum
+{
+	WORKER_TICK = 64
+};
 
-void WorkerThreadMain(shared_ptr<FServerService>& Service)
+void DoWorkerJob(ServerServiceRef& service)
 {
 	while (true)
 	{
-		LEndTick = ::GetTickCount64() + WorkerTimeoutTick;
+		LEndTickCount = ::GetTickCount64() + WORKER_TICK;
 
-		// Network IO + InGame Logic(by Packet Handler)
-		Service->GetEventQueue()->Dequeue(10);
+		// 네트워크 입출력 처리 -> 인게임 로직까지 (패킷 핸들러에 의해)
+		service->GetIocpCore()->Dispatch(10);
 
-		// 예약된 Task 처리
-		FThreadManager::DistributeReservedTasks();
+		// 예약된 일감 처리
+		ThreadManager::DistributeReservedJobs();
 
-		// 작업 처리 Tick이 남았다면, Global AsyncTaskQueue도 처리해버림
-		FThreadManager::QueueAsyncTask();
+		// 글로벌 큐
+		ThreadManager::DoGlobalQueueWork();
 	}
 }
 
 int main()
 {
-	ClientPacketHandler::Initialize();
+	ServerPacketHandler::Init();
 
-	auto Service = make_shared<FServerService>(
-		FInternetAddr(TEXT("127.0.0.1"), 7777),
-		make_shared<FSocketEventQueue>(),
-		[=]() { return make_shared<FClientSession>(); },	// ()를 붙이면 안됨. 추후 SessionManager 등에서 관리
-		100
-	);
+	ServerServiceRef service = make_shared<ServerService>(
+		NetAddress(L"127.0.0.1", 7777),
+		make_shared<IocpCore>(),
+		[=]() { return make_shared<GameSession>(); }, // TODO : SessionManager 등
+		100);
 
-	check(Service->Run());
+	ASSERT_CRASH(service->Start());
 
-	// 보통 스레드 개수는 코어 개수 ~ 코어 개수 * 1.5
-	for (int32 i = 0; i < 5; ++i)
+	for (int32 i = 0; i < 5; i++)
 	{
-		GThreadManager->AddThread([&Service]()
+		GThreadManager->Launch([&service]()
 			{
-				WorkerThreadMain(Service);
+				DoWorkerJob(service);
 			});
 	}
 
-	WorkerThreadMain(Service);
+	// Main Thread
+	DoWorkerJob(service);
 
-	GThreadManager->WaitForCompletion();
-
-	return 0;
+	GThreadManager->Join();
 }

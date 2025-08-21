@@ -1,26 +1,27 @@
 #include "pch.h"
 #include "SendBuffer.h"
 
-FSendBuffer::FSendBuffer(uint32 InCapacity)
-	: UsedSize(0)
-	, Capacity(InCapacity)
+/*----------------
+	SendBuffer
+-----------------*/
+
+SendBuffer::SendBuffer(int32 bufferSize)
 {
-	Data.resize(InCapacity);
+	_buffer.resize(bufferSize);
 }
 
-FSendBuffer::~FSendBuffer()
+SendBuffer::~SendBuffer()
 {
 }
 
-void FSendBuffer::CopyData(void* InData, int32 Size)
+void SendBuffer::CopyData(void* data, int32 len)
 {
-	check(GetCapacity() >= Size);
-	::memcpy(Data.data(), InData, Size);
-	UsedSize = Size;
+	assert(Capacity() >= len);
+	::memcpy(_buffer.data(), data, len);
+	_writeSize = len;
 }
 
-void FSendBuffer::Close(uint32 InUsedSize)
+void SendBuffer::Close(uint32 writeSize)
 {
-	check(Capacity >= InUsedSize);
-	UsedSize = InUsedSize;
+	_writeSize = writeSize;
 }

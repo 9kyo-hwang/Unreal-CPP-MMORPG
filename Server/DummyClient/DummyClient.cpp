@@ -1,45 +1,44 @@
 ﻿#include "pch.h"
-#include <Service.h>
-#include <Session.h>
-
-#include "ServerPacketHandler.h"
+#include <iostream>
 #include "ThreadManager.h"
+#include "Service.h"
+#include "Session.h"
+#include "ClientPacketHandler.h"
 
-BYTE SendData[] = "Hello, World!";
+char sendData[] = "Hello World";
 
-// 상대방을 대표하는 세션
-class FServerSession : public FPacketSession
+class ServerSession : public PacketSession
 {
 public:
-	void OnConnected() override
+	~ServerSession()
 	{
-		/*
-		* 1. 연결 성공 시 로그인 요청
-		* 원래는 인증 서버가 ID/PW를 처리하는 것도 해야 함
-		*/
-		Protocol::C_LOGIN Packet;
-		auto SendBuffer = ServerPacketHandler::CreateSendBuffer(Packet);
-		Send(SendBuffer);
+		cout << "~ServerSession" << endl;
 	}
 
-	void OnReceive(BYTE* Buffer, int32 Length) override
+	virtual void OnConnected() override
 	{
-		// 여기에 진입했다는 것은 온전한 패킷이 보장됨
-		shared_ptr<FPacketSession> Session = SharedThisSession();
-
-		// 추후 서버가 여러 용도로 분산되어 있다면, ID 대역폭을 보고 적절한 핸들러를 적용해야 함
-		FPacketHeader* PacketHeader = reinterpret_cast<FPacketHeader*>(Buffer);
-
-		// TODO: Packet Id 대역 확인
-		ServerPacketHandler::Incoming(Session, Buffer, Length);
+		cout << "OnConnected" << endl;
+		
+		Protocol::C_ENTER_GAME pkt;
+		auto sendBuffer = ClientPacketHandler::MakeSendBuffer(pkt);
+		Send(sendBuffer);
 	}
 
-	void OnSend(int32 BytesSent) override
+	virtual void OnRecvPacket(BYTE* buffer, int32 len) override
 	{
-		cout << "OnSend Len = " << BytesSent << endl;
+		PacketSessionRef session = GetPacketSessionRef();
+		PacketHeader* header = reinterpret_cast<PacketHeader*>(buffer);
+
+		// TODO : packetId 대역 체크
+		ClientPacketHandler::HandlePacket(session, buffer, len);
 	}
 
-	void OnDisconnected() override
+	virtual void OnSend(int32 len) override
+	{
+		cout << "OnSend Len = " << len << endl;
+	}
+
+	virtual void OnDisconnected() override
 	{
 		cout << "Disconnected" << endl;
 	}
@@ -47,37 +46,35 @@ public:
 
 int main()
 {
-	ServerPacketHandler::Initialize();
+	ClientPacketHandler::Init();
 
 	this_thread::sleep_for(1s);
 
-	auto Service = make_shared<FClientService>(
-		FInternetAddr(TEXT("127.0.0.1"), 7777),
-		make_shared<FSocketEventQueue>(),
-		[=]() { return make_shared<FServerSession>(); },	// ()를 붙이면 안됨. 추후 SessionManager 등에서 관리
-		1
-	);
+	ClientServiceRef service = make_shared<ClientService>(
+		NetAddress(L"127.0.0.1", 7777),
+		make_shared<IocpCore>(),
+		[=]() { return make_shared<ServerSession>(); }, // TODO : SessionManager 등
+		1);
 
-	check(Service->Run());
+	ASSERT_CRASH(service->Start());
 
-	for (int32 i = 0; i < 2; ++i)
+	for (int32 i = 0; i < 2; i++)
 	{
-		GThreadManager->AddThread([=]()
+		GThreadManager->Launch([=]()
 			{
 				while (true)
 				{
-					Service->GetEventQueue()->Dequeue();
+					service->GetIocpCore()->Dispatch();
 				}
 			});
 	}
 
 	while (true)
 	{
-		// Service->Broadcast(SendBuffer);
+		//service->Broadcast(sendBuffer);
 		this_thread::sleep_for(1s);
 	}
 
-	GThreadManager->WaitForCompletion();
+	GThreadManager->Join();
 
-	return 0;
 }

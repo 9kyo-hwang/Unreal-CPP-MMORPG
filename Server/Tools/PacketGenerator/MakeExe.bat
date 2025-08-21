@@ -1,5 +1,5 @@
 pushd %~dp0
-pyinstaller --onefile --add-data "Templates;Templates" PacketGenerator.py
+pyinstaller --onefile PacketGenerator.py
 MOVE .\dist\PacketGenerator.exe .\GenPackets.exe
 @RD /S /Q .\build
 @RD /S /Q .\dist

@@ -2,64 +2,47 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Main">
-      <UniqueIdentifier>{dd81d62e-be53-4a6e-8626-7cb9c06242a7}</UniqueIdentifier>
+      <UniqueIdentifier>{197d21bb-5d0a-4cc3-a58d-7e1a692fdca8}</UniqueIdentifier>
     </Filter>
     <Filter Include="Protocol">
-      <UniqueIdentifier>{98a97132-e8c3-46dc-817d-26d8b457fdcc}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Protocol\Proto">
-      <UniqueIdentifier>{3771bd83-123b-43e3-b499-55b3f28c2d2a}</UniqueIdentifier>
+      <UniqueIdentifier>{64837686-7cef-49d6-8825-4f6dfff1a6fd}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DummyClient.cpp">
       <Filter>Main</Filter>
     </ClCompile>
-    <ClCompile Include="ServerPacketHandler.cpp">
+    <ClCompile Include="pch.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="ClientPacketHandler.cpp">
       <Filter>Main</Filter>
     </ClCompile>
     <ClCompile Include="Protocol.pb.cc">
       <Filter>Protocol</Filter>
     </ClCompile>
-    <ClCompile Include="Enum.pb.cc">
-      <Filter>Protocol</Filter>
-    </ClCompile>
     <ClCompile Include="Struct.pb.cc">
       <Filter>Protocol</Filter>
     </ClCompile>
-    <ClCompile Include="pch.cpp">
-      <Filter>Main</Filter>
+    <ClCompile Include="Enum.pb.cc">
+      <Filter>Protocol</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ServerPacketHandler.h">
+    <ClInclude Include="pch.h">
+      <Filter>Main</Filter>
+    </ClInclude>
+    <ClInclude Include="ClientPacketHandler.h">
       <Filter>Main</Filter>
     </ClInclude>
     <ClInclude Include="Protocol.pb.h">
       <Filter>Protocol</Filter>
     </ClInclude>
-    <ClInclude Include="Enum.pb.h">
-      <Filter>Protocol</Filter>
-    </ClInclude>
     <ClInclude Include="Struct.pb.h">
       <Filter>Protocol</Filter>
     </ClInclude>
-    <ClInclude Include="pch.h">
-      <Filter>Main</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\Common\Protobuf\GenPackets.bat">
+    <ClInclude Include="Enum.pb.h">
       <Filter>Protocol</Filter>
-    </None>
-    <None Include="..\Common\Protobuf\Enum.proto">
-      <Filter>Protocol\Proto</Filter>
-    </None>
-    <None Include="..\Common\Protobuf\Protocol.proto">
-      <Filter>Protocol\Proto</Filter>
-    </None>
-    <None Include="..\Common\Protobuf\Struct.proto">
-      <Filter>Protocol\Proto</Filter>
-    </None>
+    </ClInclude>
   </ItemGroup>
 </Project>

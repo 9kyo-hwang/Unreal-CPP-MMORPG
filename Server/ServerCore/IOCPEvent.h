@@ -1,71 +1,84 @@
 #pragma once
 
-enum class ESocketEventTypes : uint8
+class Session;
+
+enum class EventType : uint8
 {
 	Connect,
 	Disconnect,
 	Accept,
-	// PreRecv,
+	//PreRecv,
 	Recv,
 	Send
 };
 
-class FSocketEvent : public OVERLAPPED
+/*--------------
+	IocpEvent
+---------------*/
+
+class IocpEvent : public OVERLAPPED
 {
-	using Super = OVERLAPPED;
+public:
+	IocpEvent(EventType type);
+
+	void			Init();
 
 public:
-	FSocketEvent(ESocketEventTypes InType);
-
-	void Init();
-
-	ESocketEventTypes Type;
-	shared_ptr<class ISocketEventable> Owner;
+	EventType		eventType;
+	IocpObjectRef	owner;
 };
 
-// Warning: OVERLAPPED 구조체가 메모리 최상단에 위치하도록 virtual 선언을 해서는 안됨!
-class FSocketConnect : public FSocketEvent
-{
-	using Super = FSocketEvent;
+/*----------------
+	ConnectEvent
+-----------------*/
 
+class ConnectEvent : public IocpEvent
+{
 public:
-	FSocketConnect();
+	ConnectEvent() : IocpEvent(EventType::Connect) { }
 };
 
-class FSocketDisconnect : public FSocketEvent
-{
-	using Super = FSocketEvent;
+/*--------------------
+	DisconnectEvent
+----------------------*/
 
+class DisconnectEvent : public IocpEvent
+{
 public:
-	FSocketDisconnect();
+	DisconnectEvent() : IocpEvent(EventType::Disconnect) { }
 };
 
-class FSession;
-class FSocketAccept : public FSocketEvent
+/*----------------
+	AcceptEvent
+-----------------*/
+
+class AcceptEvent : public IocpEvent
 {
-	using Super = FSocketEvent;
+public:
+	AcceptEvent() : IocpEvent(EventType::Accept) { }
 
 public:
-	FSocketAccept();
-
-	// TODO: AcceptEx가 필요로 하는 추가 정보(Session)
-	shared_ptr<FSession> Session;
+	SessionRef	session = nullptr;
 };
 
-class FSocketRecv : public FSocketEvent
-{
-	using Super = FSocketEvent;
+/*----------------
+	RecvEvent
+-----------------*/
 
+class RecvEvent : public IocpEvent
+{
 public:
-	FSocketRecv();
+	RecvEvent() : IocpEvent(EventType::Recv) { }
 };
 
-class FSocketSend : public FSocketEvent
+/*----------------
+	SendEvent
+-----------------*/
+
+class SendEvent : public IocpEvent
 {
-	using Super = FSocketEvent;
-
 public:
-	FSocketSend();
-
-	vector<shared_ptr<class FSendBuffer>> SendBuffers;
+	SendEvent() : IocpEvent(EventType::Send) { }
+	 
+	vector<SendBufferRef> sendBuffers;
 };

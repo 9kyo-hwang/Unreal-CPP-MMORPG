@@ -19,9 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <VCProjectVersion>17.0</VCProjectVersion>
+    <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{bc7ef24e-ff78-4991-affd-e50ba9683675}</ProjectGuid>
+    <ProjectGuid>{705b6a11-f950-4ddc-9e67-f9accfa0b538}</ProjectGuid>
     <RootNamespace>ServerCore</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -70,12 +70,6 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(SolutionDir)Libraries\Libs\ServerCore\$(Configuration)\</OutDir>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(SolutionDir)Libraries\Libs\ServerCore\$(Configuration)\</OutDir>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)Libraries\Libs\ServerCore\$(Configuration)\</OutDir>
   </PropertyGroup>
@@ -90,8 +84,6 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -109,8 +101,6 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -128,8 +118,6 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -147,8 +135,6 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -159,54 +145,56 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="BufferReader.h" />
+    <ClInclude Include="BufferWriter.h" />
     <ClInclude Include="CoreGlobal.h" />
     <ClInclude Include="CoreMacro.h" />
-    <ClInclude Include="CorePCH.h" />
+    <ClInclude Include="CorePch.h" />
     <ClInclude Include="CoreTLS.h" />
-    <ClInclude Include="AsyncTaskQueueManager.h" />
-    <ClInclude Include="IOCPCore.h" />
-    <ClInclude Include="IOCPEvent.h" />
-    <ClInclude Include="IPAddress.h" />
+    <ClInclude Include="GlobalQueue.h" />
+    <ClInclude Include="IocpCore.h" />
+    <ClInclude Include="IocpEvent.h" />
+    <ClInclude Include="Job.h" />
+    <ClInclude Include="JobQueue.h" />
+    <ClInclude Include="JobTimer.h" />
     <ClInclude Include="Listener.h" />
+    <ClInclude Include="LockQueue.h" />
+    <ClInclude Include="NetAddress.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="Queue.h" />
     <ClInclude Include="RecvBuffer.h" />
     <ClInclude Include="SendBuffer.h" />
     <ClInclude Include="Service.h" />
     <ClInclude Include="Session.h" />
-    <ClInclude Include="Sockets.h" />
-    <ClInclude Include="SocketSubsystem.h" />
-    <ClInclude Include="Task.h" />
-    <ClInclude Include="AsyncTaskQueue.h" />
-    <ClInclude Include="TaskTimer.h" />
+    <ClInclude Include="SocketUtils.h" />
     <ClInclude Include="ThreadManager.h" />
     <ClInclude Include="Types.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BufferReader.cpp" />
+    <ClCompile Include="BufferWriter.cpp" />
     <ClCompile Include="CoreGlobal.cpp" />
-    <ClCompile Include="CorePCH.cpp" />
+    <ClCompile Include="CorePch.cpp" />
     <ClCompile Include="CoreTLS.cpp" />
-    <ClCompile Include="AsyncTaskQueueManager.cpp" />
-    <ClCompile Include="IOCPCore.cpp" />
-    <ClCompile Include="IOCPEvent.cpp" />
-    <ClCompile Include="IPAddress.cpp" />
+    <ClCompile Include="GlobalQueue.cpp" />
+    <ClCompile Include="IocpCore.cpp" />
+    <ClCompile Include="IocpEvent.cpp" />
+    <ClCompile Include="Job.cpp" />
+    <ClCompile Include="JobQueue.cpp" />
+    <ClCompile Include="JobTimer.cpp" />
     <ClCompile Include="Listener.cpp" />
+    <ClCompile Include="LockQueue.cpp" />
+    <ClCompile Include="NetAddress.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Queue.cpp" />
     <ClCompile Include="RecvBuffer.cpp" />
     <ClCompile Include="SendBuffer.cpp" />
     <ClCompile Include="Service.cpp" />
     <ClCompile Include="Session.cpp" />
-    <ClCompile Include="Sockets.cpp" />
-    <ClCompile Include="SocketSubsystem.cpp" />
-    <ClCompile Include="Task.cpp" />
-    <ClCompile Include="AsyncTaskQueue.cpp" />
-    <ClCompile Include="TaskTimer.cpp" />
+    <ClCompile Include="SocketUtils.cpp" />
     <ClCompile Include="ThreadManager.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

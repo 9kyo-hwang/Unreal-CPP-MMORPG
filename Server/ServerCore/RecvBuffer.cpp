@@ -1,60 +1,54 @@
 #include "pch.h"
 #include "RecvBuffer.h"
 
-int32 BufferCount = 10;
+/*--------------
+	RecvBuffer
+----------------*/
 
-FRecvBuffer::FRecvBuffer(int32 InBufferSize)
-	: Capacity(InBufferSize * BufferCount)	// 버퍼를 여러 개 들고 있는 것처럼 공간을 크게 할당
-	, BufferSize(InBufferSize)	// 버퍼 1개의 크기
-	, ReadPos(0)
-	, WritePos(0)
+RecvBuffer::RecvBuffer(int32 bufferSize) : _bufferSize(bufferSize)
 {
-	Buffer.resize(Capacity);
+	_capacity = bufferSize * BUFFER_COUNT;
+	_buffer.resize(_capacity);
 }
 
-FRecvBuffer::~FRecvBuffer()
+RecvBuffer::~RecvBuffer()
 {
 }
 
-void FRecvBuffer::Clear()
+void RecvBuffer::Clean()
 {
-	// 들고 있는 데이터가 없으면(write-read == 0) 커서를 0 위치로 이동
-	int32 DataSize = GetDataSize();
-	if (DataSize == 0)
+	int32 dataSize = DataSize();
+	if (dataSize == 0)
 	{
-		ReadPos = WritePos = 0;
-		return;
+		// 딱 마침 읽기+쓰기 커서가 동일한 위치라면, 둘 다 리셋.
+		_readPos = _writePos = 0;
 	}
-
-	// 여유 공간이 버퍼 1개 크기보다 작으면 남은 데이터를 앞으로 이동
-	if (GetFreeSize() < BufferSize)
+	else
 	{
-		::memcpy(&Buffer[0], &Buffer[ReadPos], DataSize);
-		ReadPos = 0;
-		WritePos = DataSize;
+		// 여유 공간이 버퍼 1개 크기 미만이면, 데이터를 앞으로 땅긴다.
+		if (FreeSize() < _bufferSize)
+		{
+			::memcpy(&_buffer[0], &_buffer[_readPos], dataSize);
+			_readPos = 0;
+			_writePos = dataSize;
+		}
 	}
 }
 
-bool FRecvBuffer::AdvanceReadPosition(int32 Size)
+bool RecvBuffer::OnRead(int32 numOfBytes)
 {
-	// 데이터 크기보다 더 많이 읽으려고 하면 false
-	if (Size > GetDataSize())
-	{
+	if (numOfBytes > DataSize())
 		return false;
-	}
 
-	ReadPos += Size;
+	_readPos += numOfBytes;
 	return true;
 }
 
-bool FRecvBuffer::AdvanceWritePosition(int32 Size)
+bool RecvBuffer::OnWrite(int32 numOfBytes)
 {
-	// 빈 공간보다 더 많이 쓰려고 하면 false
-	if (Size > GetFreeSize())
-	{
+	if (numOfBytes > FreeSize())
 		return false;
-	}
 
-	WritePos += Size;
+	_writePos += numOfBytes;
 	return true;
 }

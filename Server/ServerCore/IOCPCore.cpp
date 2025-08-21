@@ -1,56 +1,50 @@
 #include "pch.h"
-#include "IOCPCore.h"
-#include "IOCPEvent.h"
+#include "IocpCore.h"
+#include "IocpEvent.h"
 
-FSocketEventQueue::FSocketEventQueue()
-	: Data(::CreateIoCompletionPort(INVALID_HANDLE_VALUE, nullptr, 0, 0))
+/*--------------
+	IocpCore
+---------------*/
+
+IocpCore::IocpCore()
 {
-	check(Data != INVALID_HANDLE_VALUE);
+	_iocpHandle = ::CreateIoCompletionPort(INVALID_HANDLE_VALUE, 0, 0, 0);
+	ASSERT_CRASH(_iocpHandle != INVALID_HANDLE_VALUE);
 }
 
-FSocketEventQueue::~FSocketEventQueue()
+IocpCore::~IocpCore()
 {
-	::CloseHandle(Data);
+	::CloseHandle(_iocpHandle);
 }
 
-// Ï° Ï´ ( == Data) CP 
-bool FSocketEventQueue::Enqueue(shared_ptr<ISocketEventable> Socket)
+bool IocpCore::Register(IocpObjectRef iocpObject)
 {
-	return ::CreateIoCompletionPort(
-		Socket->GetHandle(), 
-		Data, 
-		/*Key*/0,
-		0
-	);
+	return ::CreateIoCompletionPort(iocpObject->GetHandle(), _iocpHandle, /*key*/0, 0);
 }
 
-// Worker threads pop event
-bool FSocketEventQueue::Dequeue(uint32 TimeoutMilliseconds)
+bool IocpCore::Dispatch(uint32 timeoutMs)
 {
-	DWORD NumberOfBytesTransferred = 0;
-	ULONG_PTR CompletionKey = 0;
-	FSocketEvent* Event = nullptr;
+	DWORD numOfBytes = 0;
+	ULONG_PTR key = 0;	
+	IocpEvent* iocpEvent = nullptr;
 
-	if (::GetQueuedCompletionStatus(Data, &NumberOfBytesTransferred, &CompletionKey,
-		reinterpret_cast<LPOVERLAPPED*>(&Event),
-		TimeoutMilliseconds))
+	if (::GetQueuedCompletionStatus(_iocpHandle, OUT &numOfBytes, OUT &key, OUT reinterpret_cast<LPOVERLAPPED*>(&iocpEvent), timeoutMs))
 	{
-		auto Socket = Event->Owner;
-		Socket->Dispatch(Event, NumberOfBytesTransferred);
+		IocpObjectRef iocpObject = iocpEvent->owner;
+		iocpObject->Dispatch(iocpEvent, numOfBytes);
 	}
 	else
 	{
-		if (::WSAGetLastError() == WAIT_TIMEOUT)
+		int32 errCode = ::WSAGetLastError();
+		switch (errCode)
 		{
+		case WAIT_TIMEOUT:
 			return false;
-		}
-		else
-		{
-			if (auto Socket = Event->Owner)
-			{
-				// TODO: Î± 
-				Socket->Dispatch(Event, NumberOfBytesTransferred);
-			}
+		default:
+			// TODO : ·Î±× Âï±â
+			IocpObjectRef iocpObject = iocpEvent->owner;
+			iocpObject->Dispatch(iocpEvent, numOfBytes);
+			break;
 		}
 	}
 

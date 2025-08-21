@@ -1,29 +1,35 @@
 #pragma once
 
-#define USE_LOCKS(count)		FCriticalSection LockObjects[count];
-#define USE_LOCK				USE_LOCKS(1)
-#define WRITE_LOCK_INDEX(index) FScopeLock ScopeLock_##index(LockObjects[index]);
-#define WRITE_LOCK				WRITE_LOCK_INDEX(0)
+#define OUT
 
-#ifdef _DEBUG
+#define NAMESPACE_BEGIN(name)	namespace name {
+#define NAMESPACE_END			}
 
-#else
-#endif
+/*---------------
+	  Lock
+---------------*/
+
+#define USE_MANY_LOCKS(count)	mutex _locks[count];
+#define USE_LOCK				USE_MANY_LOCKS(1)
+#define	WRITE_LOCK_IDX(idx)		lock_guard<mutex> lockGuard_##idx(_locks[idx]);
+#define WRITE_LOCK				WRITE_LOCK_IDX(0)
+
+/*---------------
+	  Crash
+---------------*/
 
 #define CRASH(cause)						\
 {											\
-	uint32* Crash = nullptr;				\
-	__analysis_assume(Crash != nullptr);	\
-	*Crash = 0xDEADBEEF;					\
+	uint32* crash = nullptr;				\
+	__analysis_assume(crash != nullptr);	\
+	*crash = 0xDEADBEEF;					\
 }
 
-#define check(Expression)				\
-{										\
-	if(!(Expression))					\
-	{									\
-		CRASH("assert");				\
-		__analysis_assume(Expression);	\
-	}									\
+#define ASSERT_CRASH(expr)			\
+{									\
+	if (!(expr))					\
+	{								\
+		CRASH("ASSERT_CRASH");		\
+		__analysis_assume(expr);	\
+	}								\
 }
-
-//#define _STOMP	// 주석 처리를 해서 Pool 방식으로 스위치 가능

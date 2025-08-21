@@ -3,21 +3,27 @@
 #include <thread>
 #include <functional>
 
-class FThreadManager
+/*------------------
+	ThreadManager
+-------------------*/
+
+class ThreadManager
 {
 public:
-	FThreadManager();
-	~FThreadManager();
+	ThreadManager();
+	~ThreadManager();
 
-	void AddThread(function<void(void)> Func);
-	void WaitForCompletion();
+	void	Launch(function<void(void)> callback);
+	void	Join();
 
-	static void SetTls();
-	static void FreeTls();
-	static void QueueAsyncTask();
-	static void DistributeReservedTasks();
+	static void InitTLS();
+	static void DestroyTLS();
+
+	static void DoGlobalQueueWork();
+	static void DistributeReservedJobs();
 
 private:
-	FCriticalSection Mutex;
-	vector<thread> Threads;
+	mutex			_lock;
+	vector<thread>	_threads;
 };
+

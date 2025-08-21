@@ -1,31 +1,38 @@
 #pragma once
-#include "IOCPCore.h"
+#include "IocpCore.h"
+#include "NetAddress.h"
 
-class FInternetAddr;
-class FSocket;
-class FSocketAccept;
-class FServerService;
+class AcceptEvent;
+class ServerService;
 
-class FListener : public ISocketEventable
+/*--------------
+	Listener
+---------------*/
+
+class Listener : public IocpObject
 {
 public:
-	FListener();
-	~FListener();
+	Listener() = default;
+	~Listener();
 
-	HANDLE GetHandle() override;
-	void Dispatch(FSocketEvent* Event, int32 NumBytes = 0) override;
+public:
+	/* 외부에서 사용 */
+	bool StartAccept(ServerServiceRef service);
+	void CloseSocket();
 
-	bool Run(shared_ptr<FServerService> InServerService);
-	void Stop();
+public:
+	/* 인터페이스 구현 */
+	virtual HANDLE GetHandle() override;
+	virtual void Dispatch(class IocpEvent* iocpEvent, int32 numOfBytes = 0) override;
 
 private:
-	// 수신 관련
-	void RegisterAccept(FSocketAccept* Event);
-	void ProcessAccept(FSocketAccept* Event);
+	/* 수신 관련 */
+	void RegisterAccept(AcceptEvent* acceptEvent);
+	void ProcessAccept(AcceptEvent* acceptEvent);
 
 protected:
-	unique_ptr<FSocket> Socket;
-	vector<FSocketAccept*> AcceptEvents;
-	weak_ptr<FServerService> ServerService;	// Listener가 속한 서비스
+	SOCKET _socket = INVALID_SOCKET;
+	vector<AcceptEvent*> _acceptEvents;
+	ServerServiceRef _service;
 };
 
