@@ -26,16 +26,16 @@ public:
 	virtual ~FSession();
 
 public:
-						/* ¿ÜºÎ¿¡¼­ »ç¿ë */
+						/* ï¿½ÜºÎ¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ */
 	void				Send(FSendBufferRef InSendBuffer);
 	bool				Connect();
 	void				Disconnect(const WCHAR* Msg);
 
-	shared_ptr<FService> GetService() const { return Service.lock(); }
-	void SetService(shared_ptr<FService> InService) { Service = InService; }
+		TSharedPtr<FService> GetService() const { return Service.lock(); }
+	void SetService(TSharedPtr<FService> InService) { Service = InService; }
 
 public:
-						/* Á¤º¸ °ü·Ã */
+						/* ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ */
 	void				SetNetAddress(NetAddress InAddr) { NetAddr = InAddr; }
 	NetAddress			GetAddress() const { return NetAddr; }
 	SOCKET				GetSocket() const { return Socket; }
@@ -43,12 +43,12 @@ public:
 	FSessionRef			GetSessionRef() { return SharedThis<FSession>(this); }
 
 private:
-						/* ÀÎÅÍÆäÀÌ½º ±¸Çö */
+						/* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì½ï¿½ ï¿½ï¿½ï¿½ï¿½ */
 	HANDLE		GetHandle() override;
 	void		Dispatch(FSocketIOEvent* InEvent, int32 NumOfBytes = 0) override;
 
 private:
-						/* Àü¼Û °ü·Ã */
+						/* ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ */
 	bool				RegisterConnect();
 	bool				RegisterDisconnect();
 	void				RegisterRecv();
@@ -62,28 +62,28 @@ private:
 	void				HandleError(int32 ErrorCode);
 
 protected:
-						/* ÄÁÅÙÃ÷ ÄÚµå¿¡¼­ ÀçÁ¤ÀÇ */
+						/* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Úµå¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ */
 	virtual void		OnConnected() { }
 	virtual int32		OnRecv(BYTE* InBuffer, int32 InLength) { return InLength; }
 	virtual void		OnSend(int32 InLength) { }
 	virtual void		OnDisconnected() { }
 
 private:
-	weak_ptr<FService>	Service;
+	TWeakPtr<FService>	Service;
 	SOCKET				Socket = INVALID_SOCKET;
 	NetAddress			NetAddr = {};
 	atomic<bool>		bIsConnected{false};
 
 private:
 	FCriticalSection CriticalSection;
-	/* ¼ö½Å °ü·Ã */
+	/* ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ */
 	FReceiveBuffer RecvBuffer;
-	/* ¼Û½Å °ü·Ã */
+	/* ï¿½Û½ï¿½ ï¿½ï¿½ï¿½ï¿½ */
 	TQueue<FSendBufferRef> SendQueue;
 	atomic<bool> bIsSendRegistered{false};
 
 private:
-						/* FSocketIOEvent Àç»ç¿ë */
+						/* FSocketIOEvent ï¿½ï¿½ï¿½ï¿½ */
 	FConnectEvent		ConnectEvent;
 	FDisconnectEvent	DisconnectEvent;
 	FRecvEvent			RecvEvent;
@@ -97,7 +97,7 @@ private:
 struct FPacketHeader
 {
 	uint16 Size;
-	uint16 Id; // ÇÁ·ÎÅäÄÝID (ex. 1=·Î±×ÀÎ, 2=ÀÌµ¿¿äÃ»)
+	uint16 Id; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID (ex. 1=ï¿½Î±ï¿½ï¿½ï¿½, 2=ï¿½Ìµï¿½ï¿½ï¿½Ã»)
 };
 
 class FPacketSession : public FSession

@@ -14,15 +14,15 @@ void FGameSession::OnDisconnected()
 	GSessionManager.Remove(SharedThis<FGameSession>(this));
 }
 
-void FGameSession::OnReceive(BYTE* buffer, int32 len)
+void FGameSession::OnReceive(BYTE* Buffer, int32 Length)
 {
-	FPacketSessionRef session = GetPacketSessionRef();
-	FPacketHeader* header = reinterpret_cast<FPacketHeader*>(buffer);
+	FPacketSessionRef Session = GetPacketSessionRef();
+	FPacketHeader* PacketHeader = reinterpret_cast<FPacketHeader*>(Buffer);
 
 	// TODO
-	ServerPacketHandler::HandlePacket(session, buffer, len);
+	ServerPacketHandler::HandlePacket(Session, Buffer, Length);
 }
 
-void FGameSession::OnSend(int32 len)
+void FGameSession::OnSend(int32 Length)
 {
 }

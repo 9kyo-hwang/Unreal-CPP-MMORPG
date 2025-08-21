@@ -1,7 +1,7 @@
 #pragma once
 #include "Protocol.pb.h"
 
-using FPacketHandlerFunc = std::function<bool(FPacketSessionRef&, BYTE*, int32)>;
+using FPacketHandlerFunc = TFunction<bool(FPacketSessionRef&, BYTE*, int32)>;
 extern FPacketHandlerFunc GPacketHandler[UINT16_MAX];
 
 enum : uint16
@@ -69,7 +69,7 @@ private:
 		const uint16 DataSize = static_cast<uint16>(Packet.ByteSizeLong());
 		const uint16 PacketSize = DataSize + sizeof(FPacketHeader);
 
-		FSendBufferRef SendBuffer = make_shared<FSendBuffer>(PacketSize);
+		FSendBufferRef SendBuffer = MakeShared<FSendBuffer>(PacketSize);
 		FPacketHeader* PacketHeader = reinterpret_cast<FPacketHeader*>(SendBuffer->GetData());
 		PacketHeader->Size = PacketSize;
 		PacketHeader->Id = PacketId;

@@ -1,11 +1,10 @@
 #pragma once
-#include <functional>
 
 /*---------
 	FJob
 ----------*/
 
-using CallableType = std::function<void()>;
+using CallableType = TFunction<void()>;
 
 class FJob
 {
@@ -15,7 +14,7 @@ public:
 	}
 
 	template<typename T, typename Ret, typename... Args>
-	FJob(shared_ptr<T> Owner, Ret(T::* Method)(Args...), Args&&... InArgs)
+	FJob(TSharedPtr<T> Owner, Ret(T::* Method)(Args...), Args&&... InArgs)
 	{
 		Callable = [Owner, Method, InArgs...]()
 		{

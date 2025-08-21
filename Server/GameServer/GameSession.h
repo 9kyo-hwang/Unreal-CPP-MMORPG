@@ -11,9 +11,6 @@ public:
 
 	void OnConnected() override;
 	void OnDisconnected() override;
-	void OnReceive(BYTE* buffer, int32 len) override;
-	void OnSend(int32 len) override;
-
-public:
-	TWeakPtr<class Room> _room;
+	void OnReceive(BYTE* Buffer, int32 Length) override;
+	void OnSend(int32 Length) override;
 };

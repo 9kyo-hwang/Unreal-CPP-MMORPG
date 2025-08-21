@@ -2,7 +2,6 @@
 #include "NetAddress.h"
 #include "IocpCore.h"
 #include "Listener.h"
-#include <functional>
 
 enum class EServiceType : uint8
 {
@@ -14,7 +13,7 @@ enum class EServiceType : uint8
 	FService
 --------------*/
 
-using FSessionFactory = function<FSessionRef(void)>;
+using FSessionFactory = TFunction<FSessionRef(void)>;
 
 class FService : public TSharedFromThis<FService>
 {
@@ -46,7 +45,7 @@ protected:
 	NetAddress			Addr{};
 	FSocketIOEventQueueRef	EventQueue;
 
-	set<FSessionRef>	Sessions;
+	TSet<FSessionRef>	Sessions;
 	int32				SessionCount = 0;
 	int32				MaxSessionCount = 0;
 	FSessionFactory		Factory;

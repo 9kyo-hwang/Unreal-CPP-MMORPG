@@ -2,7 +2,7 @@
 
 class FGameSession;
 
-using FGameSessionRef = shared_ptr<FGameSession>;
+using FGameSessionRef = TSharedPtr<FGameSession>;
 
 class FGameSessionManager
 {
@@ -13,7 +13,7 @@ public:
 
 private:
 	FCriticalSection CriticalSection;
-	set<FGameSessionRef> Sessions;
+	TSet<FGameSessionRef> Sessions;
 };
 
 extern FGameSessionManager GSessionManager;

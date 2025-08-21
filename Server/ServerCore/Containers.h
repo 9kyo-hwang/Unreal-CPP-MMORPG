@@ -9,6 +9,7 @@
 #include <set>
 #include <unordered_map>
 #include <unordered_set>
+#include <functional>
 
 template<typename T>
 using TArray = std::vector<T>;
@@ -33,6 +34,15 @@ using TUniquePtr = std::unique_ptr<T>;
 
 template<typename T>
 using TWeakPtr = std::weak_ptr<T>;
+
+template<typename T>
+using TFunction = std::function<T>;
+
+template<typename T, typename... Args>
+TSharedPtr<T> MakeShared(Args&&... args)
+{
+	return std::make_shared<T>(std::forward<Args>(args)...);
+}
 
 template<typename ObjectType>
 class TSharedFromThis : public std::enable_shared_from_this<ObjectType>

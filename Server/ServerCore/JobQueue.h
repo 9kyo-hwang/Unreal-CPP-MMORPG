@@ -12,27 +12,27 @@ class FJobQueue : public TSharedFromThis<FJobQueue>
 public:
 	void DoAsync(CallableType&& InCallable)
 	{
-		Push(make_shared<FJob>(std::move(InCallable)));
+		Push(MakeShared<FJob>(std::move(InCallable)));
 	}
 
 	template<typename ClassType, typename ReturnType, typename... Args>
 	void DoAsync(ReturnType(ClassType::*Method)(Args...), Args... InArgs)
 	{
-		shared_ptr<ClassType> Owner = SharedThis<ClassType>(this);
-		Push(make_shared<FJob>(Owner, Method, std::forward<Args>(InArgs)...));
+		TSharedPtr<ClassType> Owner = SharedThis<ClassType>(this);
+		Push(MakeShared<FJob>(Owner, Method, std::forward<Args>(InArgs)...));
 	}
 
 	void DoTimer(uint64 InRate, CallableType&& InCallable)
 	{
-		FJobRef Job = make_shared<FJob>(std::move(InCallable));
+		FJobRef Job = MakeShared<FJob>(std::move(InCallable));
 		GJobTimer->Reserve(InRate, AsShared(), Job);
 	}
 
 	template<typename ClassType, typename ReturnType, typename... Args>
 	void DoTimer(uint64 InRate, ReturnType(ClassType::* Method)(Args...), Args... InArgs)
 	{
-		shared_ptr<ClassType> Owner = SharedThis<ClassType>(this);
-		FJobRef Job = make_shared<FJob>(Owner, Method, std::forward<Args>(InArgs)...);
+		TSharedPtr<ClassType> Owner = SharedThis<ClassType>(this);
+		FJobRef Job = MakeShared<FJob>(Owner, Method, std::forward<Args>(InArgs)...);
 		GJobTimer->Reserve(InRate, AsShared(), Job);
 	}
 
