@@ -43,7 +43,7 @@ public:
 	}
 
 {%- for pkt in parser.send_pkt %}
-	static FSendBufferRef MakeSendBuffer(Protocol::{{pkt.name}}& Packet) { return MakeSendBuffer(Packet, PKT_{{pkt.name}}); }
+	static FSendBufferRef MakeSendBuffer(Protocol::{{pkt.name}}& Packet) { return FPacketSession::MakeSendBuffer(Packet, PKT_{{pkt.name}}); }
 {%- endfor %}
 
 private:
@@ -55,21 +55,5 @@ private:
 			return false;
 
 		return Function(Session, Packet);
-	}
-
-	template<typename T>
-	static FSendBufferRef MakeSendBuffer(T& Packet, uint16 PacketId)
-	{
-		const uint16 DataSize = static_cast<uint16>(Packet.ByteSizeLong());
-		const uint16 PacketSize = DataSize + sizeof(FPacketHeader);
-
-		FSendBufferRef SendBuffer = MakeShared<FSendBuffer>(PacketSize);
-		FPacketHeader* PacketHeader = reinterpret_cast<FPacketHeader*>(SendBuffer->GetData());
-		PacketHeader->Size = PacketSize;
-		PacketHeader->Id = PacketId;
-		check(Packet.SerializeToArray(&PacketHeader[1], DataSize));
-		SendBuffer->Close(PacketSize);
-
-		return SendBuffer;
 	}
 };

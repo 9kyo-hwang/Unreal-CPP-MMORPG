@@ -27,6 +27,9 @@ template<typename T>
 using TSet = std::unordered_set<T>;
 
 template<typename T>
+using TAtomic = std::atomic<T>;
+
+template<typename T>
 using TSharedPtr = std::shared_ptr<T>;
 
 template<typename T>

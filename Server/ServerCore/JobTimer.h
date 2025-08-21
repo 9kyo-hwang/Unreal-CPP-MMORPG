@@ -38,6 +38,6 @@ public:
 private:
 	FCriticalSection CriticalSection;
 	priority_queue<FTimerItem> Items;
-	atomic<bool> bIsDistributing{false};
+	TAtomic<bool> bIsDistributing{false};
 };
 

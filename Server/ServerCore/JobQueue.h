@@ -44,6 +44,6 @@ public:
 
 protected:
 	TLockQueue<FJobRef>		Jobs;
-	atomic<int32>			JobCount{0};
+	TAtomic<int32>			JobCount{0};
 };
 

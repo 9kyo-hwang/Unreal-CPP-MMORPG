@@ -48,9 +48,9 @@ public:
 		FPacketHeader* PacketHeader = reinterpret_cast<FPacketHeader*>(Buffer);
 		return GPacketHandler[PacketHeader->Id](Session, Buffer, Length);
 	}
-	static FSendBufferRef MakeSendBuffer(Protocol::C_LOGIN& Packet) { return MakeSendBuffer(Packet, PKT_C_LOGIN); }
-	static FSendBufferRef MakeSendBuffer(Protocol::C_ENTER_GAME& Packet) { return MakeSendBuffer(Packet, PKT_C_ENTER_GAME); }
-	static FSendBufferRef MakeSendBuffer(Protocol::C_CHAT& Packet) { return MakeSendBuffer(Packet, PKT_C_CHAT); }
+	static FSendBufferRef MakeSendBuffer(Protocol::C_LOGIN& Packet) { return FPacketSession::MakeSendBuffer(Packet, PKT_C_LOGIN); }
+	static FSendBufferRef MakeSendBuffer(Protocol::C_ENTER_GAME& Packet) { return FPacketSession::MakeSendBuffer(Packet, PKT_C_ENTER_GAME); }
+	static FSendBufferRef MakeSendBuffer(Protocol::C_CHAT& Packet) { return FPacketSession::MakeSendBuffer(Packet, PKT_C_CHAT); }
 
 private:
 	template<typename PacketType, typename ProcessFunc>
@@ -61,21 +61,5 @@ private:
 			return false;
 
 		return Function(Session, Packet);
-	}
-
-	template<typename T>
-	static FSendBufferRef MakeSendBuffer(T& Packet, uint16 PacketId)
-	{
-		const uint16 DataSize = static_cast<uint16>(Packet.ByteSizeLong());
-		const uint16 PacketSize = DataSize + sizeof(FPacketHeader);
-
-		FSendBufferRef SendBuffer = MakeShared<FSendBuffer>(PacketSize);
-		FPacketHeader* PacketHeader = reinterpret_cast<FPacketHeader*>(SendBuffer->GetData());
-		PacketHeader->Size = PacketSize;
-		PacketHeader->Id = PacketId;
-		check(Packet.SerializeToArray(&PacketHeader[1], DataSize));
-		SendBuffer->Close(PacketSize);
-
-		return SendBuffer;
 	}
 };

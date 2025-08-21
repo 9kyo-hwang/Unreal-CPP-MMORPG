@@ -3,7 +3,7 @@
 #include "IocpEvent.h"
 #include "NetAddress.h"
 #include "RecvBuffer.h"
-#include "FSocket.h"
+#include "Socket.h"
 
 class FService;
 
@@ -27,9 +27,9 @@ public:
 	virtual ~FSession();
 
 public:
-	void				Send(FSendBufferRef InSendBuffer);
-	bool				Connect();
-	void				Disconnect(const WCHAR* Msg);
+	void Send(FSendBufferRef InSendBuffer);
+	bool Connect();
+	void Disconnect(const WCHAR* Msg);
 
 	TSharedPtr<FService> GetService() const { return Service.lock(); }
 	void SetService(TSharedPtr<FService> InService) { Service = InService; }
@@ -37,7 +37,7 @@ public:
 public:
 	void				SetNetAddress(FNetAddress InAddr) { NetAddr = InAddr; }
 	FNetAddress			GetAddress() const { return NetAddr; }
-	SOCKET				GetSocket() { return Socket.GetSocket(); }
+	SOCKET				GetSocket() const { return Socket.GetSocket(); }
 	bool				IsConnected() { return bIsConnected; }
 	FSessionRef			GetSessionRef() { return SharedThis<FSession>(this); }
 
@@ -47,39 +47,39 @@ public:
 	}
 
 private:
-	HANDLE		GetHandle() override;
-	void		Dispatch(FSocketIOEvent* InEvent, int32 NumOfBytes = 0) override;
+	HANDLE GetHandle() override;
+	void Dispatch(FSocketIOEvent* InEvent, int32 NumOfBytes = 0) override;
 
 private:
-	bool				RegisterConnect();
-	bool				RegisterDisconnect();
-	void				RegisterRecv();
-	void				RegisterSend();
-
-	void				ProcessConnect();
-	void				ProcessDisconnect();
-	void				ProcessRecv(int32 BytesRecvd);
-	void				ProcessSend(int32 BytesSent);
-
-	void				HandleError(int32 ErrorCode);
+	bool RegisterConnect();
+	bool RegisterDisconnect();
+	void RegisterRecv();
+	void RegisterSend();
+		 
+	void ProcessConnect();
+	void ProcessDisconnect();
+	void ProcessRecv(int32 BytesRecvd);
+	void ProcessSend(int32 BytesSent);
+		 
+	void HandleError(int32 ErrorCode);
 
 protected:
-	virtual void		OnConnected() { }
-	virtual int32		OnRecv(BYTE* InBuffer, int32 InLength) { return InLength; }
-	virtual void		OnSend(int32 InLength) { }
-	virtual void		OnDisconnected() { }
+	virtual void OnConnected() { }
+	virtual int32 OnRecv(BYTE* InBuffer, int32 InLength) { return InLength; }
+	virtual void OnSend(int32 InLength) { }
+	virtual void OnDisconnected() { }
 
 private:
 	TWeakPtr<FService>	Service;
 	FSocket				Socket;
 	FNetAddress			NetAddr{};
-	atomic<bool>		bIsConnected{false};
+	TAtomic<bool>		bIsConnected{false};
 
 private:
 	FCriticalSection CriticalSection;
 	FReceiveBuffer RecvBuffer;
 	TQueue<FSendBufferRef> SendQueue;
-	atomic<bool> bIsSendRegistered{false};
+	TAtomic<bool> bIsSendRegistered{false};
 
 private:
 	FConnectEvent		ConnectEvent;
@@ -105,6 +105,22 @@ public:
 	~FPacketSession() override;
 
 	FPacketSessionRef GetPacketSessionRef() { return SharedThis<FPacketSession>(this); }
+
+	template<typename T>
+	static FSendBufferRef MakeSendBuffer(T& Packet, uint16 PacketId)
+	{
+		const uint16 DataSize = static_cast<uint16>(Packet.ByteSizeLong());
+		const uint16 PacketSize = DataSize + sizeof(FPacketHeader);
+
+		FSendBufferRef SendBuffer = MakeShared<FSendBuffer>(PacketSize);
+		FPacketHeader* PacketHeader = reinterpret_cast<FPacketHeader*>(SendBuffer->GetData());
+		PacketHeader->Size = PacketSize;
+		PacketHeader->Id = PacketId;
+		check(Packet.SerializeToArray(&PacketHeader[1], DataSize));
+		SendBuffer->Close(PacketSize);
+
+		return SendBuffer;
+	}
 
 protected:
 	int32 OnRecv(BYTE* InBuffer, int32 InLength) sealed;

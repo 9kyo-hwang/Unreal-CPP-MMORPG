@@ -90,7 +90,7 @@
     <ClInclude Include="Containers.h">
       <Filter>Main</Filter>
     </ClInclude>
-    <ClInclude Include="FSocket.h">
+    <ClInclude Include="Socket.h">
       <Filter>Network</Filter>
     </ClInclude>
   </ItemGroup>
@@ -158,7 +158,7 @@
     <ClCompile Include="BufferReader.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
-    <ClCompile Include="FSocket.cpp">
+    <ClCompile Include="Socket.cpp">
       <Filter>Network</Filter>
     </ClCompile>
   </ItemGroup>

@@ -43,7 +43,7 @@ void FThreadManager::Join()
 
 void FThreadManager::InitTLS()
 {
-	static atomic<uint32> SThreadId = 1;
+	static TAtomic<uint32> SThreadId{1};
 	LThreadId = SThreadId.fetch_add(1);
 }
 
@@ -62,19 +62,19 @@ void FThreadManager::DoGlobalQueueWork()
 			break;
 		}
 
-		FJobQueueRef jobQueue = GGlobalQueue->Pop();
-		if (jobQueue == nullptr)
+		FJobQueueRef JobQueue = GGlobalQueue->Pop();
+		if (JobQueue == nullptr)
 		{
 			break;
 		}
 
-		jobQueue->Execute();
+		JobQueue->Execute();
 	}
 }
 
 void FThreadManager::DistributeReservedJobs()
 {
-	const uint64 now = ::GetTickCount64();
+	const uint64 Tick = ::GetTickCount64();
 
-	GJobTimer->Distribute(now);
+	GJobTimer->Distribute(Tick);
 }
