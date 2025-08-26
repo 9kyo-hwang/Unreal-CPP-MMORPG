@@ -1,7 +1,5 @@
 #include "pch.h"
 #include "ServerPacketHandler.h"
-#include "BufferReader.h"
-#include "BufferWriter.h"
 
 FPacketHandlerFunc GPacketHandler[UINT16_MAX];
 
