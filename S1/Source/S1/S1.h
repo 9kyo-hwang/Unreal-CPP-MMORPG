@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 
-struct FProtobufHeader
+struct PacketHeader
 {
 	uint16 Size;
 	uint16 Id;
 };
 
-class FSendBuffer : TSharedFromThis<FSendBuffer>
+class FSendBuffer : public TSharedFromThis<FSendBuffer>
 {
 public:
 	FSendBuffer(int32 InBufferSize);

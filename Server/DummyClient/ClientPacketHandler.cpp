@@ -4,7 +4,7 @@
 
 FPacketHandlerFunc GPacketHandler[UINT16_MAX];
 
-bool Handle_INVALID(FPacketSessionRef& session, BYTE* buffer, int32 len)
+bool Handle_INVALID(FPacketSessionRef& Session, BYTE* Buffer, int32 Length)
 {
 	return false;
 }

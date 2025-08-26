@@ -15,7 +15,7 @@ public:
 		cout << "~FServerSession" << endl;
 	}
 
-	virtual void OnConnected() override
+	void OnConnected() override
 	{
 		cout << "OnConnected" << endl;
 		
@@ -24,21 +24,21 @@ public:
 		Send(sendBuffer);
 	}
 
-	virtual void OnReceive(BYTE* buffer, int32 len) override
+	void OnReceive(BYTE* Buffer, int32 Length) override
 	{
-		FPacketSessionRef session = GetPacketSessionRef();
-		FPacketHeader* header = reinterpret_cast<FPacketHeader*>(buffer);
+		FPacketSessionRef Session = GetPacketSessionRef();
+		PacketHeader* Header = reinterpret_cast<PacketHeader*>(Buffer);
 
 		// TODO : packetId 대역 체크
-		ClientPacketHandler::HandlePacket(session, buffer, len);
+		ClientPacketHandler::HandlePacket(Session, Buffer, Length);
 	}
 
-	virtual void OnSend(int32 len) override
+	void OnSend(int32 Length) override
 	{
-		cout << "OnSend Len = " << len << endl;
+		cout << "OnSend Len = " << Length << endl;
 	}
 
-	virtual void OnDisconnected() override
+	void OnDisconnected() override
 	{
 		cout << "Disconnected" << endl;
 	}

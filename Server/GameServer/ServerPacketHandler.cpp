@@ -5,9 +5,9 @@
 
 FPacketHandlerFunc GPacketHandler[UINT16_MAX];
 
-bool Handle_INVALID(FPacketSessionRef& session, BYTE* buffer, int32 len)
+bool Handle_INVALID(FPacketSessionRef& Session, BYTE* Buffer, int32 Length)
 {
-	FPacketHeader* header = reinterpret_cast<FPacketHeader*>(buffer);
+	PacketHeader* Header = reinterpret_cast<PacketHeader*>(Buffer);
 	// TODO : Log
 	return false;
 }

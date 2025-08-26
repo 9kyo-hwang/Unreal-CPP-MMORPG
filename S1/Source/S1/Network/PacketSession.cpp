@@ -3,11 +3,14 @@
 
 #include "Network/PacketSession.h"
 
+#include "ClientPacketHandler.h"
 #include "NetworkWorker.h"
 
 FPacketSession::FPacketSession(FSocket* InSocket)
 	: Socket(InSocket)
 {
+	// 세션 생성자에서 패킷 핸들러 초기화
+	ClientPacketHandler::Init();
 }
 
 FPacketSession::~FPacketSession()
@@ -20,14 +23,15 @@ void FPacketSession::HandleRecvPackets()
 {
 	while (true)
 	{
-		TArray<uint8> Packet;
+		TArray<uint8> Packet;  // PacketHeader 포함
 		if (!RecvPacketQueue.Dequeue(Packet))
 		{
 			break;
 		}
 
-		// TODO
-		// ClientPacketHandler::HandlePacket();
+		// 현재 FPacketSessionRef의 &로 넘겨주고 있어서, 임시 변수에 할당
+		FPacketSessionRef ThisPtr = AsShared();
+		ClientPacketHandler::HandlePacket(ThisPtr, Packet.GetData(), Packet.Num());
 	}
 }
 

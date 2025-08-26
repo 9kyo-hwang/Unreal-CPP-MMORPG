@@ -38,12 +38,12 @@ public:
 
 	static bool HandlePacket(FPacketSessionRef& Session, BYTE* Buffer, int32 Length)
 	{
-		FPacketHeader* PacketHeader = reinterpret_cast<FPacketHeader*>(Buffer);
-		return GPacketHandler[PacketHeader->Id](Session, Buffer, Length);
+		PacketHeader* Header = reinterpret_cast<PacketHeader*>(Buffer);
+		return GPacketHandler[Header->Id](Session, Buffer, Length);
 	}
 
 {%- for pkt in parser.send_pkt %}
-	static FSendBufferRef MakeSendBuffer(Protocol::{{pkt.name}}& Packet) { return FPacketSession::MakeSendBuffer(Packet, PKT_{{pkt.name}}); }
+	static FSendBufferRef MakeSendBuffer(Protocol::{{pkt.name}}& Packet) { return MakeSendBuffer(Packet, PKT_{{pkt.name}}); }
 {%- endfor %}
 
 private:
@@ -51,9 +51,25 @@ private:
 	static bool HandlePacket(ProcessFunc Function, FPacketSessionRef& Session, BYTE* Buffer, int32 Length)
 	{
 		PacketType Packet;
-		if (Packet.ParseFromArray(Buffer + sizeof(FPacketHeader), Length - sizeof(FPacketHeader)) == false)
+		if (Packet.ParseFromArray(Buffer + sizeof(PacketHeader), Length - sizeof(PacketHeader)) == false)
 			return false;
 
 		return Function(Session, Packet);
+	}
+
+	template<typename T>
+	static FSendBufferRef MakeSendBuffer(T& Packet, uint16 PacketId)
+	{
+		const uint16 DataSize = static_cast<uint16>(Packet.ByteSizeLong());
+		const uint16 PacketSize = DataSize + sizeof(PacketHeader);
+
+		FSendBufferRef SendBuffer = MakeShared<FSendBuffer>(PacketSize);
+		PacketHeader* Header = reinterpret_cast<PacketHeader*>(SendBuffer->GetData());
+		Header->Size = PacketSize;
+		Header->Id = PacketId;
+		check(Packet.SerializeToArray(&Header[1], DataSize));
+		SendBuffer->Close(PacketSize);
+
+		return SendBuffer;
 	}
 };

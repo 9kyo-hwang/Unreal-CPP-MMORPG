@@ -21,7 +21,6 @@ void US1GameInstance::Connect()
 
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Connecting To Server...")));
 
-	// Blocking, 하지만 최초 로그인 1회때만 동작하기 때문에 1,2초 정도의 지연은 별 문제 아님
 	if (Socket->Connect(*InternetAddr))
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Connection Success")));
@@ -62,6 +61,5 @@ void US1GameInstance::SendPacket(FSendBufferRef SendBuffer)
 		return;
 	}
 
-	// Main Thread가 Queue에 Packet을 추가
 	GameServerSession->SendPacket(SendBuffer);
 }

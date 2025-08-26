@@ -17,7 +17,7 @@ void FGameSession::OnDisconnected()
 void FGameSession::OnReceive(BYTE* Buffer, int32 Length)
 {
 	FPacketSessionRef Session = GetPacketSessionRef();
-	FPacketHeader* PacketHeader = reinterpret_cast<FPacketHeader*>(Buffer);
+	PacketHeader* Header = reinterpret_cast<PacketHeader*>(Buffer);
 
 	// TODO
 	ServerPacketHandler::HandlePacket(Session, Buffer, Length);

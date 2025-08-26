@@ -286,22 +286,22 @@ FPacketSession::~FPacketSession()
 
 int32 FPacketSession::OnRecv(BYTE* InBuffer, int32 InLength)
 {
-	int32 processLen = 0;
+	int32 ProcessedSize = 0;
 
 	while (true)
 	{
-		int32 dataSize = InLength - processLen;
-		if (dataSize < sizeof(FPacketHeader))
+		int32 DataSize = InLength - ProcessedSize;
+		if (DataSize < sizeof(PacketHeader))
 			break;
 
-		FPacketHeader header = *(reinterpret_cast<FPacketHeader*>(&InBuffer[processLen]));
-		if (dataSize < header.Size)
+		PacketHeader Header = *reinterpret_cast<PacketHeader*>(&InBuffer[ProcessedSize]);
+		if (DataSize < Header.Size)
 			break;
 
-		OnReceive(&InBuffer[processLen], header.Size);
+		OnReceive(&InBuffer[ProcessedSize], Header.Size);
 
-		processLen += header.Size;
+		ProcessedSize += Header.Size;
 	}
 
-	return processLen;
+	return ProcessedSize;
 }

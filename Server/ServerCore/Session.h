@@ -92,7 +92,7 @@ private:
 	FPacketSession
 ------------------*/
 
-struct FPacketHeader
+struct PacketHeader
 {
 	uint16 Size;
 	uint16 Id;
@@ -105,22 +105,6 @@ public:
 	~FPacketSession() override;
 
 	FPacketSessionRef GetPacketSessionRef() { return SharedThis<FPacketSession>(this); }
-
-	template<typename T>
-	static FSendBufferRef MakeSendBuffer(T& Packet, uint16 PacketId)
-	{
-		const uint16 DataSize = static_cast<uint16>(Packet.ByteSizeLong());
-		const uint16 PacketSize = DataSize + sizeof(FPacketHeader);
-
-		FSendBufferRef SendBuffer = MakeShared<FSendBuffer>(PacketSize);
-		FPacketHeader* PacketHeader = reinterpret_cast<FPacketHeader*>(SendBuffer->GetData());
-		PacketHeader->Size = PacketSize;
-		PacketHeader->Id = PacketId;
-		check(Packet.SerializeToArray(&PacketHeader[1], DataSize));
-		SendBuffer->Close(PacketSize);
-
-		return SendBuffer;
-	}
 
 protected:
 	int32 OnRecv(BYTE* InBuffer, int32 InLength) sealed;
