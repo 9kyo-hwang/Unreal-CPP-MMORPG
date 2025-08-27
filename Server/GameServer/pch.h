@@ -17,4 +17,4 @@
 #include "Struct.pb.h"
 #include "ServerPacketHandler.h"
 
-using FGameSessionRef = shared_ptr<class FGameSession>;
+using FGameSessionRef = TSharedPtr<class FGameSession>;

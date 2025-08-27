@@ -19,7 +19,7 @@ enum : uint16
 bool Handle_INVALID(FPacketSessionRef& InSession, BYTE* InBuffer, int32 InLength);
 
 {%- for pkt in parser.recv_pkt %}
-bool Handle_{{pkt.name}}(FPacketSessionRef& InSession, Protocol::{{pkt.name}}& Packet);
+bool Handle_{{pkt.name}}(FPacketSessionRef& InSession, Protocol::{{pkt.name}}& InPacket);
 {%- endfor %}
 
 class {{output}}

@@ -3,7 +3,9 @@
 
 #include "S1GameInstance.h"
 
+#include "ClientPacketHandler.h"
 #include "PacketSession.h"
+#include "Protocol.pb.h"
 #include "Sockets.h"
 #include "SocketSubsystem.h"
 #include "Interfaces/IPv4/IPv4Address.h"
@@ -27,6 +29,10 @@ void US1GameInstance::Connect()
 
 		GameServerSession = MakeShared<FPacketSession>(Socket);
 		GameServerSession->Run();	// Create RecvThread
+
+		// TEMP: Lobby에서 캐릭터 선택창을 표시하는 등 Login Packet 전송
+		Protocol::C_LOGIN Packet;
+		SendPacket(ClientPacketHandler::MakeSendBuffer(Packet));
 	}
 	else
 	{
