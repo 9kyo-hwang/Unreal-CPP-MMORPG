@@ -79,7 +79,7 @@ private:
 	FCriticalSection CriticalSection;
 	FReceiveBuffer RecvBuffer;
 	TQueue<FSendBufferRef> SendQueue;
-	TAtomic<bool> bIsSendRegistered{false};
+	TAtomic<bool> bIsRegistering{false};
 
 private:
 	FConnectEvent		ConnectEvent;

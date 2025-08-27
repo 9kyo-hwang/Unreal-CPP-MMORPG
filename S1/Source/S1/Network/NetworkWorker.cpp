@@ -87,6 +87,12 @@ bool FRecvThread::Recv(TArray<uint8>& OutPacket)
 
 	// 3. Payload ÆÄ½Ì
 	const int32 PayloadSize = Header.PacketSize - HeaderSize;
+	if (PayloadSize == 0)  // only head -> early return
+	{
+		OutPacket = HeaderBuffer;
+		return true;
+	}
+
 	TArray<uint8> PayloadBuffer;
 	PayloadBuffer.AddZeroed(PayloadSize);
 

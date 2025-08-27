@@ -10,17 +10,22 @@ bool Handle_INVALID(FPacketSessionRef& Session, BYTE* Buffer, int32 Length)
 	return false;
 }
 
-bool Handle_C_LOGIN(FPacketSessionRef& session, Protocol::C_LOGIN& pkt)
+bool Handle_C_LOGIN(FPacketSessionRef& Session, Protocol::C_LOGIN& Packet)
 {
 	return true;
 }
 
-bool Handle_C_ENTER_GAME(FPacketSessionRef& session, Protocol::C_ENTER_GAME& pkt)
+bool Handle_C_ENTER_GAME(FPacketSessionRef& Session, Protocol::C_ENTER_GAME& Packet)
 {
 	return true;
 }
 
-bool Handle_C_CHAT(FPacketSessionRef& session, Protocol::C_CHAT& pkt)
+bool Handle_C_LEAVE_GAME(FPacketSessionRef& Session, Protocol::C_LEAVE_GAME& Packet)
+{
+	return true;
+}
+
+bool Handle_C_CHAT(FPacketSessionRef& Session, Protocol::C_CHAT& Packet)
 {
 	return true;
 }

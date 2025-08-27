@@ -14,14 +14,19 @@ enum : uint16
 	PKT_S_LOGIN = 1001,
 	PKT_C_ENTER_GAME = 1002,
 	PKT_S_ENTER_GAME = 1003,
-	PKT_C_CHAT = 1004,
-	PKT_S_CHAT = 1005,
+	PKT_C_LEAVE_GAME = 1004,
+	PKT_S_LEAVE_GAME = 1005,
+	PKT_S_SPAWN = 1006,
+	PKT_S_DESPAWN = 1007,
+	PKT_C_CHAT = 1008,
+	PKT_S_CHAT = 1009,
 };
 
 // Custom Handlers
 bool Handle_INVALID(FPacketSessionRef& InSession, BYTE* InBuffer, int32 InLength);
 bool Handle_C_LOGIN(FPacketSessionRef& InSession, Protocol::C_LOGIN& Packet);
 bool Handle_C_ENTER_GAME(FPacketSessionRef& InSession, Protocol::C_ENTER_GAME& Packet);
+bool Handle_C_LEAVE_GAME(FPacketSessionRef& InSession, Protocol::C_LEAVE_GAME& Packet);
 bool Handle_C_CHAT(FPacketSessionRef& InSession, Protocol::C_CHAT& Packet);
 
 class ServerPacketHandler
@@ -41,6 +46,10 @@ public:
 			{
 				return HandlePacket<Protocol::C_ENTER_GAME>(Handle_C_ENTER_GAME, Session, Buffer, Length);
 			};
+		GPacketHandler[PKT_C_LEAVE_GAME] = [](FPacketSessionRef& Session, BYTE* Buffer, int32 Length)
+			{
+				return HandlePacket<Protocol::C_LEAVE_GAME>(Handle_C_LEAVE_GAME, Session, Buffer, Length);
+			};
 		GPacketHandler[PKT_C_CHAT] = [](FPacketSessionRef& Session, BYTE* Buffer, int32 Length)
 			{
 				return HandlePacket<Protocol::C_CHAT>(Handle_C_CHAT, Session, Buffer, Length);
@@ -54,6 +63,9 @@ public:
 	}
 	static FSendBufferRef MakeSendBuffer(Protocol::S_LOGIN& Packet) { return MakeSendBuffer(Packet, PKT_S_LOGIN); }
 	static FSendBufferRef MakeSendBuffer(Protocol::S_ENTER_GAME& Packet) { return MakeSendBuffer(Packet, PKT_S_ENTER_GAME); }
+	static FSendBufferRef MakeSendBuffer(Protocol::S_LEAVE_GAME& Packet) { return MakeSendBuffer(Packet, PKT_S_LEAVE_GAME); }
+	static FSendBufferRef MakeSendBuffer(Protocol::S_SPAWN& Packet) { return MakeSendBuffer(Packet, PKT_S_SPAWN); }
+	static FSendBufferRef MakeSendBuffer(Protocol::S_DESPAWN& Packet) { return MakeSendBuffer(Packet, PKT_S_DESPAWN); }
 	static FSendBufferRef MakeSendBuffer(Protocol::S_CHAT& Packet) { return MakeSendBuffer(Packet, PKT_S_CHAT); }
 
 private:

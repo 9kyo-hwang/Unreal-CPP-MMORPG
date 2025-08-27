@@ -14,20 +14,17 @@ FSession::~FSession()
 void FSession::Send(FSendBufferRef InSendBuffer)
 {
 	if (IsConnected() == false)
-		return;
-
-	bool registerSend = false;
 	{
-		FScopeLock ScopeLock(CriticalSection);
-
-		SendQueue.push(InSendBuffer);
-
-		if (bIsSendRegistered.exchange(true) == false)
-			registerSend = true;
+		return;
 	}
-	
-	if (registerSend)
+
+	FScopeLock ScopeLock(CriticalSection);
+
+	SendQueue.push(InSendBuffer);
+	if (bIsRegistering.exchange(true) == false)
+	{
 		RegisterSend();
+	}
 }
 
 bool FSession::Connect()
@@ -88,12 +85,20 @@ bool FSession::RegisterConnect()
 	ConnectEvent.Init();
 	ConnectEvent.Owner = AsShared();
 
-	DWORD numOfBytes = 0;
-	SOCKADDR_IN sockAddr = GetService()->GetNetAddress().GetSockAddr();
-	if (false == FSocketUtils::ConnectEx(Socket.GetSocket(), reinterpret_cast<SOCKADDR*>(&sockAddr), sizeof(sockAddr), nullptr, 0, &numOfBytes, &ConnectEvent))
+	DWORD BytesSent = 0;
+	SOCKADDR_IN SockAddr = GetService()->GetNetAddress().GetSockAddr();
+	if (false == FSocketUtils::ConnectEx(
+		Socket.GetSocket(), 
+		reinterpret_cast<SOCKADDR*>(&SockAddr), 
+		sizeof(SockAddr), 
+		nullptr, 
+		0, 
+		&BytesSent, 
+		&ConnectEvent)
+		)
 	{
-		int32 errorCode = ::WSAGetLastError();
-		if (errorCode != WSA_IO_PENDING)
+		int32 Error = ::WSAGetLastError();
+		if (Error != WSA_IO_PENDING)
 		{
 			ConnectEvent.Owner = nullptr;
 			return false;
@@ -129,18 +134,20 @@ void FSession::RegisterRecv()
 	RecvEvent.Init();
 	RecvEvent.Owner = AsShared();
 
-	WSABUF wsaBuf;
-	wsaBuf.buf = reinterpret_cast<char*>(RecvBuffer.WritePos());
-	wsaBuf.len = RecvBuffer.GetFreeSize();
-
-	DWORD numOfBytes = 0;
-	DWORD flags = 0;
-	if (SOCKET_ERROR == ::WSARecv(Socket.GetSocket(), &wsaBuf, 1, OUT &numOfBytes, OUT &flags, &RecvEvent, nullptr))
+	WSABUF Buffer
 	{
-		int32 errorCode = ::WSAGetLastError();
-		if (errorCode != WSA_IO_PENDING)
+		static_cast<ULONG>(RecvBuffer.GetFreeSize()),
+		reinterpret_cast<char*>(RecvBuffer.WritePos())
+	};
+
+	DWORD BytesRecvd = 0;
+	DWORD Flags = 0;
+	if (SOCKET_ERROR == ::WSARecv(Socket.GetSocket(), &Buffer, 1, OUT &BytesRecvd, OUT &Flags, &RecvEvent, nullptr))
+	{
+		int32 Error = ::WSAGetLastError();
+		if (Error != WSA_IO_PENDING)
 		{
-			HandleError(errorCode);
+			HandleError(Error);
 			RecvEvent.Owner = nullptr;
 		}
 	}
@@ -149,45 +156,54 @@ void FSession::RegisterRecv()
 void FSession::RegisterSend()
 {
 	if (IsConnected() == false)
+	{
 		return;
+	}
 
 	SendEvent.Init();
 	SendEvent.Owner = AsShared();
+
+	int32 WriteSize = 0;
+	while (SendQueue.empty() == false)
 	{
-		FScopeLock ScopeLock(CriticalSection);
+		FSendBufferRef SendBuffer = SendQueue.front();
+		WriteSize += SendBuffer->GetWriteSize();
 
-		int32 writeSize = 0;
-		while (SendQueue.empty() == false)
-		{
-			FSendBufferRef sendBuffer = SendQueue.front();
-
-			writeSize += sendBuffer->GetWriteSize();
-
-			SendQueue.pop();
-			SendEvent.SendBuffers.push_back(sendBuffer);
-		}
+		SendQueue.pop();
+		SendEvent.SendBuffers.push_back(SendBuffer);
 	}
 
-	vector<WSABUF> wsaBufs;
-	wsaBufs.reserve(SendEvent.SendBuffers.size());
-	for (FSendBufferRef sendBuffer : SendEvent.SendBuffers)
+	vector<WSABUF> Buffers;
+	Buffers.reserve(SendEvent.SendBuffers.size());
+	for (FSendBufferRef SendBuffer : SendEvent.SendBuffers)
 	{
-		WSABUF wsaBuf;
-		wsaBuf.buf = reinterpret_cast<char*>(sendBuffer->GetData());
-		wsaBuf.len = static_cast<LONG>(sendBuffer->GetWriteSize());
-		wsaBufs.push_back(wsaBuf);
+		WSABUF Buffer
+		{
+			static_cast<ULONG>(SendBuffer->GetWriteSize()),
+			reinterpret_cast<CHAR*>(SendBuffer->GetData())
+		};
+
+		Buffers.emplace_back(Buffer);
 	}
 
-	DWORD numOfBytes = 0;
-	if (SOCKET_ERROR == ::WSASend(Socket.GetSocket(), wsaBufs.data(), static_cast<DWORD>(wsaBufs.size()), OUT &numOfBytes, 0, &SendEvent, nullptr))
+	DWORD BytesSent = 0;
+	if (SOCKET_ERROR == ::WSASend(
+		Socket.GetSocket(), 
+		Buffers.data(), 
+		static_cast<DWORD>(Buffers.size()), 
+		OUT &BytesSent, 
+		0, 
+		&SendEvent, 
+		nullptr)
+		)
 	{
-		int32 errorCode = ::WSAGetLastError();
-		if (errorCode != WSA_IO_PENDING)
+		int32 Error = ::WSAGetLastError();
+		if (Error != WSA_IO_PENDING)
 		{
-			HandleError(errorCode);
+			HandleError(Error);
 			SendEvent.Owner = nullptr;
 			SendEvent.SendBuffers.clear();
-			bIsSendRegistered.store(false);
+			bIsRegistering.store(false);
 		}
 	}
 }
@@ -257,9 +273,13 @@ void FSession::ProcessSend(int32 BytesSent)
 
 	FScopeLock ScopeLock(CriticalSection);
 	if (SendQueue.empty())
-		bIsSendRegistered.store(false);
+	{
+		bIsRegistering.store(false);
+	}
 	else
+	{
 		RegisterSend();
+	}
 }
 
 void FSession::HandleError(int32 ErrorCode)
