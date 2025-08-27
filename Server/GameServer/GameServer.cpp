@@ -56,11 +56,11 @@ int main()
 
 	while (true)
 	{
-		Protocol::S_CHAT Packet;
-		Packet.set_msg("HelloWorld");
-		auto SendBuffer = ServerPacketHandler::MakeSendBuffer(Packet);
+		//Protocol::S_CHAT Packet;
+		//Packet.set_msg("HelloWorld");
+		//auto SendBuffer = ServerPacketHandler::MakeSendBuffer(Packet);
 
-		GSessionManager.Broadcast(SendBuffer);
+		//GSessionManager.Broadcast(SendBuffer);
 		this_thread::sleep_for(1s);
 	}
 
