@@ -42,12 +42,13 @@ void US1GameInstance::Connect()
 
 void US1GameInstance::Disconnect()
 {
-	if (Socket)
+	if (!Socket || !GameServerSession)
 	{
-		ISocketSubsystem* SocketSubsystem = ISocketSubsystem::Get();
-		SocketSubsystem->DestroySocket(Socket);
-		Socket = nullptr;
+		return;
 	}
+
+	Protocol::C_LEAVE_GAME Packet;
+	GameServerSession->SendPacket(ClientPacketHandler::MakeSendBuffer(Packet));
 }
 
 void US1GameInstance::HandleRecvPackets()
@@ -68,4 +69,60 @@ void US1GameInstance::SendPacket(FSendBufferRef SendBuffer)
 	}
 
 	GameServerSession->SendPacket(SendBuffer);
+}
+
+void US1GameInstance::SpawnPlayer(const Protocol::PlayerInfo& InPlayerInfo)
+{
+	if (Socket == nullptr || GameServerSession == nullptr)
+	{
+		return;
+	}
+
+	if (UWorld* World = GetWorld())
+	{
+		const uint64 ObjectId = InPlayerInfo.object_id();
+		if (!Players.Contains(ObjectId))
+		{
+			FVector SpawnLocation(InPlayerInfo.x(), InPlayerInfo.y(), InPlayerInfo.z());
+			AActor* Actor = World->SpawnActor(PlayerClass, &SpawnLocation);
+			Players.Emplace(ObjectId, Actor);
+		}
+	}
+}
+
+void US1GameInstance::SpawnPlayer(const Protocol::S_ENTER_GAME& InPacket)
+{
+	SpawnPlayer(InPacket.player());
+}
+
+void US1GameInstance::SpawnPlayer(const Protocol::S_SPAWN& InPacket)
+{
+	for (auto& PlayerInfo : InPacket.players())
+	{
+		SpawnPlayer(PlayerInfo);
+	}
+}
+
+void US1GameInstance::DespawnPlayer(const uint64 ObjectId)
+{
+	if (!Socket || !GameServerSession)
+	{
+		return;
+	}
+
+	if (UWorld* World = GetWorld())
+	{
+		if (TObjectPtr<AActor>* TargetActor = Players.Find(ObjectId))
+		{
+			World->DestroyActor(*TargetActor);
+		}
+	}
+}
+
+void US1GameInstance::DespawnPlayer(const Protocol::S_DESPAWN& InPacket)
+{
+	for (const uint64 ObjectId : InPacket.object_ids())
+	{
+		DespawnPlayer(ObjectId);
+	}
 }

@@ -83,3 +83,4 @@ public:
 		return std::static_pointer_cast<OtherType>(ThisPtr->shared_from_this());
 	}
 };
+

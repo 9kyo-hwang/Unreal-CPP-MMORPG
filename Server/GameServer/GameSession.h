@@ -16,6 +16,7 @@ public:
 	void OnReceive(BYTE* Buffer, int32 Length) override;
 	void OnSend(int32 Length) override;
 
+	TSharedPtr<APlayer> GetPlayer() const { return Player.load(); }
 	void ChangePlayer(TSharedPtr<APlayer> NewPlayer) { Player.store(NewPlayer); }
 
 private:

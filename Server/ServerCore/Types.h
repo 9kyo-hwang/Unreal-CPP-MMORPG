@@ -1,6 +1,7 @@
 #pragma once
 
 #include <mutex>
+#include <memory>
 
 using BYTE = unsigned char;
 using int8 = __int8;
@@ -14,6 +15,28 @@ using uint64 = unsigned __int64;
 
 using FCriticalSection = std::mutex;
 using FScopeLock = std::lock_guard<std::mutex>;
+
+/*----------------------
+	 Pointer Cast
+----------------------*/
+
+template<typename CastToType, typename CastFromType>
+[[nodiscard]] __forceinline std::shared_ptr<CastToType> StaticCastSharedPtr(const std::shared_ptr<CastFromType>& Ptr)
+{
+	return std::static_pointer_cast<CastToType>(Ptr);
+}
+
+template<typename CastToType, typename CastFromType>
+[[nodiscard]] __forceinline std::shared_ptr<CastToType> DynamicCastSharedPtr(const std::shared_ptr<CastFromType>& Ptr)
+{
+	return std::dynamic_pointer_cast<CastToType>(Ptr);
+}
+
+template<typename CastToType, typename CastFromType>
+[[nodiscard]] __forceinline std::shared_ptr<CastToType> ConstCastSharedPtr(const std::shared_ptr<CastFromType>& Ptr)
+{
+	return std::const_pointer_cast<CastToType>(Ptr);
+}
 
 #define USING_SHARED_PTR(name)	using name##Ref = std::shared_ptr<class name>;
 

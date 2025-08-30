@@ -7,6 +7,14 @@
 #include "Engine/GameInstance.h"
 #include "S1GameInstance.generated.h"
 
+namespace Protocol
+{
+	class S_SPAWN;
+	class S_ENTER_GAME;
+	class PlayerInfo;
+	class S_DESPAWN;
+}
+
 /**
  * 
  */
@@ -27,9 +35,21 @@ public:
 
 	void SendPacket(FSendBufferRef SendBuffer);
 
+	void SpawnPlayer(const Protocol::PlayerInfo& InPlayerInfo);
+	void SpawnPlayer(const Protocol::S_ENTER_GAME& InPacket);
+	void SpawnPlayer(const Protocol::S_SPAWN& InPacket);
+
+	void DespawnPlayer(const uint64 ObjectId);
+	void DespawnPlayer(const Protocol::S_DESPAWN& InPacket);
+
 public:
 	FSocket* Socket;
 	FString AddressString = TEXT("127.0.0.1");
 	int16 Port = 7777;
-	TSharedPtr<class FPacketSession> GameServerSession;
+	TSharedPtr<FPacketSession> GameServerSession;
+
+	UPROPERTY(EditAnywhere)	// BP에서 플레이어 클래스 세팅 가능
+	TSubclassOf<AActor> PlayerClass;
+
+	TMap<uint64, TObjectPtr<AActor>> Players;
 };

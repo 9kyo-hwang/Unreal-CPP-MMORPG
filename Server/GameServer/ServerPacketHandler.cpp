@@ -4,6 +4,7 @@
 #include "ActorFactory.h"
 #include "GameSession.h"
 #include "MathUtility.h"
+#include "Player.h"
 #include "World.h"
 
 FPacketHandlerFunc GPacketHandler[UINT16_MAX];
@@ -53,7 +54,20 @@ bool Handle_C_ENTER_GAME(FPacketSessionRef& Session, Protocol::C_ENTER_GAME& InP
 
 bool Handle_C_LEAVE_GAME(FPacketSessionRef& Session, Protocol::C_LEAVE_GAME& InPacket)
 {
-	return true;
+	if (FGameSessionRef GameSession = StaticCastSharedPtr<FGameSession>(Session))
+	{
+		if (TSharedPtr<APlayer> Player = GameSession->GetPlayer())
+		{
+			// 플레이어가 속한 월드 정보를 가져와야 함
+			if (TSharedPtr<FWorld> World = Player->GetWorld())
+			{
+				World->LeavePlayer(Player);
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
 
 bool Handle_C_CHAT(FPacketSessionRef& Session, Protocol::C_CHAT& InPacket)

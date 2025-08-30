@@ -8,9 +8,11 @@ public:
 	APlayer(int64 Id, FGameSessionRef InSession);
 	virtual ~APlayer();
 
-	Protocol::PlayerInfo* GetData() const { return Info; }
+	Protocol::PlayerInfo* GetInfo() const { return Info; }
 	FGameSessionRef GetSession() const { return Session.lock(); }
-	void SetWorldIn(TSharedPtr<FWorld> NewWorld) { World.store(NewWorld); }
+	TSharedPtr<FWorld> GetWorld() const { return World.load().lock(); }
+	void SetWorld(TSharedPtr<FWorld> NewWorld) { World.store(NewWorld); }
+	void SetWorld(TWeakPtr<FWorld> NewWorld) { World.store(NewWorld); }
 
 protected:
 	Protocol::PlayerInfo* Info;
