@@ -7,6 +7,8 @@
 #include "Engine/GameInstance.h"
 #include "S1GameInstance.generated.h"
 
+class AS1Player;
+
 namespace Protocol
 {
 	class S_SPAWN;
@@ -35,7 +37,7 @@ public:
 
 	void SendPacket(FSendBufferRef SendBuffer);
 
-	void SpawnPlayer(const Protocol::PlayerInfo& InPlayerInfo);
+	void SpawnPlayer(const Protocol::PlayerInfo& InPlayerInfo, bool bIsMyPlayer);
 	void SpawnPlayer(const Protocol::S_ENTER_GAME& InPacket);
 	void SpawnPlayer(const Protocol::S_SPAWN& InPacket);
 
@@ -49,7 +51,7 @@ public:
 	TSharedPtr<FPacketSession> GameServerSession;
 
 	UPROPERTY(EditAnywhere)	// BP에서 플레이어 클래스 세팅 가능
-	TSubclassOf<AActor> PlayerClass;
-
-	TMap<uint64, TObjectPtr<AActor>> Players;
+	TSubclassOf<AS1Player> OtherPlayerClass;
+	TObjectPtr<AS1Player> MyPlayer;
+	TMap<uint64, TObjectPtr<AS1Player>> Players;
 };

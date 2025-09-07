@@ -6,9 +6,11 @@
 #include "ClientPacketHandler.h"
 #include "PacketSession.h"
 #include "Protocol.pb.h"
+#include "S1Player.h"
 #include "Sockets.h"
 #include "SocketSubsystem.h"
 #include "Interfaces/IPv4/IPv4Address.h"
+#include "Kismet/GameplayStatics.h"
 
 void US1GameInstance::Connect()
 {
@@ -71,7 +73,7 @@ void US1GameInstance::SendPacket(FSendBufferRef SendBuffer)
 	GameServerSession->SendPacket(SendBuffer);
 }
 
-void US1GameInstance::SpawnPlayer(const Protocol::PlayerInfo& InPlayerInfo)
+void US1GameInstance::SpawnPlayer(const Protocol::PlayerInfo& InPlayerInfo, bool bIsMyPlayer)
 {
 	if (Socket == nullptr || GameServerSession == nullptr)
 	{
@@ -84,22 +86,34 @@ void US1GameInstance::SpawnPlayer(const Protocol::PlayerInfo& InPlayerInfo)
 		if (!Players.Contains(ObjectId))
 		{
 			FVector SpawnLocation(InPlayerInfo.x(), InPlayerInfo.y(), InPlayerInfo.z());
-			AActor* Actor = World->SpawnActor(PlayerClass, &SpawnLocation);
-			Players.Emplace(ObjectId, Actor);
+			if (bIsMyPlayer)
+			{
+				const APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+				if (AS1Player* Player = Cast<AS1Player>(PC->GetPawn()))
+				{
+					MyPlayer = Player;
+					Players.Emplace(ObjectId, Player);
+				}
+			}
+			else
+			{
+				AS1Player* OtherPlayer = Cast<AS1Player>(World->SpawnActor(OtherPlayerClass, &SpawnLocation));
+				Players.Emplace(ObjectId, OtherPlayer);
+			}
 		}
 	}
 }
 
 void US1GameInstance::SpawnPlayer(const Protocol::S_ENTER_GAME& InPacket)
 {
-	SpawnPlayer(InPacket.player());
+	SpawnPlayer(InPacket.player(), true);
 }
 
 void US1GameInstance::SpawnPlayer(const Protocol::S_SPAWN& InPacket)
 {
 	for (auto& PlayerInfo : InPacket.players())
 	{
-		SpawnPlayer(PlayerInfo);
+		SpawnPlayer(PlayerInfo, false);
 	}
 }
 
@@ -112,7 +126,7 @@ void US1GameInstance::DespawnPlayer(const uint64 ObjectId)
 
 	if (UWorld* World = GetWorld())
 	{
-		if (TObjectPtr<AActor>* TargetActor = Players.Find(ObjectId))
+		if (TObjectPtr<AS1Player>* TargetActor = Players.Find(ObjectId))
 		{
 			World->DestroyActor(*TargetActor);
 		}

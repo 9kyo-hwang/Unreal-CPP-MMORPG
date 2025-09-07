@@ -29,7 +29,7 @@ bool Handle_S_ENTER_GAME(FPacketSessionRef& Session, Protocol::S_ENTER_GAME& InP
 {
 	if (US1GameInstance* GameInstance = Cast<US1GameInstance>(GWorld->GetGameInstance()))
 	{
-		GameInstance->SpawnPlayer(InPacket.player());
+		GameInstance->SpawnPlayer(InPacket);
 	}
 
 	return true;

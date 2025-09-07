@@ -17,6 +17,7 @@ public class S1 : ModuleRules
 		PrivateIncludePaths.AddRange(new string[]
 		{
 			"S1/Network/",
+			"S1/Game/"
 		});
 
 		// Uncomment if you are using Slate UI
