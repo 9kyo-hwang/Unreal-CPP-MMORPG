@@ -23,7 +23,7 @@ bool FWorld::EnterPlayer(TSharedPtr<APlayer> NewPlayer)
 
 	NewPlayer->GetInfo()->set_x(FMath::RandRange(0.f, 500.f));
 	NewPlayer->GetInfo()->set_y(FMath::RandRange(0.f, 500.f));
-	NewPlayer->GetInfo()->set_z(FMath::RandRange(0.f, 500.f));
+	NewPlayer->GetInfo()->set_z(100.f);
 	NewPlayer->GetInfo()->set_yaw(FMath::RandRange(0.f, 500.f));
 
 	// World에 입장 및 플레이어 Spawn이 완료되었으므로
@@ -31,14 +31,12 @@ bool FWorld::EnterPlayer(TSharedPtr<APlayer> NewPlayer)
 	{
 		Protocol::S_ENTER_GAME Packet;
 		Packet.set_success(bResult);
-
-		Protocol::PlayerInfo* Info = new Protocol::PlayerInfo;
+		
+		Protocol::PlayerInfo* Info = Packet.mutable_player();
 		Info->CopyFrom(*NewPlayer->GetInfo());
-		Packet.set_allocated_player(Info);
 
 		// 만약 Copy가 아닌 InPlayer의 데이터 포인터를 복사해서 넘겨줬다면,
 		// InPlayer의 해제에 대비하기 위해 release_player() 메서드를 호출해줘야 함
-
 		if (FGameSessionRef Session = NewPlayer->GetSession())
 		{
 			Session->Send(ServerPacketHandler::MakeSendBuffer(Packet));
@@ -114,6 +112,27 @@ bool FWorld::LeavePlayer(TSharedPtr<APlayer> TargetPlayer)
 	}
 
 	return bResult;
+}
+
+void FWorld::MovePlayer(const Protocol::C_MOVE& InPacket)
+{
+	FScopeLock Lock(CriticalSection);
+
+	const int64 ObjectId = InPacket.info().object_id();
+	if (!Players.contains(ObjectId))
+	{
+		return;
+	}
+
+	// TODO: Packet에 든 위치 정보의 Validation Check
+	TSharedPtr<APlayer> Player = Players.at(ObjectId);
+	Player->GetInfo()->CopyFrom(InPacket.info());
+
+	Protocol::S_MOVE Packet;
+	Protocol::PlayerInfo* Info = Packet.mutable_info();
+	Info->CopyFrom(InPacket.info());
+
+	Broadcast(ServerPacketHandler::MakeSendBuffer(Packet));
 }
 
 // World가 플레이어를 최종적으로 관리

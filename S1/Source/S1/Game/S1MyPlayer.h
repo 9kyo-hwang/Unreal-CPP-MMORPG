@@ -63,4 +63,7 @@ protected:
 	/** Look Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* LookAction;
+
+	const float PacketSendDelay = 0.2f;	// 통상 0.2초 간격
+	float PacketSendTimer = PacketSendDelay;
 };

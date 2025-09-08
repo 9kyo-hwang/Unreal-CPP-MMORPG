@@ -91,6 +91,7 @@ void US1GameInstance::SpawnPlayer(const Protocol::PlayerInfo& InPlayerInfo, bool
 				const APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
 				if (AS1Player* Player = Cast<AS1Player>(PC->GetPawn()))
 				{
+					Player->SetPosition(InPlayerInfo);
 					MyPlayer = Player;
 					Players.Emplace(ObjectId, Player);
 				}
@@ -98,6 +99,7 @@ void US1GameInstance::SpawnPlayer(const Protocol::PlayerInfo& InPlayerInfo, bool
 			else
 			{
 				AS1Player* OtherPlayer = Cast<AS1Player>(World->SpawnActor(OtherPlayerClass, &SpawnLocation));
+				OtherPlayer->SetPosition(InPlayerInfo);
 				Players.Emplace(ObjectId, OtherPlayer);
 			}
 		}
@@ -126,9 +128,9 @@ void US1GameInstance::DespawnPlayer(const uint64 ObjectId)
 
 	if (UWorld* World = GetWorld())
 	{
-		if (TObjectPtr<AS1Player>* TargetActor = Players.Find(ObjectId))
+		if (TObjectPtr<AS1Player>* TargetPlayerPtr = Players.Find(ObjectId))
 		{
-			World->DestroyActor(*TargetActor);
+			World->DestroyActor(*TargetPlayerPtr);
 		}
 	}
 }
@@ -138,5 +140,25 @@ void US1GameInstance::DespawnPlayer(const Protocol::S_DESPAWN& InPacket)
 	for (const uint64 ObjectId : InPacket.object_ids())
 	{
 		DespawnPlayer(ObjectId);
+	}
+}
+
+void US1GameInstance::MovePlayer(const Protocol::S_MOVE& InPacket)
+{
+	if (!Socket || !GameServerSession)
+	{
+		return;
+	}
+
+	if (UWorld* World = GetWorld())
+	{
+		const int64 ObjectId = InPacket.info().object_id();
+		if (const TObjectPtr<AS1Player>* PlayerPtr = Players.Find(ObjectId))
+		{
+			if (const TObjectPtr<AS1Player> Player = *PlayerPtr; !Player->IsMyPlayer())
+			{
+				Player->SetPosition(InPacket.info());
+			}
+		}
 	}
 }

@@ -9,6 +9,7 @@ public:
 
 	bool EnterPlayer(TSharedPtr<APlayer> NewPlayer);
 	bool LeavePlayer(TSharedPtr<APlayer> TargetPlayer);
+	void MovePlayer(const Protocol::C_MOVE& InPacket);
 
 private:
 	bool EnterPlayerHelper(TSharedPtr<APlayer> NewPlayer);

@@ -3,9 +3,12 @@
 
 #include "Game/S1MyPlayer.h"
 
+#include "ClientPacketHandler.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include "Protocol.pb.h"
+#include "S1GameInstance.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 
@@ -81,6 +84,18 @@ void AS1MyPlayer::BeginPlay()
 void AS1MyPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
+	PacketSendTimer -= DeltaTime;
+	if (PacketSendTimer <= 0.f)
+	{
+		PacketSendTimer = PacketSendDelay;
+		Protocol::C_MOVE Packet;
+
+		Protocol::PlayerInfo* Info = Packet.mutable_info();
+		Info->CopyFrom(*Super::Position);
+
+		Cast<US1GameInstance>(GWorld->GetGameInstance())->SendPacket(ClientPacketHandler::MakeSendBuffer(Packet));
+	}
 }
 
 // Called to bind functionality to input

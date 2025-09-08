@@ -15,6 +15,7 @@ namespace Protocol
 	class S_ENTER_GAME;
 	class PlayerInfo;
 	class S_DESPAWN;
+	class S_MOVE;
 }
 
 /**
@@ -43,6 +44,8 @@ public:
 
 	void DespawnPlayer(const uint64 ObjectId);
 	void DespawnPlayer(const Protocol::S_DESPAWN& InPacket);
+
+	void MovePlayer(const Protocol::S_MOVE& InPacket);
 
 public:
 	FSocket* Socket;

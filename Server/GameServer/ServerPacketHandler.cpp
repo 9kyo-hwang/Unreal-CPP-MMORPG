@@ -70,6 +70,25 @@ bool Handle_C_LEAVE_GAME(FPacketSessionRef& Session, Protocol::C_LEAVE_GAME& InP
 	return false;
 }
 
+bool Handle_C_MOVE(FPacketSessionRef& InSession, Protocol::C_MOVE& Packet)
+{
+	if (FGameSessionRef GameSession = StaticCastSharedPtr<FGameSession>(InSession))
+	{
+		if (TSharedPtr<APlayer> Player = GameSession->GetPlayer())
+		{
+			if (TSharedPtr<FWorld> World = Player->GetWorld())
+			{
+				// TODO: Validation
+
+				World->MovePlayer(Packet);
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
 bool Handle_C_CHAT(FPacketSessionRef& Session, Protocol::C_CHAT& InPacket)
 {
 	return true;

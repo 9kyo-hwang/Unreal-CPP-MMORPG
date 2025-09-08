@@ -65,6 +65,16 @@ bool Handle_S_DESPAWN(FPacketSessionRef& InSession, Protocol::S_DESPAWN& InPacke
 	return true;
 }
 
+bool Handle_S_MOVE(FPacketSessionRef& InSession, Protocol::S_MOVE& InPacket)
+{
+	if (US1GameInstance* GameInstance = Cast<US1GameInstance>(GWorld->GetGameInstance()))
+	{
+		GameInstance->MovePlayer(InPacket);
+	}
+
+	return true;
+}
+
 bool Handle_S_CHAT(FPacketSessionRef& Session, Protocol::S_CHAT& InPacket)
 {
 	FString Msg = InPacket.msg().c_str();
