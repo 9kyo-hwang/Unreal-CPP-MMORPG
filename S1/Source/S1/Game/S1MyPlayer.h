@@ -66,4 +66,12 @@ protected:
 
 	const float PacketSendDelay = 0.2f;	// 통상 0.2초 간격
 	float PacketSendTimer = PacketSendDelay;
+
+	// Caching
+	FVector2D DesiredInput;
+	FVector DesiredMoveDirection;
+	float DesiredYaw;
+
+	// Dirty Flag
+	FVector2D LastDesiredInput;
 };

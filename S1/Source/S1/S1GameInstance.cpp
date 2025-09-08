@@ -91,7 +91,7 @@ void US1GameInstance::SpawnPlayer(const Protocol::PlayerInfo& InPlayerInfo, bool
 				const APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
 				if (AS1Player* Player = Cast<AS1Player>(PC->GetPawn()))
 				{
-					Player->SetPosition(InPlayerInfo);
+					Player->SetCurrentLocation(InPlayerInfo);
 					MyPlayer = Player;
 					Players.Emplace(ObjectId, Player);
 				}
@@ -99,7 +99,7 @@ void US1GameInstance::SpawnPlayer(const Protocol::PlayerInfo& InPlayerInfo, bool
 			else
 			{
 				AS1Player* OtherPlayer = Cast<AS1Player>(World->SpawnActor(OtherPlayerClass, &SpawnLocation));
-				OtherPlayer->SetPosition(InPlayerInfo);
+				OtherPlayer->SetCurrentLocation(InPlayerInfo);
 				Players.Emplace(ObjectId, OtherPlayer);
 			}
 		}
@@ -157,7 +157,7 @@ void US1GameInstance::MovePlayer(const Protocol::S_MOVE& InPacket)
 		{
 			if (const TObjectPtr<AS1Player> Player = *PlayerPtr; !Player->IsMyPlayer())
 			{
-				Player->SetPosition(InPacket.info());
+				Player->SetDestinationLocation(InPacket.info());
 			}
 		}
 	}

@@ -11,6 +11,7 @@
 #include "S1GameInstance.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 // Sets default values
 AS1MyPlayer::AS1MyPlayer()
@@ -47,9 +48,23 @@ void AS1MyPlayer::Move(const FInputActionValue& Value)
 		// get right vector 
 		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
-		// add movement 
+		// add movement
+		// Don't use GetActorForwardVector, GetActorRightVector: 액터 방향이 아닌 마우스 방향!
 		AddMovementInput(ForwardDirection, MovementVector.Y);
 		AddMovementInput(RightDirection, MovementVector.X);
+
+		// Caching 
+		DesiredInput = MovementVector;
+
+		// GetActorRotation().Yaw: 실시간으로 변하는 액터의 회전값 -> 서버는 최종 회전값 1개만 얻고 싶음!
+		DesiredMoveDirection = FVector::ZeroVector;
+		DesiredMoveDirection += ForwardDirection * MovementVector.Y;
+		DesiredMoveDirection += RightDirection * MovementVector.X;
+		DesiredMoveDirection.Normalize();
+
+		const FVector Location = GetActorLocation();
+		const FRotator Rotator = UKismetMathLibrary::FindLookAtRotation(Location, Location + DesiredMoveDirection);
+		DesiredYaw = Rotator.Yaw;
 	}
 }
 
@@ -84,15 +99,35 @@ void AS1MyPlayer::BeginPlay()
 void AS1MyPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
+
+	bool bForceSendPacket = false;
+	// 급격하게 방향을 튼 경우 강제로 Packet을 전송하도록 세팅(조건 많아질 예정)
+	if (LastDesiredInput != DesiredInput)
+	{
+		bForceSendPacket = true;
+		LastDesiredInput = DesiredInput;
+	}
+
+	// 키보드 입력 유무에 따라 상태 설정
+	if (DesiredInput == FVector2D::Zero())
+	{
+		SetMoveState(Protocol::MOVE_STATE_IDLE);
+	}
+	else
+	{
+		SetMoveState(Protocol::MOVE_STATE_RUN);
+	}
+
 	PacketSendTimer -= DeltaTime;
-	if (PacketSendTimer <= 0.f)
+	if (PacketSendTimer <= 0.f || bForceSendPacket)
 	{
 		PacketSendTimer = PacketSendDelay;
 		Protocol::C_MOVE Packet;
 
 		Protocol::PlayerInfo* Info = Packet.mutable_info();
-		Info->CopyFrom(*Super::Position);
+		Info->CopyFrom(*Super::CurrentInfo);
+		Info->set_yaw(DesiredYaw);	// 보정 중인 현재 회전값이 아닌, 최종적으로 완료된 회전값
+		Info->set_state(GetMoveState());	// 혹시 모르니
 
 		Cast<US1GameInstance>(GWorld->GetGameInstance())->SendPacket(ClientPacketHandler::MakeSendBuffer(Packet));
 	}
@@ -110,6 +145,7 @@ void AS1MyPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 		// Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ThisClass::Move);
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &ThisClass::Move);
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ThisClass::Look);

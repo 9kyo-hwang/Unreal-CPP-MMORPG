@@ -32,15 +32,21 @@ AS1Player::AS1Player()
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 	GetCharacterMovement()->BrakingDecelerationFalling = 1500.0f;
 
+	// 캐릭터 컨트롤러가 없을 때 이동이 되지 않는 현상을 해결하기 위해 추가 세팅
+	GetCharacterMovement()->bRunPhysicsWithNoController = true;
+
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
-	Position = new Protocol::PlayerInfo();
+	CurrentInfo = new Protocol::PlayerInfo();
+	DestinationLocation = new Protocol::PlayerInfo();
 }
 
 AS1Player::~AS1Player()
 {
-	delete Position;
-	Position = nullptr;
+	delete CurrentInfo;
+	delete DestinationLocation;
+	CurrentInfo = nullptr;
+	DestinationLocation = nullptr;
 }
 
 
@@ -48,34 +54,88 @@ AS1Player::~AS1Player()
 void AS1Player::BeginPlay()
 {
 	Super::BeginPlay();
+
+	FVector Location = GetActorLocation();
+	DestinationLocation->set_x(Location.X);
+	DestinationLocation->set_y(Location.Y);
+	DestinationLocation->set_z(Location.Z);
+	DestinationLocation->set_yaw(GetControlRotation().Yaw);
+
+	SetMoveState(Protocol::MOVE_STATE_IDLE);
 }
 
 void AS1Player::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	FVector Location = GetActorLocation();
+	FVector Current = GetActorLocation();
+	CurrentInfo->set_x(Current.X);
+	CurrentInfo->set_y(Current.Y);
+	CurrentInfo->set_z(Current.Z);
+	CurrentInfo->set_yaw(GetControlRotation().Yaw);
 
-	Position->set_x(Location.X);
-	Position->set_y(Location.Y);
-	Position->set_z(Location.Z);
-	Position->set_yaw(GetControlRotation().Yaw);
+	// MyPlayer인 경우 입력에 따라 변화, 아니라면 목적지 - 현재 위치 간 보정 수행
+	if (!IsMyPlayer())
+	{
+		//FVector Destination = FVector(DestinationLocation->x(), DestinationLocation->y(), DestinationLocation->z());
+		//FVector MoveDirection = Destination - Current;
+		//const float DirectionLength = MoveDirection.Length();
+		//MoveDirection.Normalize();
+
+		//// 600.0f: 이동 속도
+		//float Distance = FMath::Min((MoveDirection * 600.f * DeltaSeconds).Length(), DirectionLength);
+		//FVector NextLocation = Current + MoveDirection * Distance;
+
+		//SetActorLocation(NextLocation);
+
+		switch (GetMoveState())
+		{
+		case Protocol::MOVE_STATE_RUN:
+			// 애니메이션이 적용되도록 아래 코드로 변경
+			SetActorRotation(FRotator(0, DestinationLocation->yaw(), 0));
+			AddMovementInput(GetActorForwardVector());
+			break;
+		default: break;
+		}
+	}
 }
 
-void AS1Player::SetPosition(const Protocol::PlayerInfo& InInfo)
+void AS1Player::SetCurrentLocation(const Protocol::PlayerInfo& InInfo)
 {
-	if (Position->object_id() != 0)
+	if (CurrentInfo->object_id() != 0)
 	{
-		check(Position->object_id() == InInfo.object_id());
+		check(CurrentInfo->object_id() == InInfo.object_id());
 	}
 
-	Position->CopyFrom(InInfo);
+	CurrentInfo->CopyFrom(InInfo);
 
 	FVector Location(InInfo.x(), InInfo.y(), InInfo.z());
 	SetActorLocation(Location);
 }
 
+void AS1Player::SetDestinationLocation(const Protocol::PlayerInfo& InInfo) const
+{
+	if (CurrentInfo->object_id() != 0)
+	{
+		check(CurrentInfo->object_id() == InInfo.object_id());
+	}
+
+	// 세팅은 하되 이동을 하지는 않음
+	DestinationLocation->CopyFrom(InInfo);
+	SetMoveState(InInfo.state());	// 상태만 별도로 즉시 적용
+}
+
 bool AS1Player::IsMyPlayer() const
 {
 	return IsA(AS1MyPlayer::StaticClass());
+}
+
+void AS1Player::SetMoveState(Protocol::MoveState NextState) const
+{
+	if (GetMoveState() == NextState)
+	{
+		return;
+	}
+
+	CurrentInfo->set_state(NextState);
 }

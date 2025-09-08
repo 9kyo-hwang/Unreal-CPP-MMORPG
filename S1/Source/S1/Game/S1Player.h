@@ -3,13 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Struct.pb.h"
 #include "GameFramework/Character.h"
 #include "S1Player.generated.h"
-
-namespace Protocol
-{
-	class PlayerInfo;
-}
 
 class USpringArmComponent;
 class UCameraComponent;
@@ -32,11 +28,16 @@ protected:
 	virtual void Tick(float DeltaSeconds) override;
 
 public:
-	Protocol::PlayerInfo* GetPosition() const { return Position; }
-	void SetPosition(const Protocol::PlayerInfo& InInfo);
+	Protocol::PlayerInfo* GetCurrentLocation() const { return CurrentInfo; }
+	void SetCurrentLocation(const Protocol::PlayerInfo& InInfo);
+	void SetDestinationLocation(const Protocol::PlayerInfo& InInfo) const;
 
 	bool IsMyPlayer() const;
 
+	Protocol::MoveState GetMoveState() const { return CurrentInfo->state(); }
+	void SetMoveState(Protocol::MoveState NextState) const;
+
 protected:
-	Protocol::PlayerInfo* Position;
+	Protocol::PlayerInfo* CurrentInfo;
+	Protocol::PlayerInfo* DestinationLocation;
 };
