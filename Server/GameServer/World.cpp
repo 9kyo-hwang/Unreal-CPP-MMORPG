@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "World.h"
 
+#include <ranges>
+
 #include "GameSession.h"
 #include "MathUtility.h"
 #include "Player.h"
@@ -15,10 +17,14 @@ FWorld::~FWorld()
 {
 }
 
+TSharedPtr<FWorld> FWorld::GetWorld()
+{
+	// JobQueue -> World
+	return StaticCastSharedPtr<FWorld>(AsShared());
+}
+
 bool FWorld::EnterPlayer(TSharedPtr<APlayer> NewPlayer)
 {
-	FScopeLock ScopeLock(CriticalSection);
-
 	bool bResult = EnterPlayerHelper(NewPlayer);
 
 	NewPlayer->GetInfo()->set_x(FMath::RandRange(0.f, 500.f));
@@ -59,7 +65,7 @@ bool FWorld::EnterPlayer(TSharedPtr<APlayer> NewPlayer)
 	{
 		Protocol::S_SPAWN Packet;
 
-		for (auto& [Id, Player] : Players)
+		for (const auto& Player : Players | views::values)
 		{
 			Protocol::PlayerInfo* Info = Packet.add_players();
 			Info->CopyFrom(*Player->GetInfo());
@@ -80,8 +86,6 @@ bool FWorld::LeavePlayer(TSharedPtr<APlayer> TargetPlayer)
 	{
 		return false;
 	}
-
-	FScopeLock ScopeLock(CriticalSection);
 
 	const uint64 TargetPlayerId = TargetPlayer->GetInfo()->object_id();
 	bool bResult = LeavePlayerHelper(TargetPlayerId);
@@ -114,10 +118,8 @@ bool FWorld::LeavePlayer(TSharedPtr<APlayer> TargetPlayer)
 	return bResult;
 }
 
-void FWorld::MovePlayer(const Protocol::C_MOVE& InPacket)
+void FWorld::MovePlayer(Protocol::C_MOVE InPacket)
 {
-	FScopeLock Lock(CriticalSection);
-
 	const int64 ObjectId = InPacket.info().object_id();
 	if (!Players.contains(ObjectId))
 	{
@@ -146,7 +148,7 @@ bool FWorld::EnterPlayerHelper(TSharedPtr<APlayer> NewPlayer)
 	}
 
 	Players.emplace(NewPlayer->GetInfo()->object_id(), NewPlayer);
-	NewPlayer->SetWorld(AsShared());
+	NewPlayer->SetWorld(GetWorld());
 	return true;
 }
 

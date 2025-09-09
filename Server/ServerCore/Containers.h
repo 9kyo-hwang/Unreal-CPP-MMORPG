@@ -47,6 +47,12 @@ TSharedPtr<T> MakeShared(Args&&... args)
 	return std::make_shared<T>(std::forward<Args>(args)...);
 }
 
+template<typename T, typename... Args>
+TUniquePtr<T> MakeUnique(Args&&... args)
+{
+	return std::make_unique<T>(std::forward<Args>(args)...);
+}
+
 template<typename ObjectType>
 class TSharedFromThis : public std::enable_shared_from_this<ObjectType>
 {

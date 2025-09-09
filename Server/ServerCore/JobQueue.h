@@ -3,10 +3,6 @@
 #include "LockQueue.h"
 #include "JobTimer.h"
 
-/*--------------
-	FJobQueue
----------------*/
-
 class FJobQueue : public TSharedFromThis<FJobQueue>
 {
 public:
@@ -18,7 +14,7 @@ public:
 	template<typename ClassType, typename ReturnType, typename... Args>
 	void DoAsync(ReturnType(ClassType::*Method)(Args...), Args... InArgs)
 	{
-		TSharedPtr<ClassType> Owner = SharedThis<ClassType>(this);
+		TSharedPtr<ClassType> Owner = StaticCastSharedPtr<ClassType>(AsShared());
 		Push(MakeShared<FJob>(Owner, Method, std::forward<Args>(InArgs)...));
 	}
 
@@ -31,19 +27,19 @@ public:
 	template<typename ClassType, typename ReturnType, typename... Args>
 	void DoTimer(uint64 InRate, ReturnType(ClassType::* Method)(Args...), Args... InArgs)
 	{
-		TSharedPtr<ClassType> Owner = SharedThis<ClassType>(this);
+		TSharedPtr<ClassType> Owner = StaticCastSharedPtr<ClassType>(AsShared());
 		FJobRef Job = MakeShared<FJob>(Owner, Method, std::forward<Args>(InArgs)...);
 		GJobTimer->Reserve(InRate, AsShared(), Job);
 	}
 
-	void					Clear() { Jobs.Clear(); }
+	void Clear() { Jobs.Clear(); }
 
 public:
-	void					Push(FJobRef InJob, bool bPushOnly = false);
-	void					Execute();
+	void Push(FJobRef InJob, bool bPushOnly = false);
+	void Execute();
 
 protected:
-	TLockQueue<FJobRef>		Jobs;
-	TAtomic<int32>			JobCount{0};
+	TLockQueue<FJobRef> Jobs;
+	TAtomic<int32> JobCount{0};
 };
 

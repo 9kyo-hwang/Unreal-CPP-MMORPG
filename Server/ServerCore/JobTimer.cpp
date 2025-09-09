@@ -6,7 +6,7 @@
 	FJobTimer
 ---------------*/
 
-void FJobTimer::Reserve(uint64 InRate, weak_ptr<FJobQueue> InOwner, FJobRef InJob)
+void FJobTimer::Reserve(uint64 InRate, TWeakPtr<FJobQueue> InOwner, FJobRef InJob)
 {
 	const uint64 ExecuteTick = ::GetTickCount64() + InRate;
 	FJobData* Data = new FJobData(InOwner, InJob);

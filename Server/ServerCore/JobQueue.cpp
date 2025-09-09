@@ -8,11 +8,11 @@
 
 void FJobQueue::Push(FJobRef InJob, bool bPushOnly)
 {
-	const int32 prevCount = JobCount.fetch_add(1);
+	const int32 PrevCount = JobCount.fetch_add(1);
 	Jobs.Push(InJob); // WRITE_LOCK
 
 	// 첫번째 Job을 넣은 쓰레드가 실행까지 담당
-	if (prevCount == 0)
+	if (PrevCount == 0)
 	{
 		// 이미 실행중인 JobQueue가 없으면 실행
 		if (LCurrentJobQueue == nullptr && bPushOnly == false)
@@ -34,22 +34,22 @@ void FJobQueue::Execute()
 
 	while (true)
 	{
-		vector<FJobRef> jobs;
-		Jobs.PopAll(OUT jobs);
+		TArray<FJobRef> JobsToRun;
+		Jobs.PopAll(JobsToRun);
 
-		const int32 jobCount = static_cast<int32>(jobs.size());
-		for (int32 i = 0; i < jobCount; i++)
-			jobs[i]->Execute();
+		const int32 NumJobs = static_cast<int32>(JobsToRun.size());
+		for (int32 i = 0; i < NumJobs; i++)
+			JobsToRun[i]->Execute();
 
 		// 남은 일감이 0개라면 종료
-		if (JobCount.fetch_sub(jobCount) == jobCount)
+		if (JobCount.fetch_sub(NumJobs) == NumJobs)
 		{
 			LCurrentJobQueue = nullptr;
 			return;
 		}
 
-		const uint64 now = ::GetTickCount64();
-		if (now >= LEndTickCount)
+		const uint64 Tick = ::GetTickCount64();
+		if (Tick >= LEndTickCount)
 		{
 			LCurrentJobQueue = nullptr;
 			// 여유 있는 다른 쓰레드가 실행하도록 GlobalQueue에 넘긴다

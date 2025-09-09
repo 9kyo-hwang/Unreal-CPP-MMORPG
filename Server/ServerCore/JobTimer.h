@@ -2,15 +2,15 @@
 
 struct FJobData
 {
-	FJobData(weak_ptr<FJobQueue> InOwner, FJobRef InJob)
+	FJobData(TWeakPtr<FJobQueue> InOwner, FJobRef InJob)
 		: Owner(InOwner)
 		, Job(InJob)
 	{
 
 	}
 
-	weak_ptr<FJobQueue>	Owner;
-	FJobRef				Job;
+	TWeakPtr<FJobQueue> Owner;
+	FJobRef Job;
 };
 
 struct FTimerItem
@@ -31,9 +31,9 @@ struct FTimerItem
 class FJobTimer
 {
 public:
-	void			Reserve(uint64 InRate, TWeakPtr<FJobQueue> InOwner, FJobRef InJob);
-	void			Distribute(uint64 InTick);
-	void			Clear();
+	void Reserve(uint64 InRate, TWeakPtr<FJobQueue> InOwner, FJobRef InJob);
+	void Distribute(uint64 InTick);
+	void Clear();
 
 private:
 	FCriticalSection CriticalSection;

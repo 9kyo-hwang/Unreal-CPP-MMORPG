@@ -13,25 +13,35 @@ public:
 	T Pop()
 	{
 		FScopeLock ScopeLock(CriticalSection);
-		if (Items.empty())
-			return T();
-
-		T ret = Items.front();
-		Items.pop();
-		return ret;
+		return PopInternal();
 	}
 
-	void PopAll(vector<T>& OutItems)
+	void PopAll(TArray<T>& OutItems)
 	{
 		FScopeLock ScopeLock(CriticalSection);
-		while (T Item = Pop())
+		while (T Item = PopInternal())
+		{
 			OutItems.push_back(Item);
+		}
 	}
 
 	void Clear()
 	{
 		FScopeLock ScopeLock(CriticalSection);
 		Items = TQueue<T>();
+	}
+
+private:
+	T PopInternal()
+	{
+		if (Items.empty())
+		{
+			return T();
+		}
+
+		T RetVal = Items.front();
+		Items.pop();
+		return RetVal;
 	}
 
 private:

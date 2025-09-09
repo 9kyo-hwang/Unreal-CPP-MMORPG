@@ -1,9 +1,5 @@
 #pragma once
 
-/*----------------
-	FGlobalJobQueue
------------------*/
-
 class FGlobalJobQueue
 {
 public:
@@ -16,4 +12,3 @@ public:
 private:
 	TLockQueue<FJobQueueRef> JobQueues;
 };
-
