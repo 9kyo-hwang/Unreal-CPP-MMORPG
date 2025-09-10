@@ -17,10 +17,9 @@ FWorld::~FWorld()
 {
 }
 
-TSharedPtr<FWorld> FWorld::GetWorld()
+void FWorld::DoTask(CallableType&& InCallable)
 {
-	// JobQueue -> World
-	return StaticCastSharedPtr<FWorld>(AsShared());
+	Jobs.Push(MakeShared<FJob>(std::move(InCallable)));
 }
 
 bool FWorld::EnterPlayer(TSharedPtr<APlayer> NewPlayer)

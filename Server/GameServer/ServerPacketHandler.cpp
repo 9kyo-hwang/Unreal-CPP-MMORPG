@@ -46,8 +46,9 @@ bool Handle_C_LOGIN(FPacketSessionRef& Session, Protocol::C_LOGIN& InPacket)
 bool Handle_C_ENTER_GAME(FPacketSessionRef& Session, Protocol::C_ENTER_GAME& InPacket)
 {
 	// Player 생성 후 Room 입장 vs Room 안에서 Player 생성
-	auto Player = ActorFactory::SpawnPlayer(static_pointer_cast<FGameSession>(Session));
-	GWorld->DoAsync(&FWorld::EnterPlayer, Player);
+	auto Player = ActorFactory::SpawnPlayer(StaticCastSharedPtr<FGameSession>(Session));
+	GWorld->DoTask([Player]() { GWorld->EnterPlayer(Player); });
+	// GWorld->DoAsync(&FWorld::EnterPlayer, Player);
 	// GWorld->EnterPlayer(Player);
 
 	return true;
@@ -62,7 +63,8 @@ bool Handle_C_LEAVE_GAME(FPacketSessionRef& Session, Protocol::C_LEAVE_GAME& InP
 			// 플레이어가 속한 월드 정보를 가져와야 함
 			if (TSharedPtr<FWorld> World = Player->GetWorld())
 			{
-				World->DoAsync(&FWorld::LeavePlayer, Player);
+				GWorld->DoTask([Player]() { GWorld->LeavePlayer(Player); });
+				// World->DoAsync(&FWorld::LeavePlayer, Player);
 				// World->LeavePlayer(Player);
 				return true;
 			}
@@ -82,7 +84,8 @@ bool Handle_C_MOVE(FPacketSessionRef& InSession, Protocol::C_MOVE& Packet)
 			{
 				// TODO: Validation
 
-				World->DoAsync(&FWorld::MovePlayer, Packet);
+				GWorld->DoTask([Packet]() { GWorld->MovePlayer(Packet); });
+				// World->DoAsync(&FWorld::MovePlayer, Packet);
 				// World->MovePlayer(Packet);
 				return true;
 			}
