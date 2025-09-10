@@ -8,9 +8,9 @@
 class FSocketUtils
 {
 public:
-	static LPFN_CONNECTEX		ConnectEx;
-	static LPFN_DISCONNECTEX	DisconnectEx;
-	static LPFN_ACCEPTEX		AcceptEx;
+	static LPFN_CONNECTEX ConnectEx;
+	static LPFN_DISCONNECTEX DisconnectEx;
+	static LPFN_ACCEPTEX AcceptEx;
 
 public:
 	static void Init();

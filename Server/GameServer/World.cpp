@@ -19,7 +19,7 @@ FWorld::~FWorld()
 
 void FWorld::DoTask(CallableType&& InCallable)
 {
-	Jobs.Push(MakeShared<FJob>(std::move(InCallable)));
+	Tasks.AddTask(MakeShared<FTask>(std::move(InCallable)));
 }
 
 bool FWorld::EnterPlayer(TSharedPtr<APlayer> NewPlayer)

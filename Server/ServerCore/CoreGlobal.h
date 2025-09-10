@@ -1,5 +1,5 @@
 #pragma once
 
 extern class FThreadManager* GThreadManager;
-extern class FGlobalJobQueue* GGlobalQueue;
-extern class FJobTimer* GJobTimer;
+extern class FTaskQueueDispatcher* GTaskQueueDispatcher;
+extern class FTaskScheduler* GTaskScheduler;

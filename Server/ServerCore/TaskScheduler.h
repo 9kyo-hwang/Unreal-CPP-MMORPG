@@ -1,16 +1,16 @@
 #pragma once
 
-struct FJobData
+struct FTaskData
 {
-	FJobData(TWeakPtr<FJobQueue> InOwner, FJobRef InJob)
+	FTaskData(TWeakPtr<FTaskQueue> InOwner, FTaskRef InTask)
 		: Owner(InOwner)
-		, Job(InJob)
+		, Task(InTask)
 	{
 
 	}
 
-	TWeakPtr<FJobQueue> Owner;
-	FJobRef Job;
+	TWeakPtr<FTaskQueue> Owner;
+	FTaskRef Task;
 };
 
 struct FTimerItem
@@ -21,18 +21,18 @@ struct FTimerItem
 	}
 
 	uint64 ExecuteTick = 0;
-	FJobData* Data = nullptr;
+	FTaskData* Data = nullptr;
 };
 
 /*--------------
-	FJobTimer
+	FTaskScheduler
 ---------------*/
 
-class FJobTimer
+class FTaskScheduler
 {
 public:
-	void Reserve(uint64 InRate, TWeakPtr<FJobQueue> InOwner, FJobRef InJob);
-	void Distribute(uint64 InTick);
+	void Register(uint64 InRate, TWeakPtr<FTaskQueue> InOwner, FTaskRef InTask);
+	void DispatchReadyTasks(uint64 InTick);
 	void Clear();
 
 private:

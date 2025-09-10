@@ -48,8 +48,8 @@ USING_SHARED_PTR(FListener);
 USING_SHARED_PTR(FServerService);
 USING_SHARED_PTR(FClientService);
 USING_SHARED_PTR(FSendBuffer);
-USING_SHARED_PTR(FJob);
-USING_SHARED_PTR(FJobQueue);
+USING_SHARED_PTR(FTask);
+USING_SHARED_PTR(FTaskQueue);
 
 #define size16(val)		static_cast<int16>(sizeof(val))
 #define size32(val)		static_cast<int32>(sizeof(val))

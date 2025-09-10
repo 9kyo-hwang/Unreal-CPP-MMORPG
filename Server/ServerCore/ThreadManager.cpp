@@ -2,7 +2,7 @@
 #include "ThreadManager.h"
 #include "CoreTLS.h"
 #include "CoreGlobal.h"
-#include "GlobalQueue.h"
+#include "TaskDispatcher.h"
 
 /*------------------
 	FThreadManager
@@ -52,7 +52,7 @@ void FThreadManager::DestroyTLS()
 
 }
 
-void FThreadManager::DoGlobalQueueWork()
+void FThreadManager::ProcessTaskQueues()
 {
 	while (true)
 	{
@@ -62,19 +62,19 @@ void FThreadManager::DoGlobalQueueWork()
 			break;
 		}
 
-		FJobQueueRef JobQueue = GGlobalQueue->Pop();
-		if (JobQueue == nullptr)
+		FTaskQueueRef TaskQueue = GTaskQueueDispatcher->Pop();
+		if (TaskQueue == nullptr)
 		{
 			break;
 		}
 
-		JobQueue->Execute();
+		TaskQueue->Execute();
 	}
 }
 
-void FThreadManager::DistributeReservedJobs()
+void FThreadManager::FlushTaskScheduler()
 {
 	const uint64 Tick = ::GetTickCount64();
 
-	GJobTimer->Distribute(Tick);
+	GTaskScheduler->DispatchReadyTasks(Tick);
 }

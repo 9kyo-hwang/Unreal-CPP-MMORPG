@@ -6,12 +6,12 @@
 #include "Memory.h"
 #include "SocketUtils.h"
 #include "SendBuffer.h"
-#include "GlobalQueue.h"
-#include "JobTimer.h"
+#include "TaskDispatcher.h"
+#include "TaskScheduler.h"
 
 FThreadManager* GThreadManager = nullptr;
-FGlobalJobQueue* GGlobalQueue = nullptr;
-FJobTimer* GJobTimer = nullptr;
+FTaskQueueDispatcher* GTaskQueueDispatcher = nullptr;
+FTaskScheduler* GTaskScheduler = nullptr;
 
 class CoreGlobal
 {
@@ -19,16 +19,16 @@ public:
 	CoreGlobal()
 	{
 		GThreadManager = new FThreadManager();
-		GGlobalQueue = new FGlobalJobQueue();
-		GJobTimer = new FJobTimer();
+		GTaskQueueDispatcher = new FTaskQueueDispatcher();
+		GTaskScheduler = new FTaskScheduler();
 		FSocketUtils::Init();
 	}
 
 	~CoreGlobal()
 	{
 		delete GThreadManager;
-		delete GGlobalQueue;
-		delete GJobTimer;
+		delete GTaskQueueDispatcher;
+		delete GTaskScheduler;
 		FSocketUtils::Clear();
 	}
 } GCoreGlobal;

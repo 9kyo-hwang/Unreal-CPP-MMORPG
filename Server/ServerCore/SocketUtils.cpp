@@ -5,9 +5,9 @@
 	FSocketUtils
 -----------------*/
 
-LPFN_CONNECTEX		FSocketUtils::ConnectEx = nullptr;
-LPFN_DISCONNECTEX	FSocketUtils::DisconnectEx = nullptr;
-LPFN_ACCEPTEX		FSocketUtils::AcceptEx = nullptr;
+LPFN_CONNECTEX FSocketUtils::ConnectEx = nullptr;
+LPFN_DISCONNECTEX FSocketUtils::DisconnectEx = nullptr;
+LPFN_ACCEPTEX FSocketUtils::AcceptEx = nullptr;
 
 void FSocketUtils::Init()
 {

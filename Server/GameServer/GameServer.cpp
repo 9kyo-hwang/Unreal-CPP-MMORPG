@@ -7,7 +7,7 @@
 #include "GameSessionManager.h"
 //#include "ClientPacketHandler.h"
 #include <tchar.h>
-#include "Job.h"
+#include "Task.h"
 
 enum
 {
@@ -24,10 +24,10 @@ void DoWorkerJob(FServerServiceRef& service)
 		service->GetEventQueue()->Dispatch(10);
 
 		// 예약된 일감 처리
-		FThreadManager::DistributeReservedJobs();
+		FThreadManager::FlushTaskScheduler();
 
 		// 글로벌 큐
-		FThreadManager::DoGlobalQueueWork();
+		FThreadManager::ProcessTaskQueues();
 	}
 }
 

@@ -1,22 +1,22 @@
 #include "pch.h"
-#include "JobTimer.h"
-#include "JobQueue.h"
+#include "TaskScheduler.h"
+#include "TaskQueue.h"
 
 /*--------------
-	FJobTimer
+	FTaskScheduler
 ---------------*/
 
-void FJobTimer::Reserve(uint64 InRate, TWeakPtr<FJobQueue> InOwner, FJobRef InJob)
+void FTaskScheduler::Register(uint64 InRate, TWeakPtr<FTaskQueue> InOwner, FTaskRef InTask)
 {
 	const uint64 ExecuteTick = ::GetTickCount64() + InRate;
-	FJobData* Data = new FJobData(InOwner, InJob);
+	FTaskData* Data = new FTaskData(InOwner, InTask);
 
 	FScopeLock ScopeLock(CriticalSection);
 
 	Items.push(FTimerItem{ ExecuteTick, Data });
 }
 
-void FJobTimer::Distribute(uint64 InTick)
+void FTaskScheduler::DispatchReadyTasks(uint64 InTick)
 {
 	// 한 번에 1 쓰레드만 통과
 	if (bIsDistributing.exchange(true) == true)
@@ -41,9 +41,9 @@ void FJobTimer::Distribute(uint64 InTick)
 
 	for (FTimerItem& Item : CandidateItems)
 	{
-		if (FJobQueueRef Owner = Item.Data->Owner.lock())
+		if (FTaskQueueRef Owner = Item.Data->Owner.lock())
 		{
-			Owner->Push(Item.Data->Job);
+			Owner->AddTask(Item.Data->Task);
 		}
 
 		delete Item.Data;		
@@ -53,7 +53,7 @@ void FJobTimer::Distribute(uint64 InTick)
 	bIsDistributing.store(false);
 }
 
-void FJobTimer::Clear()
+void FTaskScheduler::Clear()
 {
 	FScopeLock ScopeLock(CriticalSection);
 

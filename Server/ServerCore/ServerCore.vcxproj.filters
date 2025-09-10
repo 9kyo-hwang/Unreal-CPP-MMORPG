@@ -10,11 +10,11 @@
     <Filter Include="Thread">
       <UniqueIdentifier>{571af80e-f0ff-408d-a276-89c16b505784}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Job">
-      <UniqueIdentifier>{ce7733e9-9735-4bfa-95d0-e10dc877e436}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Utils">
       <UniqueIdentifier>{13f8da5f-8028-43f7-908f-ab7928fa6c57}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Task">
+      <UniqueIdentifier>{ce7733e9-9735-4bfa-95d0-e10dc877e436}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -66,17 +66,17 @@
     <ClInclude Include="ThreadManager.h">
       <Filter>Thread</Filter>
     </ClInclude>
-    <ClInclude Include="JobQueue.h">
-      <Filter>Job</Filter>
+    <ClInclude Include="TaskQueue.h">
+      <Filter>Task</Filter>
     </ClInclude>
-    <ClInclude Include="JobTimer.h">
-      <Filter>Job</Filter>
+    <ClInclude Include="TaskScheduler.h">
+      <Filter>Task</Filter>
     </ClInclude>
-    <ClInclude Include="GlobalQueue.h">
-      <Filter>Job</Filter>
+    <ClInclude Include="TaskDispatcher.h">
+      <Filter>Task</Filter>
     </ClInclude>
-    <ClInclude Include="Job.h">
-      <Filter>Job</Filter>
+    <ClInclude Include="Task.h">
+      <Filter>Task</Filter>
     </ClInclude>
     <ClInclude Include="LockQueue.h">
       <Filter>Utils</Filter>
@@ -137,17 +137,17 @@
     <ClCompile Include="ThreadManager.cpp">
       <Filter>Thread</Filter>
     </ClCompile>
-    <ClCompile Include="JobQueue.cpp">
-      <Filter>Job</Filter>
+    <ClCompile Include="TaskQueue.cpp">
+      <Filter>Task</Filter>
     </ClCompile>
-    <ClCompile Include="JobTimer.cpp">
-      <Filter>Job</Filter>
+    <ClCompile Include="TaskScheduler.cpp">
+      <Filter>Task</Filter>
     </ClCompile>
-    <ClCompile Include="GlobalQueue.cpp">
-      <Filter>Job</Filter>
+    <ClCompile Include="TaskDispatcher.cpp">
+      <Filter>Task</Filter>
     </ClCompile>
-    <ClCompile Include="Job.cpp">
-      <Filter>Job</Filter>
+    <ClCompile Include="Task.cpp">
+      <Filter>Task</Filter>
     </ClCompile>
     <ClCompile Include="LockQueue.cpp">
       <Filter>Utils</Filter>

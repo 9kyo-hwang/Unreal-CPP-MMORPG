@@ -1,20 +1,20 @@
 #pragma once
 
 /*---------
-	FJob
+	FTask
 ----------*/
 
 using CallableType = TFunction<void()>;
 
-class FJob
+class FTask
 {
 public:
-	FJob(CallableType&& InCallable) : Callable(std::move(InCallable))
+	FTask(CallableType&& InCallable) : Callable(std::move(InCallable))
 	{
 	}
 
 	template<typename T, typename Ret, typename... Args>
-	FJob(TSharedPtr<T> Owner, Ret(T::* Method)(Args...), Args&&... InArgs)
+	FTask(TSharedPtr<T> Owner, Ret(T::* Method)(Args...), Args&&... InArgs)
 	{
 		Callable = [Owner, Method, InArgs...]()
 		{

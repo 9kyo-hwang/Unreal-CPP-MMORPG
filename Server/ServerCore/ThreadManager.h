@@ -19,11 +19,11 @@ public:
 	static void InitTLS();
 	static void DestroyTLS();
 
-	static void DoGlobalQueueWork();
-	static void DistributeReservedJobs();
+	static void ProcessTaskQueues();
+	static void FlushTaskScheduler();
 
 private:
 	FCriticalSection CriticalSection;
-	vector<thread>	Threads;
+	vector<thread> Threads;
 };
 
