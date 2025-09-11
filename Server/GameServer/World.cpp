@@ -31,46 +31,47 @@ void FWorld::DoTask(CallableType&& InCallable) const
 	Tasks->Post(std::move(InCallable));
 }
 
-bool FWorld::EnterPlayer(TSharedPtr<APlayer> NewPlayer)
+bool FWorld::Enter(TSharedPtr<AActor> InActor, bool bRandomPosition)
 {
-	bool bResult = AddActor(NewPlayer);
+	bool bResult = AddActor(InActor);
+	if (bRandomPosition)
+	{
+		InActor->GetPosition()->set_x(FMath::RandRange(0.f, 500.f));
+		InActor->GetPosition()->set_y(FMath::RandRange(0.f, 500.f));
+		InActor->GetPosition()->set_z(100.f);
+		InActor->GetPosition()->set_yaw(FMath::RandRange(0.f, 500.f));
+	}
 
-	NewPlayer->GetPosition()->set_x(FMath::RandRange(0.f, 500.f));
-	NewPlayer->GetPosition()->set_y(FMath::RandRange(0.f, 500.f));
-	NewPlayer->GetPosition()->set_z(100.f);
-	NewPlayer->GetPosition()->set_yaw(FMath::RandRange(0.f, 500.f));
-
-	// World에 입장 및 플레이어 Spawn이 완료되었으므로
-	// 1. 패킷을 보내온 클라이언트에게 답신을 해야 함
+	// 모든 Actor가 Player라는 보장이 없어 DynamicCast로 safe-cast
+	if (TSharedPtr<APlayer> Player = DynamicCastSharedPtr<APlayer>(InActor))
 	{
 		Protocol::S_ENTER_GAME Packet;
 		Packet.set_success(bResult);
-		
+
 		Protocol::ActorData* ActorData = new Protocol::ActorData();
-		ActorData->CopyFrom(*NewPlayer->GetActorData());
+		ActorData->CopyFrom(*Player->GetActorData());
 		Packet.set_allocated_actor_data(ActorData);
 
 		// 만약 Copy가 아닌 InPlayer의 데이터 포인터를 복사해서 넘겨줬다면,
 		// InPlayer의 해제에 대비하기 위해 release_player() 메서드를 호출해줘야 함
-		if (FGameSessionRef Session = NewPlayer->GetSession())
+		if (FGameSessionRef Session = Player->GetSession())
 		{
 			Session->Send(ServerPacketHandler::MakeSendBuffer(Packet));
 		}
 	}
 
-	// 2. World에 속한 다른 클라이언트에게도 알려야 함
 	{
 		Protocol::S_SPAWN Packet;
 		Protocol::ActorData* ActorData = Packet.add_players();  // 한 명만 소환 중
-		ActorData->CopyFrom(*NewPlayer->GetActorData());
+		ActorData->CopyFrom(*InActor->GetActorData());
 
 		Broadcast(
 			ServerPacketHandler::MakeSendBuffer(Packet),
-			NewPlayer->GetActorData()->actor_id()
+			InActor->GetActorData()->actor_id()
 		);
 	}
 
-	// 3. 기존에 입장한 플레이어 리스트를 새로 입장한 플레이어에게 알려야 함
+	if (TSharedPtr<APlayer> Player = DynamicCastSharedPtr<APlayer>(InActor))
 	{
 		Protocol::S_SPAWN Packet;
 
@@ -83,7 +84,7 @@ bool FWorld::EnterPlayer(TSharedPtr<APlayer> NewPlayer)
 			}
 		}
 
-		if (FGameSessionRef Session = NewPlayer->GetSession())
+		if (FGameSessionRef Session = Player->GetSession())
 		{
 			Session->Send(ServerPacketHandler::MakeSendBuffer(Packet));
 		}
@@ -92,42 +93,54 @@ bool FWorld::EnterPlayer(TSharedPtr<APlayer> NewPlayer)
 	return bResult;
 }
 
-bool FWorld::LeavePlayer(TSharedPtr<APlayer> TargetPlayer)
+bool FWorld::Leave(TSharedPtr<AActor> InActor)
 {
-	if (!TargetPlayer)
+	if (!InActor)
 	{
 		return false;
 	}
 
-	const uint64 TargetPlayerId = TargetPlayer->GetActorData()->actor_id();
-	bool bResult = RemoveActor(TargetPlayerId);
+	const uint64 ActorId = InActor->GetActorData()->actor_id();
+	bool bResult = RemoveActor(ActorId);
 
-	// 퇴장하는 플레이어에게 퇴장 사실을 알림
+	if (TSharedPtr<APlayer> Player = DynamicCastSharedPtr<APlayer>(InActor))
 	{
-		if (FGameSessionRef Session = TargetPlayer->GetSession())
+		if (FGameSessionRef Session = Player->GetSession())
 		{
 			Protocol::S_LEAVE_GAME Packet;
 			Session->Send(ServerPacketHandler::MakeSendBuffer(Packet));
 		}
 	}
 
-	// 월드 내 다른 플레이어들에게 해당 플레이어가 Despawn 됨을 알림
 	{
 		Protocol::S_DESPAWN Packet;
-		Packet.add_actor_ids(TargetPlayerId);
+		Packet.add_actor_ids(ActorId);
 
 		auto SendBuffer = ServerPacketHandler::MakeSendBuffer(Packet);
-		Broadcast(SendBuffer, TargetPlayerId);
+		Broadcast(SendBuffer, ActorId);
 
 		// LeavePlayerHelper에서 TargetPlayer가 Actors 맵에서 제거된 상태
 		// 따라서 Broadcast를 통해서는 TargetPlayer에게 Despawn을 알릴 수 없음
-		if (FGameSessionRef Session = TargetPlayer->GetSession())
+		if (TSharedPtr<APlayer> Player = DynamicCastSharedPtr<APlayer>(InActor))
 		{
-			Session->Send(SendBuffer);
+			if (FGameSessionRef Session = Player->GetSession())
+			{
+				Session->Send(SendBuffer);
+			}
 		}
 	}
 
 	return bResult;
+}
+
+bool FWorld::EnterPlayer(TSharedPtr<APlayer> NewPlayer)
+{
+	return Enter(NewPlayer, true);
+}
+
+bool FWorld::LeavePlayer(TSharedPtr<APlayer> TargetPlayer)
+{
+	return Leave(TargetPlayer);
 }
 
 void FWorld::MovePlayer(Protocol::C_MOVE InPacket)
@@ -140,7 +153,7 @@ void FWorld::MovePlayer(Protocol::C_MOVE InPacket)
 
 	// TODO: Packet에 든 위치 정보의 Validation Check
 	TSharedPtr<AActor> Actor = Actors.at(ActorId);
-	Actor->GetActorData()->CopyFrom(InPacket.position());
+	Actor->GetPosition()->CopyFrom(InPacket.position());
 
 	Protocol::S_MOVE Packet;
 	Protocol::PositionData* Position = Packet.mutable_position();

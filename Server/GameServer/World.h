@@ -14,6 +14,9 @@ public:
 
 	void DoTask(CallableType&& InCallable) const;
 
+	bool Enter(TSharedPtr<AActor> InActor, bool bRandomPosition = true);
+	bool Leave(TSharedPtr<AActor> InActor);
+
 	bool EnterPlayer(TSharedPtr<APlayer> NewPlayer);
 	bool LeavePlayer(TSharedPtr<APlayer> TargetPlayer);
 	void MovePlayer(Protocol::C_MOVE InPacket);
