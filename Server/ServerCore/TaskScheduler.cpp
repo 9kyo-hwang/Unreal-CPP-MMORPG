@@ -6,10 +6,10 @@
 	FTaskScheduler
 ---------------*/
 
-void FTaskScheduler::Register(uint64 InRate, TWeakPtr<FTaskQueue> InOwner, FTaskRef InTask)
+void FTaskScheduler::Register(uint64 InRate, TWeakPtr<FTaskQueue> InQueue, FTaskRef InTask)
 {
 	const uint64 ExecuteTick = ::GetTickCount64() + InRate;
-	FTaskData* Data = new FTaskData(InOwner, InTask);
+	FTaskData* Data = new FTaskData(InQueue, InTask);
 
 	FScopeLock ScopeLock(CriticalSection);
 

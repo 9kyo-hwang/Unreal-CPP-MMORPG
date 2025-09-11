@@ -30,11 +30,12 @@ bool Handle_C_LOGIN(FPacketSessionRef& Session, Protocol::C_LOGIN& InPacket)
 	Protocol::S_LOGIN Packet;
 	for (int32 i = 0; i < 3; ++i)	// 캐릭터가 3개 있다고 가정
 	{
-		Protocol::PlayerInfo* Player = Packet.add_players();
-		Player->set_x(FMath::RandRange(0.f, 100.f));
-		Player->set_y(FMath::RandRange(0.f, 100.f));
-		Player->set_z(FMath::RandRange(0.f, 100.f));
-		Player->set_yaw(FMath::RandRange(0.f, 100.f));
+		Protocol::ActorData* Player = Packet.add_players();
+		Protocol::PositionData* Position = Player->mutable_position();
+		Position->set_x(FMath::RandRange(0.f, 100.f));
+		Position->set_y(FMath::RandRange(0.f, 100.f));
+		Position->set_z(FMath::RandRange(0.f, 100.f));
+		Position->set_yaw(FMath::RandRange(0.f, 100.f));
 	}
 
 	Packet.set_success(true);

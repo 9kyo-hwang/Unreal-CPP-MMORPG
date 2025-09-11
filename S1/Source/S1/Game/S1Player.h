@@ -28,16 +28,16 @@ protected:
 	virtual void Tick(float DeltaSeconds) override;
 
 public:
-	Protocol::PlayerInfo* GetCurrentLocation() const { return CurrentInfo; }
-	void SetCurrentLocation(const Protocol::PlayerInfo& InInfo);
-	void SetDestinationLocation(const Protocol::PlayerInfo& InInfo) const;
+	Protocol::PositionData* GetCurrentPosition() const { return CurrentPosition; }
+	void SetCurrentPosition(const Protocol::PositionData& NewPosition);
+	void SetDestinationPosition(const Protocol::PositionData& NewPosition) const;
 
 	bool IsMyPlayer() const;
 
-	Protocol::MoveState GetMoveState() const { return CurrentInfo->state(); }
-	void SetMoveState(Protocol::MoveState NextState) const;
+	Protocol::EMoveState GetMoveState() const { return CurrentPosition->move_state(); }
+	void SetMoveState(Protocol::EMoveState NextState) const;
 
 protected:
-	Protocol::PlayerInfo* CurrentInfo;
-	Protocol::PlayerInfo* DestinationLocation;
+	Protocol::PositionData* CurrentPosition;
+	Protocol::PositionData* DestinationPosition;
 };

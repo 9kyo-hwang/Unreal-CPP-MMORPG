@@ -26,11 +26,11 @@ enum : uint16
 
 // Custom Handlers
 bool Handle_INVALID(FPacketSessionRef& InSession, BYTE* InBuffer, int32 InLength);
-bool Handle_C_LOGIN(FPacketSessionRef& InSession, Protocol::C_LOGIN& Packet);
-bool Handle_C_ENTER_GAME(FPacketSessionRef& InSession, Protocol::C_ENTER_GAME& Packet);
-bool Handle_C_LEAVE_GAME(FPacketSessionRef& InSession, Protocol::C_LEAVE_GAME& Packet);
-bool Handle_C_MOVE(FPacketSessionRef& InSession, Protocol::C_MOVE& Packet);
-bool Handle_C_CHAT(FPacketSessionRef& InSession, Protocol::C_CHAT& Packet);
+bool Handle_C_LOGIN(FPacketSessionRef& InSession, Protocol::C_LOGIN& InPacket);
+bool Handle_C_ENTER_GAME(FPacketSessionRef& InSession, Protocol::C_ENTER_GAME& InPacket);
+bool Handle_C_LEAVE_GAME(FPacketSessionRef& InSession, Protocol::C_LEAVE_GAME& InPacket);
+bool Handle_C_MOVE(FPacketSessionRef& InSession, Protocol::C_MOVE& InPacket);
+bool Handle_C_CHAT(FPacketSessionRef& InSession, Protocol::C_CHAT& InPacket);
 
 class ServerPacketHandler
 {

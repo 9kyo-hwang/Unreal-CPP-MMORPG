@@ -16,6 +16,9 @@
     <Filter Include="Game">
       <UniqueIdentifier>{82d1de6e-41ff-476d-839b-654b0171b800}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Game\Actor">
+      <UniqueIdentifier>{28e73472-c39c-4021-9624-d550b131b09d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GameServer.cpp">
@@ -45,14 +48,23 @@
     <ClCompile Include="MathUtility.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
-    <ClCompile Include="Player.cpp">
-      <Filter>Game</Filter>
-    </ClCompile>
     <ClCompile Include="World.cpp">
       <Filter>Game</Filter>
     </ClCompile>
     <ClCompile Include="ActorFactory.cpp">
       <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Actor.cpp">
+      <Filter>Game\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="Monster.cpp">
+      <Filter>Game\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="Pawn.cpp">
+      <Filter>Game\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="Player.cpp">
+      <Filter>Game\Actor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -80,14 +92,23 @@
     <ClInclude Include="MathUtility.h">
       <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="Player.h">
-      <Filter>Game</Filter>
-    </ClInclude>
     <ClInclude Include="World.h">
       <Filter>Game</Filter>
     </ClInclude>
     <ClInclude Include="ActorFactory.h">
       <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Actor.h">
+      <Filter>Game\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Monster.h">
+      <Filter>Game\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Pawn.h">
+      <Filter>Game\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Player.h">
+      <Filter>Game\Actor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

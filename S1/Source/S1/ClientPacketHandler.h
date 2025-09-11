@@ -26,13 +26,13 @@ enum : uint16
 
 // Custom Handlers
 bool Handle_INVALID(FPacketSessionRef& InSession, BYTE* InBuffer, int32 InLength);
-bool Handle_S_LOGIN(FPacketSessionRef& InSession, Protocol::S_LOGIN& Packet);
-bool Handle_S_ENTER_GAME(FPacketSessionRef& InSession, Protocol::S_ENTER_GAME& Packet);
-bool Handle_S_LEAVE_GAME(FPacketSessionRef& InSession, Protocol::S_LEAVE_GAME& Packet);
-bool Handle_S_SPAWN(FPacketSessionRef& InSession, Protocol::S_SPAWN& Packet);
-bool Handle_S_DESPAWN(FPacketSessionRef& InSession, Protocol::S_DESPAWN& Packet);
-bool Handle_S_MOVE(FPacketSessionRef& InSession, Protocol::S_MOVE& Packet);
-bool Handle_S_CHAT(FPacketSessionRef& InSession, Protocol::S_CHAT& Packet);
+bool Handle_S_LOGIN(FPacketSessionRef& InSession, Protocol::S_LOGIN& InPacket);
+bool Handle_S_ENTER_GAME(FPacketSessionRef& InSession, Protocol::S_ENTER_GAME& InPacket);
+bool Handle_S_LEAVE_GAME(FPacketSessionRef& InSession, Protocol::S_LEAVE_GAME& InPacket);
+bool Handle_S_SPAWN(FPacketSessionRef& InSession, Protocol::S_SPAWN& InPacket);
+bool Handle_S_DESPAWN(FPacketSessionRef& InSession, Protocol::S_DESPAWN& InPacket);
+bool Handle_S_MOVE(FPacketSessionRef& InSession, Protocol::S_MOVE& InPacket);
+bool Handle_S_CHAT(FPacketSessionRef& InSession, Protocol::S_CHAT& InPacket);
 
 class ClientPacketHandler
 {

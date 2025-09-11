@@ -8,6 +8,7 @@
 //#include "ClientPacketHandler.h"
 #include <tchar.h>
 #include "Task.h"
+#include "World.h"
 
 enum
 {
@@ -52,7 +53,9 @@ int main()
 	}
 
 	// Main Thread
-	//DoWorkerJob(service);
+	// DoWorkerJob(service);
+
+	GWorld->DoTask([]() { GWorld->Tick(); });
 
 	while (true)
 	{

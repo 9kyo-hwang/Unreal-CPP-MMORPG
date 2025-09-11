@@ -20,7 +20,7 @@ FNetAddress::FNetAddress(wstring Ip, uint16 Port)
 wstring FNetAddress::GetIpAddress() const
 {
 	WCHAR Buffer[100];
-	::InetNtopW(AF_INET, &SockAddr.sin_addr, Buffer, len32(Buffer));
+	::InetNtopW(AF_INET, &SockAddr.sin_addr, Buffer, Sizeof(Buffer));
 	return wstring(Buffer);
 }
 

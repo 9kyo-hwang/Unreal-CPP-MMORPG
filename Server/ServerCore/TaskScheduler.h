@@ -31,7 +31,7 @@ struct FTimerItem
 class FTaskScheduler
 {
 public:
-	void Register(uint64 InRate, TWeakPtr<FTaskQueue> InOwner, FTaskRef InTask);
+	void Register(uint64 InRate, TWeakPtr<FTaskQueue> InQueue, FTaskRef InTask);
 	void DispatchReadyTasks(uint64 InTick);
 	void Clear();
 

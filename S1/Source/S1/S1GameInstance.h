@@ -11,9 +11,9 @@ class AS1Player;
 
 namespace Protocol
 {
+	class ActorData;
 	class S_SPAWN;
 	class S_ENTER_GAME;
-	class PlayerInfo;
 	class S_DESPAWN;
 	class S_MOVE;
 }
@@ -38,11 +38,11 @@ public:
 
 	void SendPacket(FSendBufferRef SendBuffer);
 
-	void SpawnPlayer(const Protocol::PlayerInfo& InPlayerInfo, bool bIsMyPlayer);
+	void SpawnPlayer(const Protocol::ActorData& InActorData, bool bIsMyPlayer);
 	void SpawnPlayer(const Protocol::S_ENTER_GAME& InPacket);
 	void SpawnPlayer(const Protocol::S_SPAWN& InPacket);
 
-	void DespawnPlayer(const uint64 ObjectId);
+	void DespawnPlayer(const uint64 ActorId);
 	void DespawnPlayer(const Protocol::S_DESPAWN& InPacket);
 
 	void MovePlayer(const Protocol::S_MOVE& InPacket);

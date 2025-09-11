@@ -37,16 +37,16 @@ AS1Player::AS1Player()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
-	CurrentInfo = new Protocol::PlayerInfo();
-	DestinationLocation = new Protocol::PlayerInfo();
+	CurrentPosition = new Protocol::PositionData();
+	DestinationPosition = new Protocol::PositionData();
 }
 
 AS1Player::~AS1Player()
 {
-	delete CurrentInfo;
-	delete DestinationLocation;
-	CurrentInfo = nullptr;
-	DestinationLocation = nullptr;
+	delete CurrentPosition;
+	delete DestinationPosition;
+	CurrentPosition = nullptr;
+	DestinationPosition = nullptr;
 }
 
 
@@ -56,10 +56,10 @@ void AS1Player::BeginPlay()
 	Super::BeginPlay();
 
 	FVector Location = GetActorLocation();
-	DestinationLocation->set_x(Location.X);
-	DestinationLocation->set_y(Location.Y);
-	DestinationLocation->set_z(Location.Z);
-	DestinationLocation->set_yaw(GetControlRotation().Yaw);
+	DestinationPosition->set_x(Location.X);
+	DestinationPosition->set_y(Location.Y);
+	DestinationPosition->set_z(Location.Z);
+	DestinationPosition->set_yaw(GetControlRotation().Yaw);
 
 	SetMoveState(Protocol::MOVE_STATE_IDLE);
 }
@@ -69,15 +69,15 @@ void AS1Player::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 
 	FVector Current = GetActorLocation();
-	CurrentInfo->set_x(Current.X);
-	CurrentInfo->set_y(Current.Y);
-	CurrentInfo->set_z(Current.Z);
-	CurrentInfo->set_yaw(GetControlRotation().Yaw);
+	CurrentPosition->set_x(Current.X);
+	CurrentPosition->set_y(Current.Y);
+	CurrentPosition->set_z(Current.Z);
+	CurrentPosition->set_yaw(GetControlRotation().Yaw);
 
 	// MyPlayer인 경우 입력에 따라 변화, 아니라면 목적지 - 현재 위치 간 보정 수행
 	if (!IsMyPlayer())
 	{
-		//FVector Destination = FVector(DestinationLocation->x(), DestinationLocation->y(), DestinationLocation->z());
+		//FVector Destination = FVector(DestinationPosition->x(), DestinationPosition->y(), DestinationPosition->z());
 		//FVector MoveDirection = Destination - Current;
 		//const float DirectionLength = MoveDirection.Length();
 		//MoveDirection.Normalize();
@@ -92,7 +92,7 @@ void AS1Player::Tick(float DeltaSeconds)
 		{
 		case Protocol::MOVE_STATE_RUN:
 			// 애니메이션이 적용되도록 아래 코드로 변경
-			SetActorRotation(FRotator(0, DestinationLocation->yaw(), 0));
+			SetActorRotation(FRotator(0, DestinationPosition->yaw(), 0));
 			AddMovementInput(GetActorForwardVector());
 			break;
 		default: break;
@@ -100,29 +100,29 @@ void AS1Player::Tick(float DeltaSeconds)
 	}
 }
 
-void AS1Player::SetCurrentLocation(const Protocol::PlayerInfo& InInfo)
+void AS1Player::SetCurrentPosition(const Protocol::PositionData& NewPosition)
 {
-	if (CurrentInfo->object_id() != 0)
+	if (CurrentPosition->actor_id() != 0)
 	{
-		check(CurrentInfo->object_id() == InInfo.object_id());
+		check(CurrentPosition->actor_id() == NewPosition.actor_id());
 	}
 
-	CurrentInfo->CopyFrom(InInfo);
+	CurrentPosition->CopyFrom(NewPosition);
 
-	FVector Location(InInfo.x(), InInfo.y(), InInfo.z());
+	FVector Location(NewPosition.x(), NewPosition.y(), NewPosition.z());
 	SetActorLocation(Location);
 }
 
-void AS1Player::SetDestinationLocation(const Protocol::PlayerInfo& InInfo) const
+void AS1Player::SetDestinationPosition(const Protocol::PositionData& NewPosition) const
 {
-	if (CurrentInfo->object_id() != 0)
+	if (CurrentPosition->actor_id() != 0)
 	{
-		check(CurrentInfo->object_id() == InInfo.object_id());
+		check(CurrentPosition->actor_id() == NewPosition.actor_id());
 	}
 
 	// 세팅은 하되 이동을 하지는 않음
-	DestinationLocation->CopyFrom(InInfo);
-	SetMoveState(InInfo.state());	// 상태만 별도로 즉시 적용
+	DestinationPosition->CopyFrom(NewPosition);
+	SetMoveState(NewPosition.move_state());	// 상태만 별도로 즉시 적용
 }
 
 bool AS1Player::IsMyPlayer() const
@@ -130,12 +130,12 @@ bool AS1Player::IsMyPlayer() const
 	return IsA(AS1MyPlayer::StaticClass());
 }
 
-void AS1Player::SetMoveState(Protocol::MoveState NextState) const
+void AS1Player::SetMoveState(Protocol::EMoveState NextState) const
 {
 	if (GetMoveState() == NextState)
 	{
 		return;
 	}
 
-	CurrentInfo->set_state(NextState);
+	CurrentPosition->set_move_state(NextState);
 }

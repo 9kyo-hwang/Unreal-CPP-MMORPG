@@ -73,7 +73,7 @@ void US1GameInstance::SendPacket(FSendBufferRef SendBuffer)
 	GameServerSession->SendPacket(SendBuffer);
 }
 
-void US1GameInstance::SpawnPlayer(const Protocol::PlayerInfo& InPlayerInfo, bool bIsMyPlayer)
+void US1GameInstance::SpawnPlayer(const Protocol::ActorData& InActorData, bool bIsMyPlayer)
 {
 	if (Socket == nullptr || GameServerSession == nullptr)
 	{
@@ -82,25 +82,27 @@ void US1GameInstance::SpawnPlayer(const Protocol::PlayerInfo& InPlayerInfo, bool
 
 	if (UWorld* World = GetWorld())
 	{
-		const uint64 ObjectId = InPlayerInfo.object_id();
-		if (!Players.Contains(ObjectId))
+		const uint64 ActorId = InActorData.actor_id();
+		const Protocol::PositionData& Position = InActorData.position();
+
+		if (!Players.Contains(ActorId))
 		{
-			FVector SpawnLocation(InPlayerInfo.x(), InPlayerInfo.y(), InPlayerInfo.z());
+			FVector SpawnLocation(Position.x(), Position.y(), Position.z());
 			if (bIsMyPlayer)
 			{
 				const APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
 				if (AS1Player* Player = Cast<AS1Player>(PC->GetPawn()))
 				{
-					Player->SetCurrentLocation(InPlayerInfo);
+					Player->SetCurrentPosition(Position);
 					MyPlayer = Player;
-					Players.Emplace(ObjectId, Player);
+					Players.Emplace(ActorId, Player);
 				}
 			}
 			else
 			{
 				AS1Player* OtherPlayer = Cast<AS1Player>(World->SpawnActor(OtherPlayerClass, &SpawnLocation));
-				OtherPlayer->SetCurrentLocation(InPlayerInfo);
-				Players.Emplace(ObjectId, OtherPlayer);
+				OtherPlayer->SetCurrentPosition(Position);
+				Players.Emplace(ActorId, OtherPlayer);
 			}
 		}
 	}
@@ -108,18 +110,18 @@ void US1GameInstance::SpawnPlayer(const Protocol::PlayerInfo& InPlayerInfo, bool
 
 void US1GameInstance::SpawnPlayer(const Protocol::S_ENTER_GAME& InPacket)
 {
-	SpawnPlayer(InPacket.player(), true);
+	SpawnPlayer(InPacket.actor_data(), true);
 }
 
 void US1GameInstance::SpawnPlayer(const Protocol::S_SPAWN& InPacket)
 {
-	for (auto& PlayerInfo : InPacket.players())
+	for (auto& ActorData : InPacket.players())
 	{
-		SpawnPlayer(PlayerInfo, false);
+		SpawnPlayer(ActorData, false);
 	}
 }
 
-void US1GameInstance::DespawnPlayer(const uint64 ObjectId)
+void US1GameInstance::DespawnPlayer(const uint64 ActorId)
 {
 	if (!Socket || !GameServerSession)
 	{
@@ -128,7 +130,7 @@ void US1GameInstance::DespawnPlayer(const uint64 ObjectId)
 
 	if (UWorld* World = GetWorld())
 	{
-		if (TObjectPtr<AS1Player>* TargetPlayerPtr = Players.Find(ObjectId))
+		if (TObjectPtr<AS1Player>* TargetPlayerPtr = Players.Find(ActorId))
 		{
 			World->DestroyActor(*TargetPlayerPtr);
 		}
@@ -137,7 +139,7 @@ void US1GameInstance::DespawnPlayer(const uint64 ObjectId)
 
 void US1GameInstance::DespawnPlayer(const Protocol::S_DESPAWN& InPacket)
 {
-	for (const uint64 ObjectId : InPacket.object_ids())
+	for (const uint64 ObjectId : InPacket.actor_ids())
 	{
 		DespawnPlayer(ObjectId);
 	}
@@ -152,12 +154,12 @@ void US1GameInstance::MovePlayer(const Protocol::S_MOVE& InPacket)
 
 	if (UWorld* World = GetWorld())
 	{
-		const int64 ObjectId = InPacket.info().object_id();
-		if (const TObjectPtr<AS1Player>* PlayerPtr = Players.Find(ObjectId))
+		const int64 ActorId = InPacket.position().actor_id();
+		if (const TObjectPtr<AS1Player>* PlayerPtr = Players.Find(ActorId))
 		{
 			if (const TObjectPtr<AS1Player> Player = *PlayerPtr; !Player->IsMyPlayer())
 			{
-				Player->SetDestinationLocation(InPacket.info());
+				Player->SetDestinationPosition(InPacket.position());
 			}
 		}
 	}

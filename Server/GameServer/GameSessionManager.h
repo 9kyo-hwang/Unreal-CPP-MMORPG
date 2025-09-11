@@ -1,9 +1,6 @@
 #pragma once
 
 class FGameSession;
-
-using FGameSessionRef = TSharedPtr<FGameSession>;
-
 class FGameSessionManager
 {
 public:

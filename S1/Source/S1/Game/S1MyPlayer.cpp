@@ -124,10 +124,10 @@ void AS1MyPlayer::Tick(float DeltaTime)
 		PacketSendTimer = PacketSendDelay;
 		Protocol::C_MOVE Packet;
 
-		Protocol::PlayerInfo* Info = Packet.mutable_info();
-		Info->CopyFrom(*Super::CurrentInfo);
-		Info->set_yaw(DesiredYaw);	// 보정 중인 현재 회전값이 아닌, 최종적으로 완료된 회전값
-		Info->set_state(GetMoveState());	// 혹시 모르니
+		Protocol::PositionData* Position = Packet.mutable_position();
+		Position->CopyFrom(*Super::CurrentPosition);
+		Position->set_yaw(DesiredYaw);	// 보정 중인 현재 회전값이 아닌, 최종적으로 완료된 회전값
+		Position->set_move_state(GetMoveState());	// 혹시 모르니
 
 		Cast<US1GameInstance>(GWorld->GetGameInstance())->SendPacket(ClientPacketHandler::MakeSendBuffer(Packet));
 	}
