@@ -35,4 +35,15 @@
 </table>
 
 - [노션 페이지](https://coal-schooner-81d.notion.site/Part4-18f24bba9b0480a98223ee92d85cd308?source=copy_link)
-- [최신 레포지토리]()
+- [최신 레포지토리](https://github.com/9kyo-hwang/Unreal-CPP-MMORPG/tree/Part4/Section8)
+
+### Part5: [UE5 & IOCP 서버 연동](https://www.inflearn.com/course/unreal-3d-mmorpg-5)
+<table>
+  <tr>
+    <td><img src="https://cdn.inflearn.com/public/files/courses/326922/c6024778-8da4-4200-bce7-c27aab056572/326922-1.png?f=avif&w=960" width="480"></td>
+    <td>언리얼 엔진의 자체 네트워크 (Dedicated-Server) 기술은 편리하고 빠르게 온라인 게임을 개발할 수 있지만, 기본적으로 싱글 쓰레드로 서버가 동작하기 때문에 MMORPG 같이 아주 많은 장르는 개발할 수 없습니다.<br>Part5는 Part4에서 공부한 C++ IOCP 서버를 언리얼 엔진에 연동하는 강의입니다. 세계 어디에서도 자료가 전무한, 자체 구현 C++ 서버와 언리얼 엔진을 직접 연동해서 스폰, 디스폰 및 이동 동기화를 하는 핵심 기술을 보여드립니다.<br>국내 게임 시장에서 MMO 비중이 높다는 것을 감안하면, 실제 회사에서나 경험할 수 있는 프로젝트를 미리 만들어보는 것은 큰 의미가 있습니다. 또한 UE5(클라) & C++ IOCP (서버)를 직접 연동하여 동작하는 온라인 RPG 포폴을 만든다면, 기술적으로는 그 이상 올라갈 수 없는 <초격차>를 자랑하는 포폴이 될 것입니다.<br>본 강의에서 만든 프레임워크를 기반으로, 손쉽게 온라인 게임 포폴에 도전해보세요!</td>
+  </tr>
+</table>
+
+- [노션 페이지](https://www.notion.so/Part5-18f24bba9b048009844cc6c3cb26f4d0)
+- [최신 레포지토리](https://github.com/9kyo-hwang/Unreal-CPP-MMORPG/tree/Part5/Section5)
